@@ -3942,7 +3942,7 @@ function generateEncounters(catName, stats, numEnc, gearCards, homeItems, catRep
           || (pvp.outcome === 'submission' && Math.random() < Math.min(0.65, 0.10 + amicFactor * 0.55));
 
         encounters.push({
-          type:'pvp-battle', icon: friendly?'🤜': (allyAssist?'🤝'): won?'🏆': draw?'🤝':'💨',
+          type:'pvp-battle', icon: friendly?'🤜': allyAssist?'🤝': won?'🏆': draw?'🤝':'💨',
           opponent:opp, won, draw: draw || !!allyAssist, friendly, pvpResult:pvp,
           repDelta, coins, loot, befriendable, allyAssist
         });
