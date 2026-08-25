@@ -1,3 +1,8 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Cazooka Dashboard</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -172,7 +177,11 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .sbx-placeholder{color:var(--t3);font-size:12px;font-style:italic;padding-top:60px;text-align:center;line-height:1.7}
 
 /* CARD VISUAL */
-.cv{width:210px;flex-shrink:0;border-radius:12px;overflow:hidden;border:1.5px solid var(--cv-r,var(--cv-c,var(--bd)));box-shadow:0 0 0 1px color-mix(in srgb,var(--cv-r,var(--cv-c,var(--bd))) 28%,transparent),0 10px 36px rgba(0,0,0,.45)}
+.cv{position:relative;width:210px;flex-shrink:0;border-radius:12px;overflow:hidden;border:1.5px solid var(--cv-r,var(--cv-c,var(--bd)));box-shadow:0 0 0 1px color-mix(in srgb,var(--cv-r,var(--cv-c,var(--bd))) 28%,transparent),0 10px 36px rgba(0,0,0,.45)}
+.cv-full-art-img{position:absolute;inset:0;z-index:0;background-repeat:no-repeat;user-select:none}
+.cv-full-art-tint{position:absolute;inset:0;z-index:1;pointer-events:none}
+.cv.art-full .cv-hdr,.cv.art-full .cv-body,.cv.art-full .cv-foot{position:relative;z-index:2;background:rgba(10,12,20,.55);backdrop-filter:blur(1px)}
+.cv.art-full .cv-body{background:linear-gradient(to bottom,rgba(10,12,20,.35),rgba(10,12,20,.72))}
 .cv-hdr{padding:9px 12px 7px;background:color-mix(in srgb,var(--cv-c) 10%,var(--s2))}
 .cv-trow{display:flex;align-items:center;gap:5px;margin-bottom:4px}
 .cv-tdot{width:6px;height:6px;border-radius:50%;background:var(--cv-c);flex-shrink:0}
@@ -961,6 +970,8 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
   .card-edit-panel{width:min(300px,90vw)}
 }
 </style>
+</head>
+<body>
 
 <div id="onboard" class="onboard-ov" style="display:none"></div>
 <div id="game-home" class="game-ov" style="display:none"></div>
@@ -1189,7 +1200,10 @@ const STATS_ORDER = ['strength','speed','agility','stamina','intelligence','stea
 
 function cardArtHTML(card, tm) {
   if (card && card.image_url) {
-    return `<img src="${card.image_url}" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover">`;
+    const art = card.art || {};
+    const pos = art.position || { x:50, y:50 };
+    const zoom = art.zoom || 1;
+    return `<img src="${card.image_url}" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;object-position:${pos.x}% ${pos.y}%;transform:scale(${zoom});transform-origin:${pos.x}% ${pos.y}%">`;
   }
   return tm.emoji;
 }
@@ -1288,26 +1302,7 @@ function renderLibrary() {
 }
 
 function buildCardTile(card) {
-  const tm = TYPE_META[card.type];
-  const rc = RAR_COLOR[card.rarity] || 'var(--t3)';
-  const body = buildCardBodyHtml(card, true);
-  return `<div class="cv" style="--cv-c:${tm.color};--cv-r:${rc}" onclick="openCardModal('${card.id}')">
-    <div class="cv-hdr">
-      <div class="cv-trow">
-        <div class="cv-tdot"></div>
-        <span class="cv-tlbl">${tm.label}</span>
-        <span class="cv-rpill">${card.rarity}</span>
-      </div>
-      <div class="cv-name">${card.name}</div>
-      ${card.series ? `<div class="cv-series">${card.series}</div>` : ''}
-    </div>
-    <div class="cv-art">${cardArtHTML(card, tm)}</div>
-    <div class="cv-body">${body}</div>
-    <div class="cv-foot">
-      <span class="cv-cost">${card.coin_cost > 0 ? '◈ '+card.coin_cost : 'Free'}</span>
-      ${card.is_starter ? '<span class="cv-startpill">★ Starter</span>' : ''}
-    </div>
-  </div>`;
+  return buildCardFaceHtml(card, { onclick: `openCardModal('${card.id}')` });
 }
 
 /* ══════════════════════════════════════════
@@ -1386,29 +1381,63 @@ function buildCardBodyHtml(card, showDesc=true) {
   return body;
 }
 
-function buildModalCardHtml(card) {
+/* Shared `.cv` card face — used by the library grid, the lightbox modal,
+   and the sandbox detail panel. `card.art` (set via the admin Card
+   Studio) drives full-art vs inset rendering; keep this in sync with the
+   twin implementation in admin.html's live preview if either changes. */
+function buildCardFaceHtml(card, opts = {}) {
+  const {
+    cssClass = 'cv',
+    onclick = null,
+    showSeries = true,
+    showStarterPill = true,
+    showDesc = true,
+  } = opts;
+
   const tm = TYPE_META[card.type];
-  const rc = RAR_COLOR[card.rarity];
-  const body = buildCardBodyHtml(card);
-  const hasEdit = !!CARD_EDITS[card.id];
-  return `
-    <div class="cv cmo-cv" style="--cv-c:${tm.color};--cv-r:${rc}">
-      <div class="cv-hdr">
-        <div class="cv-trow">
-          <div class="cv-tdot"></div>
-          <span class="cv-tlbl">${tm.label}</span>
-          <span class="cv-rpill">${card.rarity}</span>
-        </div>
-        <div class="cv-name">${card.name}</div>
-      ${card.series ? `<div class="cv-series">${card.series}</div>` : ''}
+  const rc = RAR_COLOR[card.rarity] || 'var(--t3)';
+  const body = buildCardBodyHtml(card, showDesc);
+  const art = card.art || {};
+  const isFull = art.mode === 'full' && !!card.image_url;
+  const clickAttr = onclick ? ` onclick="${onclick}"` : '';
+
+  let artLayers = '';
+  let artBoxHtml = `<div class="cv-art">${cardArtHTML(card, tm)}</div>`;
+
+  if (isFull) {
+    const pos = art.position || { x: 50, y: 50 };
+    const zoom = art.zoom || 1;
+    artLayers = `<div class="cv-full-art-img" style="background-image:url('${card.image_url}');background-position:${pos.x}% ${pos.y}%;background-size:${Math.round(zoom*100)}%"></div>`;
+    if (art.overlay && art.overlay.enabled) {
+      const op = (art.overlay.opacity != null ? art.overlay.opacity : 40) / 100;
+      artLayers += `<div class="cv-full-art-tint" style="background:${art.overlay.color || '#000000'};opacity:${op}"></div>`;
+    }
+    artBoxHtml = '';
+  }
+
+  return `<div class="${cssClass}${isFull ? ' art-full' : ''}" style="--cv-c:${tm.color};--cv-r:${rc}"${clickAttr}>
+    ${artLayers}
+    <div class="cv-hdr">
+      <div class="cv-trow">
+        <div class="cv-tdot"></div>
+        <span class="cv-tlbl">${tm.label}</span>
+        <span class="cv-rpill">${card.rarity}</span>
       </div>
-      <div class="cv-art">${cardArtHTML(card, tm)}</div>
-      <div class="cv-body">${body}</div>
-      <div class="cv-foot">
-        <span class="cv-cost">${card.coin_cost > 0 ? '◈ '+card.coin_cost : 'Free'}</span>
-        ${card.is_starter ? '<span class="cv-startpill">★ Starter</span>' : ''}
-      </div>
+      <div class="cv-name">${card.name}</div>
+      ${showSeries && card.series ? `<div class="cv-series">${card.series}</div>` : ''}
     </div>
+    ${artBoxHtml}
+    <div class="cv-body">${body}</div>
+    <div class="cv-foot">
+      <span class="cv-cost">${card.coin_cost > 0 ? '◈ '+card.coin_cost : 'Free'}</span>
+      ${showStarterPill && card.is_starter ? '<span class="cv-startpill">★ Starter</span>' : ''}
+    </div>
+  </div>`;
+}
+
+function buildModalCardHtml(card) {
+  return `
+    ${buildCardFaceHtml(card, { cssClass: 'cv cmo-cv' })}
     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center">
       <button class="cmo-edit-btn" onclick="openEditPanel('${card.id}')">✎ Edit Card</button>
       <button class="cmo-close" onclick="closeCardModal()">✕ Close</button>
@@ -2369,81 +2398,14 @@ function renderCardDetail() {
     el.innerHTML = `<div class="sbx-placeholder">← Pick a card to preview it<br><br>Add cards to your deck using<br>the ◈ coins budget above.</div>`;
     return;
   }
-  const tm = TYPE_META[card.type];
-  const rc = RAR_COLOR[card.rarity];
   const inDeck = sbx.deck.some(d => d.id === card.id);
   const canAfford = sbx.coins >= card.coin_cost;
-
-  // Card visual body content
-  let bodyContent = `<div class="cv-desc">${card.description}</div>`;
-
-  if (card.type === 'cat_breed') {
-    const stats = card.data.stats;
-    const allStats = ['strength','speed','agility','stamina','intelligence','stealth','loyalty','affection','amicability','weight'];
-    bodyContent += `<div class="cv-stats-grid">` +
-      allStats.filter(k => stats[k] !== undefined).map(k => {
-        const v = stats[k]; const pct = ((v-1)/99)*100;
-        return `<div class="cvs"><span class="cvs-n">${k.slice(0,3)}</span><div class="cvs-bar"><div class="cvs-fill" style="width:${pct}%"></div></div><span class="cvs-v">${v}</span></div>`;
-      }).join('') + `</div>`;
-    bodyContent += `<div class="cv-subtext" style="color:var(--t3)">◈ Carry slots: ${card.data.base_inventory_slots}</div>`;
-  } else if (card.type === 'home') {
-    bodyContent += `<div class="cv-hchips">
-      <span class="cv-hchip">🐱 ${card.data.max_occupants} cats</span>
-      <span class="cv-hchip">📦 ${card.data.expansion_slots} item slots</span>
-      <span class="cv-hchip">×${card.data.comfort_multiplier} comfort</span>
-      <span class="cv-hchip">${card.data.training_tier}</span>
-    </div>`;
-  } else if (card.type === 'home_item') {
-    const devChips = devRateChips(card);
-    if (devChips) {
-      bodyContent += `<div style="font-family:var(--fm);font-size:8px;text-transform:uppercase;letter-spacing:.08em;color:var(--t3);margin-bottom:3px">🌱 Development / 24h</div>`;
-      bodyContent += `<div class="cv-effs">${devChips}</div>`;
-    }
-    bodyContent += `<div class="cv-subtext" style="color:var(--t3)">passive · permanent stat growth</div>`;
-  } else {
-    const effs = getEffects(card);
-    if (effs.length) {
-      bodyContent += `<div class="cv-effs">` + effs.map(e => {
-        const v = parseModifier(e.modifier);
-        return `<span class="cv-eff ${v>=0?'pos':'neg'}">${e.stat} ${v>=0?'+':''}${v}</span>`;
-      }).join('') + `</div>`;
-    }
-    if (card.type === 'battle_gear') {
-      bodyContent += `<div class="cv-subtext" style="color:var(--t3)">Gear slot: ${card.data.gear_slot}${card.data.special_properties?' · '+card.data.special_properties.replace(/_/g,' '):''}`;
-      if (card.data.expiry?.type !== 'none') bodyContent += ` · expires ${card.data.expiry.value} rounds`;
-      bodyContent += `</div>`;
-      if (card.data.home_dev_effect) {
-        const hde = card.data.home_dev_effect;
-        const mulStr = hde.multiplier ? ` · ×${hde.multiplier} all dev` : '';
-        bodyContent += `<div class="cv-subtext" style="color:#a78bfa;margin-top:2px">🏡 ${hde.label}${mulStr}</div>`;
-      }
-    } else if (card.type === 'special_ability') {
-      bodyContent += `<div class="cv-subtext" style="color:var(--t3)">${card.data.memory_slots_required} memory slot${card.data.memory_slots_required>1?'s':''} · min INT+LOY ${card.data.min_intelligence_plus_loyalty}</div>`;
-      if (card.data.positive_description) bodyContent += `<div class="cv-subtext" style="color:#34D399;font-size:10px">${card.data.positive_description}</div>`;
-      if (card.data.negative_description) bodyContent += `<div class="cv-subtext" style="color:#F87171;font-size:10px">${card.data.negative_description}</div>`;
-    }
-  }
 
   const btnClass = inDeck ? 'in-deck' : canAfford ? 'can-buy' : 'no-coins';
   const btnLabel = inDeck ? '✓ In Deck' : `+ Add to Deck${card.coin_cost > 0 ? ' (◈'+card.coin_cost+')' : ' (Free)'}`;
 
   el.innerHTML = `
-    <div class="cv cmo-cv" style="--cv-c:${tm.color};--cv-r:${rc}">
-      <div class="cv-hdr">
-        <div class="cv-trow">
-          <div class="cv-tdot"></div>
-          <span class="cv-tlbl">${tm.label}</span>
-          <span class="cv-rpill">${card.rarity}</span>
-        </div>
-        <div class="cv-name">${card.name}</div>
-      </div>
-      <div class="cv-art">${cardArtHTML(card, tm)}</div>
-      <div class="cv-body">${bodyContent}</div>
-      <div class="cv-foot">
-        <span class="cv-cost">${card.coin_cost > 0 ? '◈ '+card.coin_cost : 'Free'}</span>
-        ${card.is_starter ? '<span class="cv-startpill">★ Starter</span>' : ''}
-      </div>
-    </div>
+    ${buildCardFaceHtml(card, { cssClass: 'cv cmo-cv', showSeries: false })}
     <div class="sbx-add-area">
       <button class="btn-add ${btnClass}" onclick="toggleDeck('${card.id}')" ${inDeck||!canAfford?'':''}>${btnLabel}</button>
       <div class="add-note">${sbx.coins} coins remaining · ${sbx.deck.length} cards in deck</div>
@@ -5897,3 +5859,5 @@ function buyCard(cardId, cost) {
 ══════════════════════════════════════════ */
 initApp();
 </script>
+</body>
+</html>

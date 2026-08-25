@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Cazooka Admin</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&family=DM+Mono:wght@500&display=swap">
 <style>
   :root {
     --bg:#0D1117;--s1:#161B22;--s2:#1C2128;--s3:#21262D;
@@ -16,6 +18,14 @@
     --yellow:#D29922;--yellow-dim:rgba(210,153,34,.12);
     --r:8px;--r-sm:5px;
     --ff:'Inter',system-ui,sans-serif;
+    /* Card-face tokens, matching index.html's .cv template so the studio
+       preview renders identically to the live game. */
+    --col-breed:#F97316;--col-home:#22C55E;--col-item:#38BDF8;
+    --col-gear:#F43F5E;--col-ability:#A855F7;
+    --rar-common:#94A3B8;--rar-uncommon:#34D399;--rar-rare:#60A5FA;
+    --rar-epic:#A78BFA;--rar-legendary:#F0A030;
+    --fd:'Syne',Georgia,sans-serif;--fb:'DM Sans',Helvetica,sans-serif;--fm:'DM Mono',monospace;
+    --acc2:#FFC860;--acc-bg:rgba(240,160,48,.1);
   }
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
   html,body{height:100%;background:var(--bg);color:var(--t1);font-family:var(--ff);font-size:14px;line-height:1.5}
@@ -118,17 +128,72 @@
   .rarity-rare{border-left:3px solid var(--acc)}
   .rarity-legendary{border-left:3px solid var(--yellow)}
 
-  /* ── Card Editor Drawer ── */
-  .drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;display:none}
-  .drawer-overlay.open{display:block}
-  .drawer{position:fixed;right:0;top:0;bottom:0;width:min(520px,100vw);background:var(--s1);border-left:1px solid var(--bd);z-index:101;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .2s ease}
-  .drawer.open{transform:translateX(0)}
-  .drawer-head{padding:20px 24px;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:12px;flex-shrink:0}
-  .drawer-title{font-size:15px;font-weight:700;flex:1}
-  .drawer-body{flex:1;overflow-y:auto;padding:24px}
-  .drawer-foot{padding:16px 24px;border-top:1px solid var(--bd);display:flex;gap:10px;flex-shrink:0}
-  .drawer-err{font-size:12px;color:var(--red);background:var(--red-dim);border:1px solid rgba(248,81,73,.25);border-radius:var(--r-sm);padding:8px 12px;margin-bottom:16px;display:none}
-  .drawer-ok{font-size:12px;color:var(--green);background:var(--green-dim);border:1px solid rgba(63,185,80,.25);border-radius:var(--r-sm);padding:8px 12px;margin-bottom:16px;display:none}
+  /* ── Card face (.cv) — ported from index.html's live-game template so
+     the studio preview matches exactly. Keep both in sync. ── */
+  .cv{position:relative;width:210px;flex-shrink:0;border-radius:12px;overflow:hidden;border:1.5px solid var(--cv-r,var(--cv-c,var(--bd)));box-shadow:0 0 0 1px color-mix(in srgb,var(--cv-r,var(--cv-c,var(--bd))) 28%,transparent),0 10px 36px rgba(0,0,0,.45)}
+  .cv-full-art-img{position:absolute;inset:0;z-index:0;background-repeat:no-repeat;user-select:none}
+  .cv-full-art-tint{position:absolute;inset:0;z-index:1;pointer-events:none}
+  .cv.art-full .cv-hdr,.cv.art-full .cv-body,.cv.art-full .cv-foot{position:relative;z-index:2;background:rgba(10,12,20,.55);backdrop-filter:blur(1px)}
+  .cv.art-full .cv-body{background:linear-gradient(to bottom,rgba(10,12,20,.35),rgba(10,12,20,.72))}
+  .cv-hdr{padding:9px 12px 7px;background:color-mix(in srgb,var(--cv-c) 10%,var(--s2))}
+  .cv-trow{display:flex;align-items:center;gap:5px;margin-bottom:4px}
+  .cv-tdot{width:6px;height:6px;border-radius:50%;background:var(--cv-c);flex-shrink:0}
+  .cv-tlbl{font-family:var(--fm);font-size:8px;text-transform:uppercase;letter-spacing:.1em;color:var(--cv-c);flex:1}
+  .cv-rpill{font-family:var(--fm);font-size:7px;text-transform:uppercase;letter-spacing:.07em;padding:2px 7px;border-radius:999px;border:1px solid color-mix(in srgb,var(--cv-r) 50%,transparent);background:color-mix(in srgb,var(--cv-r) 12%,transparent);color:var(--cv-r)}
+  .cv-name{font-family:var(--fd);font-weight:700;font-size:14px;color:var(--t1);line-height:1.25;text-wrap:balance}
+  .cv-series{font-family:var(--fm);font-size:8px;text-transform:uppercase;letter-spacing:.1em;color:var(--cv-c);opacity:.75;margin-top:2px}
+  .cv-art{height:96px;background:linear-gradient(135deg,color-mix(in srgb,var(--cv-r,var(--cv-c)) 28%,var(--s3)),color-mix(in srgb,var(--cv-r,var(--cv-c)) 6%,var(--s2)));display:flex;align-items:center;justify-content:center;font-size:44px;position:relative;overflow:hidden;user-select:none}
+  .cv-art::after{content:'';position:absolute;inset:0;background:linear-gradient(to bottom,transparent 50%,var(--s1))}
+  .cv-body{padding:8px 12px 10px;background:var(--s1);display:flex;flex-direction:column;gap:8px}
+  .cv-desc{font-size:10.5px;color:var(--t2);font-style:italic;line-height:1.45}
+  .cv-stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:3px 10px}
+  .cvs{display:flex;align-items:center;gap:4px}
+  .cvs-n{font-family:var(--fm);font-size:7.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--t3);width:26px;flex-shrink:0}
+  .cvs-bar{flex:1;height:3px;background:var(--bd);border-radius:2px;overflow:hidden}
+  .cvs-fill{height:100%;border-radius:2px;background:var(--cv-c)}
+  .cvs-v{font-family:var(--fm);font-size:7.5px;color:var(--t2);font-variant-numeric:tabular-nums;min-width:18px;text-align:right}
+  .cv-effs{display:flex;flex-wrap:wrap;gap:3px}
+  .cv-eff{font-family:var(--fm);font-size:8.5px;padding:2px 7px;border-radius:3px;background:var(--s3);color:var(--t2)}
+  .cv-eff.pos{color:#34D399;background:rgba(52,211,153,.1)}
+  .cv-eff.neg{color:#F87171;background:rgba(248,113,113,.1)}
+  .cv-hchips{display:flex;gap:5px;flex-wrap:wrap}
+  .cv-hchip{font-family:var(--fm);font-size:9px;padding:3px 8px;border-radius:999px;background:var(--s3);color:var(--t2)}
+  .cv-foot{padding:7px 12px 9px;background:color-mix(in srgb,var(--cv-c) 6%,var(--s2));border-top:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .cv-cost{font-family:var(--fm);font-size:12px;font-weight:600;color:var(--acc2)}
+  .cv-startpill{font-family:var(--fm);font-size:7.5px;padding:2px 8px;border-radius:999px;background:var(--acc-bg);border:1px solid var(--acc);color:var(--acc2)}
+  .cv-subtext{font-family:var(--fm);font-size:9px;color:var(--t3)}
+  .cmo-cv{width:300px!important;height:420px!important;display:flex!important;flex-direction:column!important}
+  .cmo-cv .cv-art{height:100px!important;font-size:48px!important;flex-shrink:0!important}
+  .cmo-cv .cv-art::after{display:none}
+  .cmo-cv .cv-hdr{flex-shrink:0!important;padding:10px 14px 8px!important}
+  .cmo-cv .cv-name{font-size:16px!important}
+  .cmo-cv .cv-body{flex:1!important;min-height:0!important;overflow:hidden!important;padding:10px 14px 10px!important;gap:8px!important}
+  .cmo-cv .cvs-n{font-size:9px!important;width:30px!important}
+  .cmo-cv .cvs-v{font-size:9px!important}
+  .cmo-cv .cvs-bar{height:4px!important}
+  .cmo-cv .cv-stats-grid{gap:3px 10px!important}
+  .ced-drag-hint{position:absolute;inset:0;z-index:3;cursor:grab;background:transparent}
+  .ced-drag-hint:active{cursor:grabbing}
+
+  /* ── Card Editor Modal ── */
+  .ced-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:100;display:none}
+  .ced-overlay.open{display:block}
+  .ced-modal{position:fixed;inset:0;margin:auto;z-index:101;background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);width:min(1060px,calc(100% - 48px));height:min(780px,calc(100% - 48px));display:none;overflow:hidden}
+  .ced-modal.open{display:flex}
+  .ced-preview-col{width:300px;flex-shrink:0;background:var(--bg);border-right:1px solid var(--bd);display:flex;flex-direction:column;align-items:center;padding:24px 16px;gap:12px;overflow-y:auto}
+  .ced-preview-hint{font-size:10px;color:var(--t3);text-align:center;line-height:1.5}
+  .ced-zoom-row{display:flex;align-items:center;gap:8px;width:100%;font-size:14px;color:var(--t3)}
+  .ced-zoom-row input[type=range]{flex:1;accent-color:var(--acc)}
+  .ced-main-col{flex:1;display:flex;flex-direction:column;min-width:0}
+  .ced-head{padding:20px 24px;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:12px;flex-shrink:0}
+  .ced-title{font-size:15px;font-weight:700;flex:1}
+  .ced-body{flex:1;overflow-y:auto;padding:24px}
+  .ced-foot{padding:16px 24px;border-top:1px solid var(--bd);display:flex;gap:10px;flex-shrink:0}
+  .ced-err{font-size:12px;color:var(--red);background:var(--red-dim);border:1px solid rgba(248,81,73,.25);border-radius:var(--r-sm);padding:8px 12px;margin-bottom:16px;display:none}
+  .ced-ok{font-size:12px;color:var(--green);background:var(--green-dim);border:1px solid rgba(63,185,80,.25);border-radius:var(--r-sm);padding:8px 12px;margin-bottom:16px;display:none}
+  .art-mode-toggle{display:flex;gap:8px}
+  .art-mode-btn{flex:1;padding:9px;border-radius:var(--r-sm);border:1px solid var(--bd);background:var(--s2);color:var(--t2);font-size:12px;font-weight:600;cursor:pointer;transition:border-color .15s,color .15s}
+  .art-mode-btn.active{border-color:var(--acc);color:var(--acc);background:var(--acc-dim)}
 
   /* ── Form ── */
   .form-section{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--t3);margin:20px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--bd)}
@@ -249,63 +314,94 @@
   </div>
 </div>
 
-<!-- ── Card Editor Drawer ── -->
-<div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
-<div class="drawer" id="drawer">
-  <div class="drawer-head">
-    <span class="drawer-title" id="drawer-title">New Card</span>
-    <button class="btn btn-ghost btn-sm" onclick="closeDrawer()">✕ Close</button>
-  </div>
-  <div class="drawer-body">
-    <div class="drawer-err" id="drawer-err"></div>
-    <div class="drawer-ok"  id="drawer-ok"></div>
+<!-- ── Card Editor Modal ── -->
+<div class="ced-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
+<div class="ced-modal" id="drawer" onclick="event.stopPropagation()">
 
-    <div class="form-section">Identity</div>
-    <div class="form-row">
-      <div class="form-group">
-        <label class="form-lbl">Card ID</label>
-        <input class="form-input" id="f-id" placeholder="e.g. breed-011" autocomplete="off">
-      </div>
-      <div class="form-group">
-        <label class="form-lbl">Type</label>
-        <select class="form-select" id="f-type" onchange="onTypeChange()">
-          <option value="cat_breed">Cat Breed</option>
-          <option value="battle_gear">Battle Gear</option>
-          <option value="home_item">Home Item</option>
-          <option value="special_ability">Special Ability</option>
-          <option value="home">Home</option>
-        </select>
-      </div>
+  <div class="ced-preview-col">
+    <div id="ced-preview"></div>
+    <div class="ced-zoom-row" id="ced-zoom-row" style="display:none">
+      <span>🔍</span>
+      <input type="range" id="f-art-zoom" min="1" max="3" step="0.05" value="1" oninput="onArtZoomInput()">
     </div>
-    <div class="form-row full">
-      <div class="form-group">
-        <label class="form-lbl">Name</label>
-        <input class="form-input" id="f-name" placeholder="Card name" autocomplete="off">
-      </div>
+    <div class="ced-preview-hint" id="ced-preview-hint" style="display:none">Drag the art to reposition it</div>
+  </div>
+
+  <div class="ced-main-col">
+    <div class="ced-head">
+      <span class="ced-title" id="drawer-title">New Card</span>
+      <button class="btn btn-ghost btn-sm" onclick="closeDrawer()">✕ Close</button>
     </div>
-    <div class="form-row full">
-      <div class="form-group">
-        <label class="form-lbl">Description</label>
-        <textarea class="form-textarea" id="f-desc" placeholder="Flavour text / ability description"></textarea>
+    <div class="ced-body">
+      <div class="ced-err" id="drawer-err"></div>
+      <div class="ced-ok"  id="drawer-ok"></div>
+
+      <div class="form-section">Identity</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-lbl">Card ID</label>
+          <input class="form-input" id="f-id" placeholder="e.g. breed-011" autocomplete="off" oninput="refreshPreview()">
+        </div>
+        <div class="form-group">
+          <label class="form-lbl">Type</label>
+          <select class="form-select" id="f-type" onchange="onTypeChange()">
+            <option value="cat_breed">Cat Breed</option>
+            <option value="battle_gear">Battle Gear</option>
+            <option value="home_item">Home Item</option>
+            <option value="special_ability">Special Ability</option>
+            <option value="home">Home</option>
+          </select>
+        </div>
       </div>
-    </div>
-    <div class="form-row full">
-      <div class="form-group">
-        <label class="form-lbl">Card Image</label>
-        <div style="display:flex;gap:12px;align-items:center">
-          <div id="f-image-preview" style="width:64px;height:64px;border-radius:8px;background:var(--s2);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;font-size:10px;color:var(--t3);text-align:center">No image</div>
-          <div style="display:flex;flex-direction:column;gap:6px">
+      <div class="form-row full">
+        <div class="form-group">
+          <label class="form-lbl">Name</label>
+          <input class="form-input" id="f-name" placeholder="Card name" autocomplete="off" oninput="refreshPreview()">
+        </div>
+      </div>
+      <div class="form-row full">
+        <div class="form-group">
+          <label class="form-lbl">Description</label>
+          <textarea class="form-textarea" id="f-desc" placeholder="Flavour text / ability description" oninput="refreshPreview()"></textarea>
+        </div>
+      </div>
+
+      <div class="form-section">Art</div>
+      <div class="form-row full">
+        <div class="form-group">
+          <label class="form-lbl">Card Image</label>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
             <input type="file" id="f-image-file" accept="image/*" onchange="onImageFileSelected(event)" style="font-size:12px">
-            <div style="display:flex;gap:8px;align-items:center">
-              <span id="f-image-status" style="font-size:11px;color:var(--t3)"></span>
-              <button type="button" class="btn btn-ghost btn-sm" id="f-image-remove-btn" style="display:none" onclick="removeCardImage()">Remove image</button>
+            <span id="f-image-status" style="font-size:11px;color:var(--t3)"></span>
+            <button type="button" class="btn btn-ghost btn-sm" id="f-image-remove-btn" style="display:none" onclick="removeCardImage()">Remove image</button>
+          </div>
+        </div>
+      </div>
+      <div class="form-row full" id="art-mode-row" style="display:none">
+        <div class="form-group">
+          <label class="form-lbl">Art Layout</label>
+          <div class="art-mode-toggle">
+            <button type="button" class="art-mode-btn" id="art-mode-inset-btn" onclick="setArtMode('inset')">Inset (classic)</button>
+            <button type="button" class="art-mode-btn" id="art-mode-full-btn" onclick="setArtMode('full')">Full Art</button>
+          </div>
+        </div>
+      </div>
+      <div class="form-row full" id="art-tint-row" style="display:none">
+        <div class="form-group">
+          <label class="form-check">
+            <input type="checkbox" id="f-art-tint-enabled" onchange="onTintToggle()"> Add colour tint
+          </label>
+          <div id="art-tint-controls" style="display:none;gap:12px;align-items:center;margin-top:8px">
+            <input type="color" id="f-art-tint-color" value="#000000" oninput="refreshPreview()" style="width:44px;height:32px;padding:2px;background:var(--s2);border:1px solid var(--bd);border-radius:var(--r-sm);cursor:pointer">
+            <div style="flex:1;display:flex;align-items:center;gap:8px">
+              <span class="form-lbl" style="white-space:nowrap">Opacity</span>
+              <input type="range" id="f-art-tint-opacity" min="0" max="100" value="40" oninput="refreshPreview()" style="flex:1;accent-color:var(--acc)">
             </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <div class="form-section">Properties</div>
+      <div class="form-section">Properties</div>
     <div class="form-row">
       <div class="form-group">
         <label class="form-lbl">Rarity</label>
@@ -470,11 +566,12 @@
       </div>
     </details>
 
-  </div>
-  <div class="drawer-foot">
-    <button class="btn btn-primary" id="drawer-save-btn" onclick="saveCard()">Save Card</button>
-    <button class="btn btn-ghost" onclick="closeDrawer()">Cancel</button>
-    <button class="btn btn-danger btn-sm" id="drawer-del-btn" style="margin-left:auto;display:none" onclick="deleteCard()">Delete</button>
+    </div>
+    <div class="ced-foot">
+      <button class="btn btn-primary" id="drawer-save-btn" onclick="saveCard()">Save Card</button>
+      <button class="btn btn-ghost" onclick="closeDrawer()">Cancel</button>
+      <button class="btn btn-danger btn-sm" id="drawer-del-btn" style="margin-left:auto;display:none" onclick="deleteCard()">Delete</button>
+    </div>
   </div>
 </div>
 
@@ -492,8 +589,172 @@ const TYPE_LABELS = {cat_breed:'Cat Breed',battle_gear:'Battle Gear',home_item:'
 const RARITY_BADGE = {common:'badge-gray',uncommon:'badge-green',rare:'badge-blue',legendary:'badge-yellow'};
 const KNOWN_SPECIAL_PROPS = ['ranged_attack','first_strike','aoe_confusion','armor_pierce','team_sync','post_fight_recovery','free_escape','charm_disarm','post_win_rally','memory_boost'];
 let CURRENT_IMAGE_URL = null;
+let CURRENT_ART = null; // { mode, position:{x,y}, zoom, overlay:{enabled,color,opacity} }
+let ART_DRAG_STATE = null;
+
+function defaultArt() { return { mode: 'inset', position: { x: 50, y: 50 }, zoom: 1, overlay: { enabled: false, color: '#000000', opacity: 40 } }; }
+
+/* Twin of index.html's TYPE_META/RAR_COLOR — keep values identical. */
+const TYPE_META = {
+  cat_breed:      { label:'Cat Breed',      color:'var(--col-breed)',   emoji:'🐱' },
+  home:           { label:'Home',           color:'var(--col-home)',    emoji:'🏠' },
+  home_item:      { label:'Item',           color:'var(--col-item)',    emoji:'📦' },
+  battle_gear:    { label:'Gear',           color:'var(--col-gear)',    emoji:'⚔' },
+  special_ability:{ label:'Ability',        color:'var(--col-ability)', emoji:'✦' }
+};
+const RAR_COLOR = {
+  common:'var(--rar-common)', uncommon:'var(--rar-uncommon)',
+  rare:'var(--rar-rare)', epic:'var(--rar-epic)', legendary:'var(--rar-legendary)'
+};
 
 /* ── Auth ── */
+/* ── Card face rendering — twin of index.html's cardArtHTML/getEffects/
+   devRateChips/buildCardBodyHtml/buildCardFaceHtml. Any change to how a
+   card LOOKS in the live game (new stat display, new effect type, art
+   handling) needs to be made in both files or the studio preview will
+   drift from reality. Behaviour intentionally matches index.html exactly
+   (including not HTML-escaping name/description), so the preview shows
+   precisely what the game will render. ── */
+function cardArtHTML(card, tm) {
+  if (card && card.image_url) {
+    const art = card.art || {};
+    const pos = art.position || { x:50, y:50 };
+    const zoom = art.zoom || 1;
+    return `<img src="${card.image_url}" alt="" style="width:100%;height:100%;object-fit:cover;object-position:${pos.x}% ${pos.y}%;transform:scale(${zoom});transform-origin:${pos.x}% ${pos.y}%">`;
+  }
+  return tm.emoji;
+}
+
+function parseModifier(str) {
+  if (!str) return 0;
+  const m = String(str).match(/([+-])(\d+)/);
+  return m ? parseInt(m[1]+m[2]) : 0;
+}
+
+function getEffects(card) {
+  const d = card.data || {};
+  if (card.type === 'home_item') return [];
+  if (card.type === 'battle_gear') return d.effects || [];
+  if (card.type === 'special_ability') return [...(d.stat_buffs||[]), ...(d.penalties||[])];
+  return [];
+}
+
+function devRateChips(card) {
+  if (!card || !card.data || !card.data.development_rates) return '';
+  return card.data.development_rates.map(dr => {
+    const statLbl = (dr.stat || '').slice(0,3).toUpperCase();
+    const sign = dr.rate >= 0 ? '+' : '';
+    const cls = dr.rate >= 0 ? 'pos' : 'neg';
+    return `<span class="cv-eff ${cls}">${sign}${dr.rate} ${statLbl}/${dr.period_hours}h</span>`;
+  }).join('');
+}
+
+function buildCardBodyHtml(card, showDesc = true) {
+  const data = card.data || {};
+  let body = showDesc ? `<div class="cv-desc">${card.description||''}</div>` : '';
+  if (card.type === 'cat_breed') {
+    const stats = data.stats || {};
+    const allStatKeys = ['strength','speed','agility','stamina','intelligence','stealth','loyalty','affection','amicability','weight'];
+    body += `<div class="cv-stats-grid">` +
+      allStatKeys.filter(k => stats[k] !== undefined).map(k => {
+        const v = stats[k]; const pct = ((v-1)/99)*100;
+        return `<div class="cvs"><span class="cvs-n">${k.slice(0,3)}</span><div class="cvs-bar"><div class="cvs-fill" style="width:${pct}%"></div></div><span class="cvs-v">${v}</span></div>`;
+      }).join('') + `</div>`;
+    body += `<div class="cv-subtext" style="color:var(--t3)">◈ Carry slots: ${data.base_inventory_slots||0}</div>`;
+    const hdt = data.home_dev_traits;
+    if (hdt) {
+      let hdtStr = `🏡 ${hdt.label||''}`;
+      if (hdt.multiplier && hdt.multiplier !== 1.0) {
+        const pct = Math.round((hdt.multiplier-1)*100);
+        hdtStr += ` · ${pct > 0 ? '+' : ''}${pct}% home dev rate`;
+      }
+      body += `<div class="cv-subtext" style="color:#a78bfa;margin-top:2px">${hdtStr}</div>`;
+    }
+  } else if (card.type === 'home') {
+    body += `<div class="cv-hchips">
+      <span class="cv-hchip">🐱 ${data.max_occupants||0} cats</span>
+      <span class="cv-hchip">📦 ${data.expansion_slots||0} item slots</span>
+      <span class="cv-hchip">×${data.comfort_multiplier||1} comfort</span>
+      <span class="cv-hchip">${data.training_tier||''}</span>
+    </div>`;
+  } else if (card.type === 'home_item') {
+    const devChips = devRateChips(card);
+    if (devChips) {
+      body += `<div style="font-family:var(--fm);font-size:8px;text-transform:uppercase;letter-spacing:.08em;color:var(--t3);margin-bottom:3px">🌱 Development / 24h</div>`;
+      body += `<div class="cv-effs">${devChips}</div>`;
+    }
+    body += `<div class="cv-subtext" style="color:var(--t3)">passive · permanent stat growth</div>`;
+  } else {
+    const effs = getEffects(card);
+    if (effs.length) {
+      body += `<div class="cv-effs">` + effs.map(e => {
+        const v = parseModifier(e.modifier);
+        return `<span class="cv-eff ${v>=0?'pos':'neg'}">${e.stat} ${v>=0?'+':''}${v}</span>`;
+      }).join('') + `</div>`;
+    }
+    if (card.type === 'battle_gear') {
+      body += `<div class="cv-subtext" style="color:var(--t3)">Gear slot: ${data.gear_slot||1}${data.special_properties?' · '+data.special_properties.replace(/_/g,' '):''}`;
+      if (data.expiry && data.expiry.type !== 'none') body += ` · expires ${data.expiry.value} rounds`;
+      body += `</div>`;
+      if (data.home_dev_effect) {
+        const hde = data.home_dev_effect;
+        const mulStr = hde.multiplier ? ` · ×${hde.multiplier} all dev` : '';
+        body += `<div class="cv-subtext" style="color:#a78bfa;margin-top:2px">🏡 ${hde.label||''}${mulStr}</div>`;
+      }
+    } else if (card.type === 'special_ability') {
+      body += `<div class="cv-subtext" style="color:var(--t3)">${data.memory_slots_required||0} memory slot${data.memory_slots_required!==1?'s':''} · min INT+LOY ${data.min_intelligence_plus_loyalty||0}</div>`;
+      if (data.positive_description) body += `<div class="cv-subtext" style="color:#34D399;font-size:10px">${data.positive_description}</div>`;
+      if (data.negative_description) body += `<div class="cv-subtext" style="color:#F87171;font-size:10px">${data.negative_description}</div>`;
+    }
+  }
+  return body;
+}
+
+function buildCardFaceHtml(card, opts = {}) {
+  const { cssClass = 'cv', showSeries = true, showStarterPill = true, showDesc = true } = opts;
+  const tm = TYPE_META[card.type] || TYPE_META.cat_breed;
+  const rc = RAR_COLOR[card.rarity] || 'var(--t3)';
+  const body = buildCardBodyHtml(card, showDesc);
+  const art = card.art || {};
+  const isFull = art.mode === 'full' && !!card.image_url;
+
+  let artLayers = '';
+  let artBoxHtml = `<div class="cv-art">${cardArtHTML(card, tm)}</div>`;
+
+  if (isFull) {
+    const pos = art.position || { x:50, y:50 };
+    const zoom = art.zoom || 1;
+    artLayers = `<div class="cv-full-art-img" id="ced-art-layer" style="background-image:url('${card.image_url}');background-position:${pos.x}% ${pos.y}%;background-size:${Math.round(zoom*100)}%"></div>`;
+    if (art.overlay && art.overlay.enabled) {
+      const op = (art.overlay.opacity != null ? art.overlay.opacity : 40) / 100;
+      artLayers += `<div class="cv-full-art-tint" style="background:${art.overlay.color || '#000000'};opacity:${op}"></div>`;
+    }
+    artLayers += `<div class="ced-drag-hint" id="ced-drag-target"></div>`;
+    artBoxHtml = '';
+  } else if (card.image_url) {
+    artBoxHtml = `<div class="cv-art" style="position:relative">${cardArtHTML(card, tm)}<div class="ced-drag-hint" id="ced-drag-target"></div></div>`;
+  }
+
+  return `<div class="${cssClass}${isFull ? ' art-full' : ''}" style="--cv-c:${tm.color};--cv-r:${rc}">
+    ${artLayers}
+    <div class="cv-hdr">
+      <div class="cv-trow">
+        <div class="cv-tdot"></div>
+        <span class="cv-tlbl">${tm.label}</span>
+        <span class="cv-rpill">${card.rarity || 'common'}</span>
+      </div>
+      <div class="cv-name">${card.name || 'Unnamed Card'}</div>
+      ${showSeries && card.series ? `<div class="cv-series">${card.series}</div>` : ''}
+    </div>
+    ${artBoxHtml}
+    <div class="cv-body">${body}</div>
+    <div class="cv-foot">
+      <span class="cv-cost">${card.coin_cost > 0 ? '◈ '+card.coin_cost : 'Free'}</span>
+      ${showStarterPill && card.is_starter ? '<span class="cv-startpill">★ Starter</span>' : ''}
+    </div>
+  </div>`;
+}
+
 async function doLogin() {
   const email = document.getElementById('l-email').value.trim();
   const pass  = document.getElementById('l-pass').value;
@@ -782,15 +1043,13 @@ function collectSpecialProps() {
 
 /* ── Card image upload ── */
 function updateImagePreview() {
-  const el = document.getElementById('f-image-preview');
-  const removeBtn = document.getElementById('f-image-remove-btn');
-  if (CURRENT_IMAGE_URL) {
-    el.innerHTML = `<img src="${CURRENT_IMAGE_URL}" style="width:100%;height:100%;object-fit:cover">`;
-    removeBtn.style.display = '';
-  } else {
-    el.textContent = 'No image';
-    removeBtn.style.display = 'none';
-  }
+  document.getElementById('f-image-remove-btn').style.display = CURRENT_IMAGE_URL ? '' : 'none';
+  const hasImage = !!CURRENT_IMAGE_URL;
+  document.getElementById('art-mode-row').style.display = hasImage ? '' : 'none';
+  document.getElementById('art-tint-row').style.display = hasImage ? '' : 'none';
+  document.getElementById('ced-preview-hint').style.display = hasImage ? '' : 'none';
+  if (!hasImage) document.getElementById('ced-zoom-row').style.display = 'none';
+  refreshPreview();
 }
 async function onImageFileSelected(evt) {
   const file = evt.target.files[0];
@@ -808,6 +1067,7 @@ async function onImageFileSelected(evt) {
   if (error) { statusEl.textContent = 'Upload failed: ' + error.message; evt.target.value = ''; return; }
   const { data } = db.storage.from('card-images').getPublicUrl(path);
   CURRENT_IMAGE_URL = data.publicUrl;
+  if (!CURRENT_ART) CURRENT_ART = defaultArt();
   updateImagePreview();
   statusEl.textContent = 'Uploaded.';
   evt.target.value = '';
@@ -815,6 +1075,162 @@ async function onImageFileSelected(evt) {
 function removeCardImage() {
   CURRENT_IMAGE_URL = null;
   updateImagePreview();
+}
+
+/* ── Art mode / tint / zoom / positioner ── */
+function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+
+function setArtMode(mode) {
+  if (!CURRENT_ART) CURRENT_ART = defaultArt();
+  CURRENT_ART.mode = mode;
+  document.getElementById('art-mode-inset-btn').classList.toggle('active', mode === 'inset');
+  document.getElementById('art-mode-full-btn').classList.toggle('active', mode === 'full');
+  document.getElementById('ced-zoom-row').style.display = CURRENT_IMAGE_URL ? '' : 'none';
+  refreshPreview();
+}
+
+function onTintToggle() {
+  if (!CURRENT_ART) CURRENT_ART = defaultArt();
+  const enabled = document.getElementById('f-art-tint-enabled').checked;
+  CURRENT_ART.overlay = CURRENT_ART.overlay || defaultArt().overlay;
+  CURRENT_ART.overlay.enabled = enabled;
+  document.getElementById('art-tint-controls').style.display = enabled ? 'flex' : 'none';
+  refreshPreview();
+}
+
+function onArtZoomInput() {
+  if (!CURRENT_ART) CURRENT_ART = defaultArt();
+  CURRENT_ART.zoom = parseFloat(document.getElementById('f-art-zoom').value) || 1;
+  refreshPreview();
+}
+
+function applyArtPositionLive() {
+  if (!CURRENT_ART) return;
+  const pos = CURRENT_ART.position;
+  const bgLayer = document.getElementById('ced-art-layer');
+  if (bgLayer) { bgLayer.style.backgroundPosition = `${pos.x}% ${pos.y}%`; return; }
+  const box = document.querySelector('#ced-preview .cv-art img');
+  if (box) { box.style.objectPosition = `${pos.x}% ${pos.y}%`; box.style.transformOrigin = `${pos.x}% ${pos.y}%`; }
+}
+
+function wireArtDrag() {
+  const target = document.getElementById('ced-drag-target');
+  if (!target) return;
+  target.onpointerdown = (e) => {
+    e.preventDefault();
+    if (!CURRENT_ART) CURRENT_ART = defaultArt();
+    const box = target.getBoundingClientRect();
+    ART_DRAG_STATE = {
+      startX: e.clientX, startY: e.clientY,
+      boxW: box.width || 1, boxH: box.height || 1,
+      startPos: { ...(CURRENT_ART.position || { x:50, y:50 }) },
+    };
+    target.setPointerCapture(e.pointerId);
+  };
+  target.onpointermove = (e) => {
+    if (!ART_DRAG_STATE) return;
+    const dxPct = ((e.clientX - ART_DRAG_STATE.startX) / ART_DRAG_STATE.boxW) * 100;
+    const dyPct = ((e.clientY - ART_DRAG_STATE.startY) / ART_DRAG_STATE.boxH) * 100;
+    CURRENT_ART.position = {
+      x: clamp(ART_DRAG_STATE.startPos.x - dxPct, 0, 100),
+      y: clamp(ART_DRAG_STATE.startPos.y - dyPct, 0, 100),
+    };
+    applyArtPositionLive();
+  };
+  target.onpointerup = () => { ART_DRAG_STATE = null; };
+}
+
+/* ── Build a card-shaped object from the current form state; used by
+   both the live preview and saveCard() so they never diverge. ── */
+function collectCardData(type) {
+  if (document.getElementById('adv-json-details').open) {
+    try { return { data: JSON.parse(document.getElementById('f-data-json').value || '{}'), error: null }; }
+    catch(e) { return { data: {}, error: 'Advanced JSON is invalid. Fix the syntax and try again.' }; }
+  }
+  let data;
+  if (type === 'cat_breed') {
+    const stats = {};
+    CAT_STATS.forEach(s => { stats[s] = parseInt(document.getElementById('stat-' + s).value) || 0; });
+    data = { base_inventory_slots: parseInt(document.getElementById('f-slots').value) || 4, stats };
+    const growth = collectGrowthBlock('breed-growth');
+    if (growth) data.home_dev_traits = growth;
+  } else if (type === 'battle_gear') {
+    data = {
+      gear_slot: parseInt(document.getElementById('f-gear-slot').value) || 1,
+      weight: parseFloat(document.getElementById('f-gear-weight').value) || 0,
+      effects: collectStatModRows('gear-effects-rows'),
+      special_properties: collectSpecialProps(),
+      expiry: collectExpiry('gear-expiry')
+    };
+    const growth = collectGrowthBlock('gear-growth');
+    if (growth) data.home_dev_effect = growth;
+  } else if (type === 'special_ability') {
+    data = {
+      positive_description: document.getElementById('f-ability-pos-desc').value.trim() || null,
+      negative_description: document.getElementById('f-ability-neg-desc').value.trim() || null,
+      memory_slots_required: parseInt(document.getElementById('f-ability-memory').value) || 0,
+      min_intelligence_plus_loyalty: parseInt(document.getElementById('f-ability-gate').value) || 0,
+      stat_buffs: collectStatModRows('ability-buffs-rows'),
+      penalties: collectStatModRows('ability-penalties-rows'),
+      expiry: collectExpiry('ability-expiry')
+    };
+  } else if (type === 'home_item') {
+    data = {
+      item_type: document.getElementById('f-item-type').value,
+      slot_requirement: parseInt(document.getElementById('f-item-slot').value) || 0,
+      development_rates: collectDevRateRows('item-rates-rows'),
+      expiry: collectExpiry('item-expiry')
+    };
+  } else if (type === 'home') {
+    data = {
+      max_occupants: parseInt(document.getElementById('f-home-occupants').value) || 1,
+      training_tier: document.getElementById('f-home-tier').value,
+      expansion_slots: parseInt(document.getElementById('f-home-slots').value) || 0,
+      comfort_multiplier: parseFloat(document.getElementById('f-home-comfort').value) || 1
+    };
+  } else {
+    data = {};
+  }
+  return { data, error: null };
+}
+
+function syncArtFromFields() {
+  // CURRENT_ART.mode is set by setArtMode() and .position by the drag
+  // handler; zoom/tint always get re-read from their fields here so any
+  // field change (typed, dragged, or via the delegated listener) is
+  // reflected regardless of which specific control fired.
+  if (!CURRENT_IMAGE_URL) return null;
+  if (!CURRENT_ART) CURRENT_ART = defaultArt();
+  CURRENT_ART.zoom = parseFloat(document.getElementById('f-art-zoom').value) || 1;
+  CURRENT_ART.overlay = CURRENT_ART.overlay || defaultArt().overlay;
+  CURRENT_ART.overlay.enabled = document.getElementById('f-art-tint-enabled').checked;
+  CURRENT_ART.overlay.color   = document.getElementById('f-art-tint-color').value;
+  CURRENT_ART.overlay.opacity = parseInt(document.getElementById('f-art-tint-opacity').value) || 0;
+  return CURRENT_ART;
+}
+
+function collectCardFromForm() {
+  const type = document.getElementById('f-type').value;
+  const { data, error } = collectCardData(type);
+  const card = {
+    id:   document.getElementById('f-id').value.trim(),
+    type, name: document.getElementById('f-name').value.trim(),
+    description: document.getElementById('f-desc').value.trim(),
+    rarity:      document.getElementById('f-rarity').value,
+    coin_cost:   parseInt(document.getElementById('f-cost').value) || 0,
+    series:      document.getElementById('f-series').value.trim() || null,
+    is_starter:  document.getElementById('f-starter').checked,
+    image_url:   CURRENT_IMAGE_URL,
+    art:         syncArtFromFields(),
+    data,
+  };
+  return { card, error };
+}
+
+function refreshPreview() {
+  const { card } = collectCardFromForm();
+  document.getElementById('ced-preview').innerHTML = buildCardFaceHtml(card, { cssClass: 'cv cmo-cv' });
+  wireArtDrag();
 }
 
 function openDrawer(cardId) {
@@ -838,12 +1254,20 @@ function openDrawer(cardId) {
   document.getElementById('f-starter').checked = card ? !!card.is_starter : false;
 
   CURRENT_IMAGE_URL = card ? (card.image_url || null) : null;
-  updateImagePreview();
+  CURRENT_ART = card && card.art ? { ...defaultArt(), ...card.art } : defaultArt();
   document.getElementById('f-image-file').value = '';
   document.getElementById('f-image-status').textContent = '';
+  document.getElementById('f-art-zoom').value = CURRENT_ART.zoom;
+  document.getElementById('f-art-tint-enabled').checked = !!(CURRENT_ART.overlay && CURRENT_ART.overlay.enabled);
+  document.getElementById('f-art-tint-color').value = (CURRENT_ART.overlay && CURRENT_ART.overlay.color) || '#000000';
+  document.getElementById('f-art-tint-opacity').value = (CURRENT_ART.overlay && CURRENT_ART.overlay.opacity != null) ? CURRENT_ART.overlay.opacity : 40;
+  document.getElementById('art-tint-controls').style.display = (CURRENT_ART.overlay && CURRENT_ART.overlay.enabled) ? 'flex' : 'none';
+  document.getElementById('art-mode-inset-btn').classList.toggle('active', CURRENT_ART.mode !== 'full');
+  document.getElementById('art-mode-full-btn').classList.toggle('active', CURRENT_ART.mode === 'full');
 
   onTypeChange(card);
   document.getElementById('adv-json-details').open = false;
+  updateImagePreview();
 
   document.getElementById('drawer-overlay').classList.add('open');
   document.getElementById('drawer').classList.add('open');
@@ -917,6 +1341,7 @@ function onTypeChange(card) {
 
   // Advanced JSON fallback stays in sync as a starting point whenever it's opened
   document.getElementById('f-data-json').value = JSON.stringify(data, null, 2);
+  refreshPreview();
 }
 
 async function saveCard() {
@@ -926,77 +1351,17 @@ async function saveCard() {
   errEl.style.display = 'none';
   okEl.style.display  = 'none';
 
-  const id   = document.getElementById('f-id').value.trim();
-  const name = document.getElementById('f-name').value.trim();
-  const type = document.getElementById('f-type').value;
+  const { card, error } = collectCardFromForm();
+  if (!card.id || !card.name) { errEl.textContent = 'Card ID and Name are required.'; errEl.style.display = ''; return; }
+  if (error) { errEl.textContent = error; errEl.style.display = ''; return; }
 
-  if (!id || !name) { errEl.textContent = 'Card ID and Name are required.'; errEl.style.display = ''; return; }
-
-  let data;
-  if (document.getElementById('adv-json-details').open) {
-    try { data = JSON.parse(document.getElementById('f-data-json').value || '{}'); }
-    catch(e) { errEl.textContent = 'Advanced JSON is invalid. Fix the syntax and try again.'; errEl.style.display = ''; return; }
-  } else if (type === 'cat_breed') {
-    const stats = {};
-    CAT_STATS.forEach(s => { stats[s] = parseInt(document.getElementById('stat-' + s).value) || 0; });
-    data = { base_inventory_slots: parseInt(document.getElementById('f-slots').value) || 4, stats };
-    const growth = collectGrowthBlock('breed-growth');
-    if (growth) data.home_dev_traits = growth;
-  } else if (type === 'battle_gear') {
-    data = {
-      gear_slot: parseInt(document.getElementById('f-gear-slot').value) || 1,
-      weight: parseFloat(document.getElementById('f-gear-weight').value) || 0,
-      effects: collectStatModRows('gear-effects-rows'),
-      special_properties: collectSpecialProps(),
-      expiry: collectExpiry('gear-expiry')
-    };
-    const growth = collectGrowthBlock('gear-growth');
-    if (growth) data.home_dev_effect = growth;
-  } else if (type === 'special_ability') {
-    data = {
-      positive_description: document.getElementById('f-ability-pos-desc').value.trim() || null,
-      negative_description: document.getElementById('f-ability-neg-desc').value.trim() || null,
-      memory_slots_required: parseInt(document.getElementById('f-ability-memory').value) || 0,
-      min_intelligence_plus_loyalty: parseInt(document.getElementById('f-ability-gate').value) || 0,
-      stat_buffs: collectStatModRows('ability-buffs-rows'),
-      penalties: collectStatModRows('ability-penalties-rows'),
-      expiry: collectExpiry('ability-expiry')
-    };
-  } else if (type === 'home_item') {
-    data = {
-      item_type: document.getElementById('f-item-type').value,
-      slot_requirement: parseInt(document.getElementById('f-item-slot').value) || 0,
-      development_rates: collectDevRateRows('item-rates-rows'),
-      expiry: collectExpiry('item-expiry')
-    };
-  } else if (type === 'home') {
-    data = {
-      max_occupants: parseInt(document.getElementById('f-home-occupants').value) || 1,
-      training_tier: document.getElementById('f-home-tier').value,
-      expansion_slots: parseInt(document.getElementById('f-home-slots').value) || 0,
-      comfort_multiplier: parseFloat(document.getElementById('f-home-comfort').value) || 1
-    };
-  } else {
-    data = {};
-  }
-
-  const payload = {
-    id, type, name,
-    description: document.getElementById('f-desc').value.trim(),
-    rarity:      document.getElementById('f-rarity').value,
-    coin_cost:   parseInt(document.getElementById('f-cost').value) || 0,
-    series:      document.getElementById('f-series').value.trim() || null,
-    is_starter:  document.getElementById('f-starter').checked,
-    image_url:   CURRENT_IMAGE_URL,
-    data,
-    updated_at:  new Date().toISOString()
-  };
+  const payload = { ...card, updated_at: new Date().toISOString() };
 
   btn.disabled = true; btn.textContent = 'Saving…';
-  const { error } = await db.from('cards').upsert(payload, { onConflict: 'id' });
+  const { error: saveError } = await db.from('cards').upsert(payload, { onConflict: 'id' });
   btn.disabled = false; btn.textContent = 'Save Card';
 
-  if (error) { errEl.textContent = error.message; errEl.style.display = ''; return; }
+  if (saveError) { errEl.textContent = saveError.message; errEl.style.display = ''; return; }
 
   okEl.textContent = '✓ Card saved!'; okEl.style.display = '';
   await loadCards();
@@ -1052,6 +1417,11 @@ async function loadPlayers() {
 /* ── Helpers ── */
 function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') }
 function fmtDate(iso){ if(!iso)return'—'; return new Date(iso).toLocaleDateString('en-MY',{day:'numeric',month:'short',year:'numeric'}); }
+
+// Any field change anywhere in the editor (including dynamically-added
+// stat/effect rows) re-renders the live preview.
+document.getElementById('drawer').addEventListener('input', refreshPreview);
+document.getElementById('drawer').addEventListener('change', refreshPreview);
 
 checkSession();
 </script>
