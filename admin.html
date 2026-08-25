@@ -112,15 +112,18 @@
   .studio-search:focus{border-color:var(--acc)}
   .studio-filter{padding:8px 10px;background:var(--s2);border:1px solid var(--bd);border-radius:var(--r-sm);color:var(--t1);font-size:12px;outline:none;cursor:pointer}
 
-  .card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
+  .card-grid{display:flex;flex-wrap:wrap;gap:14px}
+  .card-grid-item{position:relative}
+  .card-grid-item .cv{cursor:pointer;transition:transform .12s,box-shadow .12s}
+  .card-grid-item .cv:hover{transform:translateY(-2px)}
   .card-tile{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);padding:14px 16px;cursor:pointer;transition:border-color .15s,background .15s;position:relative}
   .card-tile:hover{border-color:var(--acc);background:var(--s2)}
   .card-tile-name{font-size:13px;font-weight:600;margin-bottom:4px;padding-right:24px}
   .card-tile-type{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}
   .card-tile-foot{display:flex;align-items:center;justify-content:space-between}
   .card-tile-cost{font-size:11px;color:var(--yellow)}
-  .card-tile-del{position:absolute;top:10px;right:10px;background:none;border:none;color:var(--t3);cursor:pointer;font-size:14px;line-height:1;padding:2px 4px;border-radius:3px;opacity:0;transition:opacity .15s}
-  .card-tile:hover .card-tile-del{opacity:1}
+  .card-tile-del{position:absolute;top:8px;right:8px;z-index:10;background:rgba(13,17,23,.65);border:none;color:var(--t2);cursor:pointer;font-size:13px;line-height:1;padding:4px 6px;border-radius:4px;opacity:0;transition:opacity .15s}
+  .card-tile:hover .card-tile-del,.card-grid-item:hover .card-tile-del{opacity:1}
   .card-tile-del:hover{color:var(--red);background:var(--red-dim)}
 
   .rarity-common{border-left:3px solid var(--bd2)}
@@ -740,12 +743,18 @@ function buildCardBodyHtml(card, showDesc = true) {
 }
 
 function buildCardFaceHtml(card, opts = {}) {
-  const { cssClass = 'cv', showSeries = true, showStarterPill = true, showDesc = true } = opts;
+  const { cssClass = 'cv', showSeries = true, showStarterPill = true, showDesc = true, onclick = null, interactive = true } = opts;
   const tm = TYPE_META[card.type] || TYPE_META.cat_breed;
   const rc = RAR_COLOR[card.rarity] || 'var(--t3)';
   const body = buildCardBodyHtml(card, showDesc);
   const art = card.art || {};
   const isFull = art.mode === 'full' && !!card.image_url;
+  // The drag-positioner ids are only meaningful for the single live-preview
+  // instance in the editor — omit them (interactive:false) anywhere else
+  // (e.g. the card grid) to avoid duplicate ids when many cards render at once.
+  const artLayerId = interactive ? ' id="ced-art-layer"' : '';
+  const dragTargetHtml = interactive ? `<div class="ced-drag-hint" id="ced-drag-target"></div>` : '';
+  const clickAttr = onclick ? ` onclick="${onclick}"` : '';
 
   let artLayers = '';
   let artBoxHtml = `<div class="cv-art">${cardArtHTML(card, tm)}</div>`;
@@ -753,18 +762,18 @@ function buildCardFaceHtml(card, opts = {}) {
   if (isFull) {
     const pos = art.position || { x:50, y:50 };
     const zoom = art.zoom || 1;
-    artLayers = `<div class="cv-full-art-img" id="ced-art-layer" style="background-image:url('${card.image_url}');background-position:${pos.x}% ${pos.y}%;background-size:${Math.round(zoom*100)}%"></div>`;
+    artLayers = `<div class="cv-full-art-img"${artLayerId} style="background-image:url('${card.image_url}');background-position:${pos.x}% ${pos.y}%;background-size:${Math.round(zoom*100)}%"></div>`;
     if (art.overlay && art.overlay.enabled) {
       const op = (art.overlay.opacity != null ? art.overlay.opacity : 40) / 100;
       artLayers += `<div class="cv-full-art-tint" style="background:${art.overlay.color || '#000000'};opacity:${op}"></div>`;
     }
-    artLayers += `<div class="ced-drag-hint" id="ced-drag-target"></div>`;
+    artLayers += dragTargetHtml;
     artBoxHtml = '';
   } else if (card.image_url) {
-    artBoxHtml = `<div class="cv-art" style="position:relative">${cardArtHTML(card, tm)}<div class="ced-drag-hint" id="ced-drag-target"></div></div>`;
+    artBoxHtml = `<div class="cv-art" style="position:relative">${cardArtHTML(card, tm)}${dragTargetHtml}</div>`;
   }
 
-  return `<div class="${cssClass}${isFull ? ' art-full' : ''}" style="--cv-c:${tm.color};--cv-r:${rc}">
+  return `<div class="${cssClass}${isFull ? ' art-full' : ''}" style="--cv-c:${tm.color};--cv-r:${rc}"${clickAttr}>
     ${artLayers}
     <div class="cv-hdr">
       <div class="cv-trow">
@@ -869,15 +878,9 @@ function renderCards(cards) {
     return;
   }
   document.getElementById('card-grid').innerHTML = cards.map(c => `
-    <div class="card-tile rarity-${esc(c.rarity)}" onclick="openDrawer('${esc(c.id)}')">
+    <div class="card-grid-item">
       <button class="card-tile-del" title="Delete" onclick="event.stopPropagation();confirmDelete('${esc(c.id)}','${esc(c.name)}')">✕</button>
-      ${c.image_url ? `<img src="${esc(c.image_url)}" style="width:100%;height:70px;object-fit:cover;border-radius:5px;margin-bottom:8px">` : ''}
-      <div class="card-tile-name">${esc(c.name)}</div>
-      <div class="card-tile-type">${TYPE_LABELS[c.type] || c.type}</div>
-      <div class="card-tile-foot">
-        <span class="badge ${RARITY_BADGE[c.rarity] || 'badge-gray'}">${c.rarity}</span>
-        <span class="card-tile-cost">${c.coin_cost ? '🪙 ' + c.coin_cost : ''}</span>
-      </div>
+      ${buildCardFaceHtml(c, { onclick: `openDrawer('${esc(c.id)}')`, interactive: false })}
     </div>`).join('');
 }
 
