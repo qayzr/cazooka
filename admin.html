@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cazooka Admin</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<style>
+  :root {
+    --bg: #0D1117; --s1: #161B22; --s2: #1C2128; --s3: #21262D;
+    --bd: #30363D; --bd2: #444C56;
+    --t1: #E6EDF3; --t2: #8B949E; --t3: #6E7681;
+    --acc: #58A6FF; --acc-dim: rgba(88,166,255,.12);
+    --green: #3FB950; --green-dim: rgba(63,185,80,.12);
+    --red: #F85149; --red-dim: rgba(248,81,73,.12);
+    --yellow: #D29922; --yellow-dim: rgba(210,153,34,.12);
+    --r: 8px; --r-sm: 5px;
+    --ff: 'Inter', system-ui, sans-serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; background: var(--bg); color: var(--t1); font-family: var(--ff); font-size: 14px; line-height: 1.5; }
+
+  /* ── Login ── */
+  #login-wrap {
+    min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px;
+  }
+  .login-card {
+    background: var(--s1); border: 1px solid var(--bd); border-radius: var(--r);
+    padding: 40px 36px; width: min(400px, 100%);
+  }
+  .login-logo { font-size: 22px; font-weight: 800; letter-spacing: .06em; color: var(--acc); margin-bottom: 4px; }
+  .login-sub  { font-size: 12px; color: var(--t3); margin-bottom: 32px; letter-spacing: .04em; text-transform: uppercase; }
+  .login-lbl  { display: block; font-size: 11px; color: var(--t3); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 6px; }
+  .login-input {
+    width: 100%; padding: 10px 14px; background: var(--s2); border: 1px solid var(--bd);
+    border-radius: var(--r-sm); color: var(--t1); font-size: 14px; outline: none;
+    transition: border-color .15s; margin-bottom: 16px;
+  }
+  .login-input:focus { border-color: var(--acc); }
+  .login-btn {
+    width: 100%; padding: 11px; background: var(--acc); border: none; border-radius: var(--r-sm);
+    color: #0D1117; font-weight: 700; font-size: 14px; cursor: pointer; transition: opacity .15s;
+  }
+  .login-btn:hover { opacity: .85; }
+  .login-btn:disabled { opacity: .4; cursor: default; }
+  .login-err {
+    font-size: 12px; color: var(--red); background: var(--red-dim); border: 1px solid rgba(248,81,73,.25);
+    border-radius: var(--r-sm); padding: 8px 12px; margin-bottom: 16px; display: none;
+  }
+
+  /* ── Shell ── */
+  #admin-wrap { display: none; flex-direction: column; min-height: 100vh; }
+  .topbar {
+    height: 52px; background: var(--s1); border-bottom: 1px solid var(--bd);
+    display: flex; align-items: center; gap: 16px; padding: 0 24px; flex-shrink: 0;
+  }
+  .topbar-logo { font-weight: 800; letter-spacing: .06em; color: var(--acc); font-size: 15px; }
+  .topbar-label { font-size: 11px; text-transform: uppercase; letter-spacing: .1em; color: var(--t3); margin-left: 4px; }
+  .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+  .topbar-user { font-size: 12px; color: var(--t2); }
+  .logout-btn {
+    padding: 6px 14px; background: transparent; border: 1px solid var(--bd); border-radius: var(--r-sm);
+    color: var(--t2); font-size: 12px; cursor: pointer; transition: border-color .15s, color .15s;
+  }
+  .logout-btn:hover { border-color: var(--red); color: var(--red); }
+
+  .body { display: flex; flex: 1; min-height: 0; }
+
+  /* ── Sidebar ── */
+  .sidebar {
+    width: 200px; flex-shrink: 0; background: var(--s1); border-right: 1px solid var(--bd);
+    padding: 16px 0;
+  }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px; padding: 9px 20px;
+    font-size: 13px; color: var(--t2); cursor: pointer; transition: background .12s, color .12s;
+    border: none; background: none; width: 100%; text-align: left;
+  }
+  .nav-item:hover { background: var(--s2); color: var(--t1); }
+  .nav-item.active { background: var(--acc-dim); color: var(--acc); font-weight: 600; }
+  .nav-icon { font-size: 15px; width: 18px; text-align: center; }
+  .nav-section { font-size: 9px; text-transform: uppercase; letter-spacing: .12em; color: var(--t3); padding: 16px 20px 6px; }
+
+  /* ── Content ── */
+  .content { flex: 1; overflow-y: auto; padding: 28px; }
+  .page { display: none; }
+  .page.active { display: block; }
+  .page-title { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+  .page-sub { font-size: 12px; color: var(--t3); margin-bottom: 24px; }
+
+  /* ── Stat tiles ── */
+  .stats-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; margin-bottom: 28px; }
+  .stat-tile { background: var(--s1); border: 1px solid var(--bd); border-radius: var(--r); padding: 18px 20px; }
+  .stat-label { font-size: 10px; text-transform: uppercase; letter-spacing: .1em; color: var(--t3); margin-bottom: 8px; }
+  .stat-value { font-size: 28px; font-weight: 800; color: var(--t1); line-height: 1; }
+  .stat-sub { font-size: 11px; color: var(--t3); margin-top: 4px; }
+
+  /* ── Table ── */
+  .table-wrap { background: var(--s1); border: 1px solid var(--bd); border-radius: var(--r); overflow: hidden; }
+  .table-head { padding: 14px 20px; border-bottom: 1px solid var(--bd); display: flex; align-items: center; justify-content: space-between; }
+  .table-title { font-size: 13px; font-weight: 600; }
+  .table-count { font-size: 11px; color: var(--t3); }
+  table { width: 100%; border-collapse: collapse; }
+  th { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: var(--t3); text-align: left; padding: 10px 20px; border-bottom: 1px solid var(--bd); font-weight: 500; }
+  td { padding: 11px 20px; border-bottom: 1px solid var(--bd); font-size: 13px; color: var(--t1); vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--s2); }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 10px; font-weight: 600; }
+  .badge-green { background: var(--green-dim); color: var(--green); }
+  .badge-yellow { background: var(--yellow-dim); color: var(--yellow); }
+  .badge-gray  { background: var(--s3); color: var(--t3); }
+
+  /* ── Empty state ── */
+  .empty { padding: 48px 20px; text-align: center; color: var(--t3); font-size: 13px; }
+
+  /* ── Loading spinner ── */
+  .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid var(--bd); border-top-color: var(--acc); border-radius: 50%; animation: spin .6s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Library grid ── */
+  .lib-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+  .lib-card { background: var(--s1); border: 1px solid var(--bd); border-radius: var(--r); padding: 14px 16px; }
+  .lib-card-name { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+  .lib-card-type { font-size: 10px; color: var(--t3); text-transform: uppercase; letter-spacing: .08em; }
+  .lib-card-cost { font-size: 11px; color: var(--yellow); margin-top: 6px; }
+  .rarity-common   { border-left: 3px solid var(--bd2); }
+  .rarity-uncommon { border-left: 3px solid #3FB950; }
+  .rarity-rare     { border-left: 3px solid #58A6FF; }
+  .rarity-legendary{ border-left: 3px solid #D29922; }
+
+  /* ── Game link ── */
+  .game-link { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--acc); text-decoration: none; }
+  .game-link:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<!-- ── Login ── -->
+<div id="login-wrap">
+  <div class="login-card">
+    <div class="login-logo">CAZOOKA</div>
+    <div class="login-sub">Admin Panel</div>
+    <div class="login-err" id="login-err"></div>
+    <label class="login-lbl">Email</label>
+    <input class="login-input" id="l-email" type="email" placeholder="admin@example.com" autocomplete="email"
+      onkeydown="if(event.key==='Enter')doLogin()">
+    <label class="login-lbl">Password</label>
+    <input class="login-input" id="l-pass" type="password" placeholder="Password" autocomplete="current-password"
+      onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="login-btn" id="login-btn" onclick="doLogin()">Sign In</button>
+  </div>
+</div>
+
+<!-- ── Admin shell ── -->
+<div id="admin-wrap">
+  <div class="topbar">
+    <span class="topbar-logo">CAZOOKA</span>
+    <span class="topbar-label">Admin</span>
+    <div class="topbar-right">
+      <span class="topbar-user" id="tb-user"></span>
+      <a class="game-link" href="/" target="_blank">↗ Open Game</a>
+      <button class="logout-btn" onclick="doLogout()">Sign Out</button>
+    </div>
+  </div>
+
+  <div class="body">
+    <nav class="sidebar">
+      <div class="nav-section">Overview</div>
+      <button class="nav-item active" data-page="players" onclick="navTo('players')">
+        <span class="nav-icon">👤</span> Players
+      </button>
+      <button class="nav-item" data-page="library" onclick="navTo('library')">
+        <span class="nav-icon">🃏</span> Card Library
+      </button>
+    </nav>
+
+    <main class="content">
+
+      <!-- Players page -->
+      <div class="page active" id="page-players">
+        <div class="page-title">Players</div>
+        <div class="page-sub">Everyone who has registered an account.</div>
+        <div class="stats-row" id="stats-row">
+          <div class="stat-tile"><div class="stat-label">Total Players</div><div class="stat-value" id="st-total">—</div></div>
+          <div class="stat-tile"><div class="stat-label">Total Wins</div><div class="stat-value" id="st-wins">—</div></div>
+          <div class="stat-tile"><div class="stat-label">Total Runs</div><div class="stat-value" id="st-runs">—</div></div>
+          <div class="stat-tile"><div class="stat-label">Avg Coins</div><div class="stat-value" id="st-coins">—</div></div>
+        </div>
+        <div class="table-wrap">
+          <div class="table-head">
+            <span class="table-title">Player Roster</span>
+            <span class="table-count" id="player-count">loading…</span>
+          </div>
+          <div id="players-table-wrap">
+            <div class="empty"><span class="spinner"></span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Library page -->
+      <div class="page" id="page-library">
+        <div class="page-title">Card Library</div>
+        <div class="page-sub">All cards currently in the game. Edit them in the game file.</div>
+        <div class="lib-grid" id="lib-grid-admin"></div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script>
+const SUPA_URL = 'https://jrgplarvzlrmczsrzswo.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpyZ3BsYXJ2emxybWN6c3J6c3dvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc2NTM1NTQsImV4cCI6MjEwMzIyOTU1NH0.uqtQPvsayt4UJ6XFzGGX61YvWVCK-371SxGO2lJzA3s';
+const db = window.supabase.createClient(SUPA_URL, SUPA_KEY);
+
+let ADMIN_USER = null;
+
+/* ── Auth ── */
+async function doLogin() {
+  const email = document.getElementById('l-email').value.trim();
+  const pass  = document.getElementById('l-pass').value;
+  const btn   = document.getElementById('login-btn');
+  const errEl = document.getElementById('login-err');
+  if (!email || !pass) return;
+
+  btn.disabled = true; btn.textContent = 'Signing in…';
+  errEl.style.display = 'none';
+
+  const { data, error } = await db.auth.signInWithPassword({ email, password: pass });
+  if (error) {
+    errEl.textContent = error.message; errEl.style.display = '';
+    btn.disabled = false; btn.textContent = 'Sign In';
+    return;
+  }
+
+  // Check is_admin flag
+  const { data: player } = await db.from('players').select('is_admin, callsign').eq('id', data.user.id).single();
+  if (!player || !player.is_admin) {
+    await db.auth.signOut();
+    errEl.textContent = 'Access denied — you are not an admin.';
+    errEl.style.display = '';
+    btn.disabled = false; btn.textContent = 'Sign In';
+    return;
+  }
+
+  ADMIN_USER = data.user;
+  document.getElementById('tb-user').textContent = player.callsign || email;
+  showAdmin();
+}
+
+async function doLogout() {
+  await db.auth.signOut();
+  location.reload();
+}
+
+function showAdmin() {
+  document.getElementById('login-wrap').style.display = 'none';
+  document.getElementById('admin-wrap').style.display = 'flex';
+  loadPlayers();
+  renderLibraryAdmin();
+}
+
+/* ── Session restore ── */
+async function checkSession() {
+  const { data: { session } } = await db.auth.getSession();
+  if (!session) return;
+  const { data: player } = await db.from('players').select('is_admin, callsign').eq('id', session.user.id).single();
+  if (!player || !player.is_admin) return;
+  ADMIN_USER = session.user;
+  document.getElementById('tb-user').textContent = player.callsign || session.user.email;
+  showAdmin();
+}
+
+/* ── Nav ── */
+function navTo(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  document.querySelector('[data-page="' + page + '"]').classList.add('active');
+  if (page === 'players') loadPlayers();
+}
+
+/* ── Players ── */
+async function loadPlayers() {
+  const wrap = document.getElementById('players-table-wrap');
+  wrap.innerHTML = '<div class="empty"><span class="spinner"></span></div>';
+
+  const { data: players, error } = await db.from('players').select('*').order('created_at', { ascending: false });
+  if (error || !players) {
+    wrap.innerHTML = '<div class="empty">Could not load players. Check admin RLS policies.</div>';
+    return;
+  }
+
+  // Stats
+  document.getElementById('st-total').textContent = players.length;
+  document.getElementById('st-wins').textContent  = players.reduce((s, p) => s + (p.wins || 0), 0);
+  document.getElementById('st-runs').textContent  = players.reduce((s, p) => s + (p.runs || 0), 0);
+  const avgCoins = players.length ? Math.round(players.reduce((s, p) => s + (p.coins || 0), 0) / players.length) : 0;
+  document.getElementById('st-coins').textContent = avgCoins.toLocaleString();
+  document.getElementById('player-count').textContent = players.length + ' players';
+
+  if (!players.length) {
+    wrap.innerHTML = '<div class="empty">No players yet.</div>';
+    return;
+  }
+
+  wrap.innerHTML = `<table>
+    <thead><tr>
+      <th>Callsign</th><th>Coins</th><th>Wins</th><th>Losses</th><th>Runs</th><th>Admin</th><th>Joined</th>
+    </tr></thead>
+    <tbody>${players.map(p => `<tr>
+      <td><strong>${esc(p.callsign)}</strong></td>
+      <td>${(p.coins || 0).toLocaleString()}</td>
+      <td>${p.wins || 0}</td>
+      <td>${p.losses || 0}</td>
+      <td>${p.runs || 0}</td>
+      <td>${p.is_admin ? '<span class="badge badge-green">Admin</span>' : '<span class="badge badge-gray">Player</span>'}</td>
+      <td style="color:var(--t3)">${fmtDate(p.created_at)}</td>
+    </tr>`).join('')}</tbody>
+  </table>`;
+}
+
+/* ── Library ── */
+const TYPE_LABELS = { cat_breed:'Cat Breed', battle_gear:'Battle Gear', home_item:'Home Item', special_ability:'Special Ability', home:'Home' };
+
+function renderLibraryAdmin() {
+  // Pull card data from the game's window scope if same origin, otherwise show message
+  const grid = document.getElementById('lib-grid-admin');
+  // The library lives in index.html — we'll display a placeholder pointing there
+  grid.innerHTML = `<div style="grid-column:1/-1;padding:32px 0;text-align:center;color:var(--t3)">
+    Card Library is managed directly in <code style="background:var(--s2);padding:2px 6px;border-radius:4px">index.html</code>.<br>
+    <a href="/" target="_blank" class="game-link" style="margin-top:12px;display:inline-flex">↗ Open game to preview cards</a>
+  </div>`;
+}
+
+/* ── Helpers ── */
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function fmtDate(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  return d.toLocaleDateString('en-MY', { day:'numeric', month:'short', year:'numeric' });
+}
+
+// Boot
+checkSession();
+</script>
+</body>
+</html>

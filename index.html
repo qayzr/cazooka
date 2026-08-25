@@ -4970,23 +4970,7 @@ async function initApp() {
   startSimulation();
 }
 
-// Secret admin access: Shift+S×3 within 1.5s
-(function() {
-  let _sq = 0, _st = 0;
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'S' && e.shiftKey) {
-      const now = Date.now();
-      if (now - _st > 1500) _sq = 0;
-      _st = now;
-      _sq++;
-      if (_sq >= 3) {
-        _sq = 0;
-        document.getElementById('hdr-section-title').textContent = 'Admin Panel';
-        showTab('dashboard');
-      }
-    }
-  });
-})();
+// Admin panel lives at /admin — no in-game access needed.
 
 /* ══════════════════════════════════════════
    GAME HOME
