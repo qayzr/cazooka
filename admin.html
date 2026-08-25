@@ -7,130 +7,151 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
   :root {
-    --bg: #0D1117; --s1: #161B22; --s2: #1C2128; --s3: #21262D;
-    --bd: #30363D; --bd2: #444C56;
-    --t1: #E6EDF3; --t2: #8B949E; --t3: #6E7681;
-    --acc: #58A6FF; --acc-dim: rgba(88,166,255,.12);
-    --green: #3FB950; --green-dim: rgba(63,185,80,.12);
-    --red: #F85149; --red-dim: rgba(248,81,73,.12);
-    --yellow: #D29922; --yellow-dim: rgba(210,153,34,.12);
-    --r: 8px; --r-sm: 5px;
-    --ff: 'Inter', system-ui, sans-serif;
+    --bg:#0D1117;--s1:#161B22;--s2:#1C2128;--s3:#21262D;
+    --bd:#30363D;--bd2:#444C56;
+    --t1:#E6EDF3;--t2:#8B949E;--t3:#6E7681;
+    --acc:#58A6FF;--acc-dim:rgba(88,166,255,.12);
+    --green:#3FB950;--green-dim:rgba(63,185,80,.12);
+    --red:#F85149;--red-dim:rgba(248,81,73,.12);
+    --yellow:#D29922;--yellow-dim:rgba(210,153,34,.12);
+    --r:8px;--r-sm:5px;
+    --ff:'Inter',system-ui,sans-serif;
   }
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { height: 100%; background: var(--bg); color: var(--t1); font-family: var(--ff); font-size: 14px; line-height: 1.5; }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;background:var(--bg);color:var(--t1);font-family:var(--ff);font-size:14px;line-height:1.5}
 
   /* ── Login ── */
-  #login-wrap {
-    min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px;
-  }
-  .login-card {
-    background: var(--s1); border: 1px solid var(--bd); border-radius: var(--r);
-    padding: 40px 36px; width: min(400px, 100%);
-  }
-  .login-logo { font-size: 22px; font-weight: 800; letter-spacing: .06em; color: var(--acc); margin-bottom: 4px; }
-  .login-sub  { font-size: 12px; color: var(--t3); margin-bottom: 32px; letter-spacing: .04em; text-transform: uppercase; }
-  .login-lbl  { display: block; font-size: 11px; color: var(--t3); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 6px; }
-  .login-input {
-    width: 100%; padding: 10px 14px; background: var(--s2); border: 1px solid var(--bd);
-    border-radius: var(--r-sm); color: var(--t1); font-size: 14px; outline: none;
-    transition: border-color .15s; margin-bottom: 16px;
-  }
-  .login-input:focus { border-color: var(--acc); }
-  .login-btn {
-    width: 100%; padding: 11px; background: var(--acc); border: none; border-radius: var(--r-sm);
-    color: #0D1117; font-weight: 700; font-size: 14px; cursor: pointer; transition: opacity .15s;
-  }
-  .login-btn:hover { opacity: .85; }
-  .login-btn:disabled { opacity: .4; cursor: default; }
-  .login-err {
-    font-size: 12px; color: var(--red); background: var(--red-dim); border: 1px solid rgba(248,81,73,.25);
-    border-radius: var(--r-sm); padding: 8px 12px; margin-bottom: 16px; display: none;
-  }
+  #login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+  .login-card{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);padding:40px 36px;width:min(400px,100%)}
+  .login-logo{font-size:22px;font-weight:800;letter-spacing:.06em;color:var(--acc);margin-bottom:4px}
+  .login-sub{font-size:12px;color:var(--t3);margin-bottom:32px;letter-spacing:.04em;text-transform:uppercase}
+  .login-lbl{display:block;font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
+  .login-input{width:100%;padding:10px 14px;background:var(--s2);border:1px solid var(--bd);border-radius:var(--r-sm);color:var(--t1);font-size:14px;outline:none;transition:border-color .15s;margin-bottom:16px}
+  .login-input:focus{border-color:var(--acc)}
+  .login-btn{width:100%;padding:11px;background:var(--acc);border:none;border-radius:var(--r-sm);color:#0D1117;font-weight:700;font-size:14px;cursor:pointer;transition:opacity .15s}
+  .login-btn:hover{opacity:.85}
+  .login-btn:disabled{opacity:.4;cursor:default}
+  .login-err{font-size:12px;color:var(--red);background:var(--red-dim);border:1px solid rgba(248,81,73,.25);border-radius:var(--r-sm);padding:8px 12px;margin-bottom:16px;display:none}
 
   /* ── Shell ── */
-  #admin-wrap { display: none; flex-direction: column; min-height: 100vh; }
-  .topbar {
-    height: 52px; background: var(--s1); border-bottom: 1px solid var(--bd);
-    display: flex; align-items: center; gap: 16px; padding: 0 24px; flex-shrink: 0;
-  }
-  .topbar-logo { font-weight: 800; letter-spacing: .06em; color: var(--acc); font-size: 15px; }
-  .topbar-label { font-size: 11px; text-transform: uppercase; letter-spacing: .1em; color: var(--t3); margin-left: 4px; }
-  .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
-  .topbar-user { font-size: 12px; color: var(--t2); }
-  .logout-btn {
-    padding: 6px 14px; background: transparent; border: 1px solid var(--bd); border-radius: var(--r-sm);
-    color: var(--t2); font-size: 12px; cursor: pointer; transition: border-color .15s, color .15s;
-  }
-  .logout-btn:hover { border-color: var(--red); color: var(--red); }
-
-  .body { display: flex; flex: 1; min-height: 0; }
+  #admin-wrap{display:none;flex-direction:column;min-height:100vh}
+  .topbar{height:52px;background:var(--s1);border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:16px;padding:0 24px;flex-shrink:0}
+  .topbar-logo{font-weight:800;letter-spacing:.06em;color:var(--acc);font-size:15px}
+  .topbar-label{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--t3);margin-left:4px}
+  .topbar-right{margin-left:auto;display:flex;align-items:center;gap:12px}
+  .topbar-user{font-size:12px;color:var(--t2)}
+  .logout-btn{padding:6px 14px;background:transparent;border:1px solid var(--bd);border-radius:var(--r-sm);color:var(--t2);font-size:12px;cursor:pointer;transition:border-color .15s,color .15s}
+  .logout-btn:hover{border-color:var(--red);color:var(--red)}
+  .body{display:flex;flex:1;min-height:0}
 
   /* ── Sidebar ── */
-  .sidebar {
-    width: 200px; flex-shrink: 0; background: var(--s1); border-right: 1px solid var(--bd);
-    padding: 16px 0;
-  }
-  .nav-item {
-    display: flex; align-items: center; gap: 10px; padding: 9px 20px;
-    font-size: 13px; color: var(--t2); cursor: pointer; transition: background .12s, color .12s;
-    border: none; background: none; width: 100%; text-align: left;
-  }
-  .nav-item:hover { background: var(--s2); color: var(--t1); }
-  .nav-item.active { background: var(--acc-dim); color: var(--acc); font-weight: 600; }
-  .nav-icon { font-size: 15px; width: 18px; text-align: center; }
-  .nav-section { font-size: 9px; text-transform: uppercase; letter-spacing: .12em; color: var(--t3); padding: 16px 20px 6px; }
+  .sidebar{width:200px;flex-shrink:0;background:var(--s1);border-right:1px solid var(--bd);padding:16px 0}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:9px 20px;font-size:13px;color:var(--t2);cursor:pointer;transition:background .12s,color .12s;border:none;background:none;width:100%;text-align:left}
+  .nav-item:hover{background:var(--s2);color:var(--t1)}
+  .nav-item.active{background:var(--acc-dim);color:var(--acc);font-weight:600}
+  .nav-icon{font-size:15px;width:18px;text-align:center}
+  .nav-section{font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:var(--t3);padding:16px 20px 6px}
 
   /* ── Content ── */
-  .content { flex: 1; overflow-y: auto; padding: 28px; }
-  .page { display: none; }
-  .page.active { display: block; }
-  .page-title { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
-  .page-sub { font-size: 12px; color: var(--t3); margin-bottom: 24px; }
+  .content{flex:1;overflow-y:auto;padding:28px}
+  .page{display:none}
+  .page.active{display:block}
+  .page-title{font-size:18px;font-weight:700;margin-bottom:4px}
+  .page-sub{font-size:12px;color:var(--t3);margin-bottom:24px}
 
   /* ── Stat tiles ── */
-  .stats-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; margin-bottom: 28px; }
-  .stat-tile { background: var(--s1); border: 1px solid var(--bd); border-radius: var(--r); padding: 18px 20px; }
-  .stat-label { font-size: 10px; text-transform: uppercase; letter-spacing: .1em; color: var(--t3); margin-bottom: 8px; }
-  .stat-value { font-size: 28px; font-weight: 800; color: var(--t1); line-height: 1; }
-  .stat-sub { font-size: 11px; color: var(--t3); margin-top: 4px; }
+  .stats-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:28px}
+  .stat-tile{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);padding:18px 20px}
+  .stat-label{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--t3);margin-bottom:8px}
+  .stat-value{font-size:28px;font-weight:800;color:var(--t1);line-height:1}
 
   /* ── Table ── */
-  .table-wrap { background: var(--s1); border: 1px solid var(--bd); border-radius: var(--r); overflow: hidden; }
-  .table-head { padding: 14px 20px; border-bottom: 1px solid var(--bd); display: flex; align-items: center; justify-content: space-between; }
-  .table-title { font-size: 13px; font-weight: 600; }
-  .table-count { font-size: 11px; color: var(--t3); }
-  table { width: 100%; border-collapse: collapse; }
-  th { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: var(--t3); text-align: left; padding: 10px 20px; border-bottom: 1px solid var(--bd); font-weight: 500; }
-  td { padding: 11px 20px; border-bottom: 1px solid var(--bd); font-size: 13px; color: var(--t1); vertical-align: middle; }
-  tr:last-child td { border-bottom: none; }
-  tr:hover td { background: var(--s2); }
-  .badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 10px; font-weight: 600; }
-  .badge-green { background: var(--green-dim); color: var(--green); }
-  .badge-yellow { background: var(--yellow-dim); color: var(--yellow); }
-  .badge-gray  { background: var(--s3); color: var(--t3); }
+  .table-wrap{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);overflow:hidden}
+  .table-head{padding:14px 20px;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:12px}
+  .table-title{font-size:13px;font-weight:600;flex:1}
+  .table-count{font-size:11px;color:var(--t3)}
+  table{width:100%;border-collapse:collapse}
+  th{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--t3);text-align:left;padding:10px 16px;border-bottom:1px solid var(--bd);font-weight:500}
+  td{padding:10px 16px;border-bottom:1px solid var(--bd);font-size:13px;color:var(--t1);vertical-align:middle}
+  tr:last-child td{border-bottom:none}
+  tr:hover td{background:var(--s2)}
+  .badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600}
+  .badge-green{background:var(--green-dim);color:var(--green)}
+  .badge-blue{background:var(--acc-dim);color:var(--acc)}
+  .badge-yellow{background:var(--yellow-dim);color:var(--yellow)}
+  .badge-gray{background:var(--s3);color:var(--t3)}
+  .badge-red{background:var(--red-dim);color:var(--red)}
+  .empty{padding:48px 20px;text-align:center;color:var(--t3);font-size:13px}
+  .spinner{display:inline-block;width:16px;height:16px;border:2px solid var(--bd);border-top-color:var(--acc);border-radius:50%;animation:spin .6s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
 
-  /* ── Empty state ── */
-  .empty { padding: 48px 20px; text-align: center; color: var(--t3); font-size: 13px; }
+  /* ── Buttons ── */
+  .btn{padding:7px 14px;border-radius:var(--r-sm);font-size:12px;font-weight:600;cursor:pointer;border:none;transition:opacity .15s}
+  .btn:hover{opacity:.85}
+  .btn:disabled{opacity:.4;cursor:default}
+  .btn-primary{background:var(--acc);color:#0D1117}
+  .btn-ghost{background:transparent;border:1px solid var(--bd);color:var(--t2)}
+  .btn-ghost:hover{border-color:var(--acc);color:var(--acc)}
+  .btn-danger{background:var(--red-dim);color:var(--red);border:1px solid rgba(248,81,73,.3)}
+  .btn-danger:hover{background:var(--red);color:#fff}
+  .btn-sm{padding:4px 10px;font-size:11px}
 
-  /* ── Loading spinner ── */
-  .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid var(--bd); border-top-color: var(--acc); border-radius: 50%; animation: spin .6s linear infinite; }
-  @keyframes spin { to { transform: rotate(360deg); } }
+  /* ── Card Studio ── */
+  .studio-toolbar{display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+  .studio-search{flex:1;min-width:180px;padding:8px 12px;background:var(--s2);border:1px solid var(--bd);border-radius:var(--r-sm);color:var(--t1);font-size:13px;outline:none}
+  .studio-search:focus{border-color:var(--acc)}
+  .studio-filter{padding:8px 10px;background:var(--s2);border:1px solid var(--bd);border-radius:var(--r-sm);color:var(--t1);font-size:12px;outline:none;cursor:pointer}
 
-  /* ── Library grid ── */
-  .lib-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
-  .lib-card { background: var(--s1); border: 1px solid var(--bd); border-radius: var(--r); padding: 14px 16px; }
-  .lib-card-name { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
-  .lib-card-type { font-size: 10px; color: var(--t3); text-transform: uppercase; letter-spacing: .08em; }
-  .lib-card-cost { font-size: 11px; color: var(--yellow); margin-top: 6px; }
-  .rarity-common   { border-left: 3px solid var(--bd2); }
-  .rarity-uncommon { border-left: 3px solid #3FB950; }
-  .rarity-rare     { border-left: 3px solid #58A6FF; }
-  .rarity-legendary{ border-left: 3px solid #D29922; }
+  .card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
+  .card-tile{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);padding:14px 16px;cursor:pointer;transition:border-color .15s,background .15s;position:relative}
+  .card-tile:hover{border-color:var(--acc);background:var(--s2)}
+  .card-tile-name{font-size:13px;font-weight:600;margin-bottom:4px;padding-right:24px}
+  .card-tile-type{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}
+  .card-tile-foot{display:flex;align-items:center;justify-content:space-between}
+  .card-tile-cost{font-size:11px;color:var(--yellow)}
+  .card-tile-del{position:absolute;top:10px;right:10px;background:none;border:none;color:var(--t3);cursor:pointer;font-size:14px;line-height:1;padding:2px 4px;border-radius:3px;opacity:0;transition:opacity .15s}
+  .card-tile:hover .card-tile-del{opacity:1}
+  .card-tile-del:hover{color:var(--red);background:var(--red-dim)}
 
-  /* ── Game link ── */
-  .game-link { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--acc); text-decoration: none; }
-  .game-link:hover { text-decoration: underline; }
+  .rarity-common{border-left:3px solid var(--bd2)}
+  .rarity-uncommon{border-left:3px solid var(--green)}
+  .rarity-rare{border-left:3px solid var(--acc)}
+  .rarity-legendary{border-left:3px solid var(--yellow)}
+
+  /* ── Card Editor Drawer ── */
+  .drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;display:none}
+  .drawer-overlay.open{display:block}
+  .drawer{position:fixed;right:0;top:0;bottom:0;width:min(520px,100vw);background:var(--s1);border-left:1px solid var(--bd);z-index:101;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .2s ease}
+  .drawer.open{transform:translateX(0)}
+  .drawer-head{padding:20px 24px;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:12px;flex-shrink:0}
+  .drawer-title{font-size:15px;font-weight:700;flex:1}
+  .drawer-body{flex:1;overflow-y:auto;padding:24px}
+  .drawer-foot{padding:16px 24px;border-top:1px solid var(--bd);display:flex;gap:10px;flex-shrink:0}
+  .drawer-err{font-size:12px;color:var(--red);background:var(--red-dim);border:1px solid rgba(248,81,73,.25);border-radius:var(--r-sm);padding:8px 12px;margin-bottom:16px;display:none}
+  .drawer-ok{font-size:12px;color:var(--green);background:var(--green-dim);border:1px solid rgba(63,185,80,.25);border-radius:var(--r-sm);padding:8px 12px;margin-bottom:16px;display:none}
+
+  /* ── Form ── */
+  .form-section{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--t3);margin:20px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--bd)}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+  .form-row.full{grid-template-columns:1fr}
+  .form-group{display:flex;flex-direction:column;gap:5px}
+  .form-lbl{font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:.07em}
+  .form-input{padding:9px 12px;background:var(--s2);border:1px solid var(--bd);border-radius:var(--r-sm);color:var(--t1);font-size:13px;outline:none;transition:border-color .15s;width:100%}
+  .form-input:focus{border-color:var(--acc)}
+  .form-select{padding:9px 12px;background:var(--s2);border:1px solid var(--bd);border-radius:var(--r-sm);color:var(--t1);font-size:13px;outline:none;cursor:pointer;width:100%}
+  .form-textarea{padding:9px 12px;background:var(--s2);border:1px solid var(--bd);border-radius:var(--r-sm);color:var(--t1);font-size:13px;outline:none;font-family:var(--ff);resize:vertical;width:100%;min-height:80px}
+  .form-textarea:focus{border-color:var(--acc)}
+  .form-check{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--t2)}
+  .form-check input{width:15px;height:15px;cursor:pointer;accent-color:var(--acc)}
+
+  .stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .stat-input-wrap{display:flex;flex-direction:column;gap:3px}
+  .stat-lbl{font-size:10px;color:var(--t3);text-transform:capitalize}
+  .stat-input{padding:6px 8px;background:var(--s2);border:1px solid var(--bd);border-radius:var(--r-sm);color:var(--t1);font-size:13px;outline:none;text-align:center;width:100%}
+  .stat-input:focus{border-color:var(--acc)}
+
+  a.game-link{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--acc);text-decoration:none}
+  a.game-link:hover{text-decoration:underline}
 </style>
 </head>
 <body>
@@ -142,11 +163,9 @@
     <div class="login-sub">Admin Panel</div>
     <div class="login-err" id="login-err"></div>
     <label class="login-lbl">Email</label>
-    <input class="login-input" id="l-email" type="email" placeholder="admin@example.com" autocomplete="email"
-      onkeydown="if(event.key==='Enter')doLogin()">
+    <input class="login-input" id="l-email" type="email" placeholder="admin@example.com" autocomplete="email" onkeydown="if(event.key==='Enter')doLogin()">
     <label class="login-lbl">Password</label>
-    <input class="login-input" id="l-pass" type="password" placeholder="Password" autocomplete="current-password"
-      onkeydown="if(event.key==='Enter')doLogin()">
+    <input class="login-input" id="l-pass" type="password" placeholder="Password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
     <button class="login-btn" id="login-btn" onclick="doLogin()">Sign In</button>
   </div>
 </div>
@@ -165,22 +184,53 @@
 
   <div class="body">
     <nav class="sidebar">
-      <div class="nav-section">Overview</div>
-      <button class="nav-item active" data-page="players" onclick="navTo('players')">
-        <span class="nav-icon">👤</span> Players
+      <div class="nav-section">Manage</div>
+      <button class="nav-item active" data-page="studio" onclick="navTo('studio')">
+        <span class="nav-icon">🃏</span> Card Studio
       </button>
-      <button class="nav-item" data-page="library" onclick="navTo('library')">
-        <span class="nav-icon">🃏</span> Card Library
+      <button class="nav-item" data-page="players" onclick="navTo('players')">
+        <span class="nav-icon">👤</span> Players
       </button>
     </nav>
 
     <main class="content">
 
-      <!-- Players page -->
-      <div class="page active" id="page-players">
+      <!-- Card Studio -->
+      <div class="page active" id="page-studio">
+        <div class="page-title">Card Studio</div>
+        <div class="page-sub">Create and edit cards. Changes go live in the game immediately.</div>
+
+        <div class="studio-toolbar">
+          <input class="studio-search" id="studio-search" placeholder="Search cards…" oninput="filterCards()">
+          <select class="studio-filter" id="studio-type-filter" onchange="filterCards()">
+            <option value="">All types</option>
+            <option value="cat_breed">Cat Breed</option>
+            <option value="battle_gear">Battle Gear</option>
+            <option value="home_item">Home Item</option>
+            <option value="special_ability">Special Ability</option>
+            <option value="home">Home</option>
+          </select>
+          <select class="studio-filter" id="studio-rarity-filter" onchange="filterCards()">
+            <option value="">All rarities</option>
+            <option value="common">Common</option>
+            <option value="uncommon">Uncommon</option>
+            <option value="rare">Rare</option>
+            <option value="legendary">Legendary</option>
+          </select>
+          <button class="btn btn-primary" onclick="openDrawer(null)">+ New Card</button>
+        </div>
+
+        <div style="font-size:12px;color:var(--t3);margin-bottom:16px" id="studio-count"></div>
+        <div class="card-grid" id="card-grid">
+          <div style="grid-column:1/-1" class="empty"><span class="spinner"></span></div>
+        </div>
+      </div>
+
+      <!-- Players -->
+      <div class="page" id="page-players">
         <div class="page-title">Players</div>
         <div class="page-sub">Everyone who has registered an account.</div>
-        <div class="stats-row" id="stats-row">
+        <div class="stats-row">
           <div class="stat-tile"><div class="stat-label">Total Players</div><div class="stat-value" id="st-total">—</div></div>
           <div class="stat-tile"><div class="stat-label">Total Wins</div><div class="stat-value" id="st-wins">—</div></div>
           <div class="stat-tile"><div class="stat-label">Total Runs</div><div class="stat-value" id="st-runs">—</div></div>
@@ -189,31 +239,132 @@
         <div class="table-wrap">
           <div class="table-head">
             <span class="table-title">Player Roster</span>
-            <span class="table-count" id="player-count">loading…</span>
+            <span class="table-count" id="player-count"></span>
           </div>
-          <div id="players-table-wrap">
-            <div class="empty"><span class="spinner"></span></div>
-          </div>
+          <div id="players-table-wrap"><div class="empty"><span class="spinner"></span></div></div>
         </div>
-      </div>
-
-      <!-- Library page -->
-      <div class="page" id="page-library">
-        <div class="page-title">Card Library</div>
-        <div class="page-sub">All cards currently in the game. Edit them in the game file.</div>
-        <div class="lib-grid" id="lib-grid-admin"></div>
       </div>
 
     </main>
   </div>
 </div>
 
+<!-- ── Card Editor Drawer ── -->
+<div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-head">
+    <span class="drawer-title" id="drawer-title">New Card</span>
+    <button class="btn btn-ghost btn-sm" onclick="closeDrawer()">✕ Close</button>
+  </div>
+  <div class="drawer-body">
+    <div class="drawer-err" id="drawer-err"></div>
+    <div class="drawer-ok"  id="drawer-ok"></div>
+
+    <div class="form-section">Identity</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-lbl">Card ID</label>
+        <input class="form-input" id="f-id" placeholder="e.g. breed-011" autocomplete="off">
+      </div>
+      <div class="form-group">
+        <label class="form-lbl">Type</label>
+        <select class="form-select" id="f-type" onchange="onTypeChange()">
+          <option value="cat_breed">Cat Breed</option>
+          <option value="battle_gear">Battle Gear</option>
+          <option value="home_item">Home Item</option>
+          <option value="special_ability">Special Ability</option>
+          <option value="home">Home</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row full">
+      <div class="form-group">
+        <label class="form-lbl">Name</label>
+        <input class="form-input" id="f-name" placeholder="Card name" autocomplete="off">
+      </div>
+    </div>
+    <div class="form-row full">
+      <div class="form-group">
+        <label class="form-lbl">Description</label>
+        <textarea class="form-textarea" id="f-desc" placeholder="Flavour text / ability description"></textarea>
+      </div>
+    </div>
+
+    <div class="form-section">Properties</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-lbl">Rarity</label>
+        <select class="form-select" id="f-rarity">
+          <option value="common">Common</option>
+          <option value="uncommon">Uncommon</option>
+          <option value="rare">Rare</option>
+          <option value="legendary">Legendary</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-lbl">Coin Cost</label>
+        <input class="form-input" id="f-cost" type="number" min="0" placeholder="0">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-lbl">Series (optional)</label>
+        <input class="form-input" id="f-series" placeholder="e.g. Alpha">
+      </div>
+      <div class="form-group" style="justify-content:flex-end;padding-bottom:2px">
+        <label class="form-check">
+          <input type="checkbox" id="f-starter"> Starter card (appears in draft)
+        </label>
+      </div>
+    </div>
+
+    <!-- Cat breed stats -->
+    <div id="stats-section" style="display:none">
+      <div class="form-section">Cat Stats</div>
+      <div class="stat-grid" id="stat-grid"></div>
+      <div class="form-row" style="margin-top:12px">
+        <div class="form-group">
+          <label class="form-lbl">Inventory Slots</label>
+          <input class="form-input stat-input" id="f-slots" type="number" min="0" max="10" placeholder="4">
+        </div>
+        <div class="form-group">
+          <label class="form-lbl">Growth Label</label>
+          <input class="form-input" id="f-growth-label" placeholder="e.g. Balanced Growth">
+        </div>
+      </div>
+    </div>
+
+    <!-- Special ability / battle gear effect -->
+    <div id="effect-section" style="display:none">
+      <div class="form-section">Effect</div>
+      <div class="form-row full">
+        <div class="form-group">
+          <label class="form-lbl">Effect JSON (data field)</label>
+          <textarea class="form-textarea" id="f-data-json" placeholder="{}" style="min-height:120px;font-family:monospace;font-size:12px"></textarea>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <div class="drawer-foot">
+    <button class="btn btn-primary" id="drawer-save-btn" onclick="saveCard()">Save Card</button>
+    <button class="btn btn-ghost" onclick="closeDrawer()">Cancel</button>
+    <button class="btn btn-danger btn-sm" id="drawer-del-btn" style="margin-left:auto;display:none" onclick="deleteCard()">Delete</button>
+  </div>
+</div>
+
 <script>
 const SUPA_URL = 'https://jrgplarvzlrmczsrzswo.supabase.co';
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpyZ3BsYXJ2emxybWN6c3J6c3dvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc2NTM1NTQsImV4cCI6MjEwMzIyOTU1NH0.uqtQPvsayt4UJ6XFzGGX61YvWVCK-371SxGO2lJzA3s';
-const db = window.supabase ? window.supabase.createClient(SUPA_URL, SUPA_KEY) : null;
+const db = window.supabase.createClient(SUPA_URL, SUPA_KEY);
 
 let ADMIN_USER = null;
+let ALL_CARDS  = [];
+let EDITING_ID = null;
+
+const CAT_STATS = ['weight','strength','stamina','loyalty','affection','amicability','intelligence','speed','agility','stealth'];
+const TYPE_LABELS = {cat_breed:'Cat Breed',battle_gear:'Battle Gear',home_item:'Home Item',special_ability:'Special Ability',home:'Home'};
+const RARITY_BADGE = {common:'badge-gray',uncommon:'badge-green',rare:'badge-blue',legendary:'badge-yellow'};
 
 /* ── Auth ── */
 async function doLogin() {
@@ -222,67 +373,35 @@ async function doLogin() {
   const btn   = document.getElementById('login-btn');
   const errEl = document.getElementById('login-err');
   if (!email || !pass) return;
-
-  if (!db) {
-    errEl.textContent = 'Could not reach Supabase — check your connection or ad blocker and reload.';
-    errEl.style.display = '';
-    return;
-  }
-
   btn.disabled = true; btn.textContent = 'Signing in…';
   errEl.style.display = 'none';
 
-  try {
-    const { data, error } = await db.auth.signInWithPassword({ email, password: pass });
-    if (error) {
-      errEl.textContent = error.message; errEl.style.display = '';
-      return;
-    }
+  const { data, error } = await db.auth.signInWithPassword({ email, password: pass });
+  if (error) { errEl.textContent = error.message; errEl.style.display = ''; btn.disabled = false; btn.textContent = 'Sign In'; return; }
 
-    // Check is_admin flag
-    const { data: player } = await db.from('players').select('is_admin, callsign').eq('id', data.user.id).single();
-    if (!player || !player.is_admin) {
-      await db.auth.signOut();
-      errEl.textContent = 'Access denied — you are not an admin.';
-      errEl.style.display = '';
-      return;
-    }
-
-    ADMIN_USER = data.user;
-    document.getElementById('tb-user').textContent = player.callsign || email;
-    showAdmin();
-  } catch (e) {
-    console.error('Login failed:', e);
-    errEl.textContent = 'Login failed unexpectedly — check your connection and try again.';
-    errEl.style.display = '';
-  } finally {
-    btn.disabled = false; btn.textContent = 'Sign In';
+  const { data: player } = await db.from('players').select('is_admin,callsign').eq('id', data.user.id).single();
+  if (!player || !player.is_admin) {
+    await db.auth.signOut();
+    errEl.textContent = 'Access denied — not an admin.'; errEl.style.display = '';
+    btn.disabled = false; btn.textContent = 'Sign In'; return;
   }
+  ADMIN_USER = data.user;
+  document.getElementById('tb-user').textContent = player.callsign || email;
+  showAdmin();
 }
 
-async function doLogout() {
-  await db.auth.signOut();
-  location.reload();
-}
+async function doLogout() { await db.auth.signOut(); location.reload(); }
 
 function showAdmin() {
   document.getElementById('login-wrap').style.display = 'none';
   document.getElementById('admin-wrap').style.display = 'flex';
-  loadPlayers();
-  renderLibraryAdmin();
+  loadCards();
 }
 
-/* ── Session restore ── */
 async function checkSession() {
-  if (!db) {
-    const errEl = document.getElementById('login-err');
-    errEl.textContent = 'Could not reach Supabase — check your connection or ad blocker and reload.';
-    errEl.style.display = '';
-    return;
-  }
   const { data: { session } } = await db.auth.getSession();
   if (!session) return;
-  const { data: player } = await db.from('players').select('is_admin, callsign').eq('id', session.user.id).single();
+  const { data: player } = await db.from('players').select('is_admin,callsign').eq('id', session.user.id).single();
   if (!player || !player.is_admin) return;
   ADMIN_USER = session.user;
   document.getElementById('tb-user').textContent = player.callsign || session.user.email;
@@ -296,70 +415,210 @@ function navTo(page) {
   document.getElementById('page-' + page).classList.add('active');
   document.querySelector('[data-page="' + page + '"]').classList.add('active');
   if (page === 'players') loadPlayers();
+  if (page === 'studio') loadCards();
+}
+
+/* ── Card Studio ── */
+async function loadCards() {
+  document.getElementById('card-grid').innerHTML = '<div style="grid-column:1/-1" class="empty"><span class="spinner"></span></div>';
+  const { data, error } = await db.from('cards').select('*').order('type').order('name');
+  if (error) {
+    document.getElementById('card-grid').innerHTML = '<div style="grid-column:1/-1" class="empty">Could not load cards. Run the SQL setup first.</div>';
+    return;
+  }
+  ALL_CARDS = data || [];
+  renderCards(ALL_CARDS);
+}
+
+function renderCards(cards) {
+  document.getElementById('studio-count').textContent = cards.length + ' card' + (cards.length !== 1 ? 's' : '');
+  if (!cards.length) {
+    document.getElementById('card-grid').innerHTML = '<div style="grid-column:1/-1" class="empty">No cards found.</div>';
+    return;
+  }
+  document.getElementById('card-grid').innerHTML = cards.map(c => `
+    <div class="card-tile rarity-${esc(c.rarity)}" onclick="openDrawer('${esc(c.id)}')">
+      <button class="card-tile-del" title="Delete" onclick="event.stopPropagation();confirmDelete('${esc(c.id)}','${esc(c.name)}')">✕</button>
+      <div class="card-tile-name">${esc(c.name)}</div>
+      <div class="card-tile-type">${TYPE_LABELS[c.type] || c.type}</div>
+      <div class="card-tile-foot">
+        <span class="badge ${RARITY_BADGE[c.rarity] || 'badge-gray'}">${c.rarity}</span>
+        <span class="card-tile-cost">${c.coin_cost ? '🪙 ' + c.coin_cost : ''}</span>
+      </div>
+    </div>`).join('');
+}
+
+function filterCards() {
+  const q      = document.getElementById('studio-search').value.toLowerCase();
+  const type   = document.getElementById('studio-type-filter').value;
+  const rarity = document.getElementById('studio-rarity-filter').value;
+  const filtered = ALL_CARDS.filter(c =>
+    (!q      || c.name.toLowerCase().includes(q) || (c.description||'').toLowerCase().includes(q)) &&
+    (!type   || c.type   === type) &&
+    (!rarity || c.rarity === rarity)
+  );
+  renderCards(filtered);
+}
+
+/* ── Drawer ── */
+function openDrawer(cardId) {
+  EDITING_ID = cardId;
+  const card = cardId ? ALL_CARDS.find(c => c.id === cardId) : null;
+
+  document.getElementById('drawer-title').textContent = card ? 'Edit Card' : 'New Card';
+  document.getElementById('drawer-del-btn').style.display = card ? '' : 'none';
+  document.getElementById('drawer-err').style.display = 'none';
+  document.getElementById('drawer-ok').style.display  = 'none';
+
+  // Populate fields
+  document.getElementById('f-id').value      = card ? card.id          : '';
+  document.getElementById('f-id').disabled   = !!card; // can't change id of existing card
+  document.getElementById('f-name').value    = card ? card.name        : '';
+  document.getElementById('f-desc').value    = card ? card.description : '';
+  document.getElementById('f-type').value    = card ? card.type        : 'cat_breed';
+  document.getElementById('f-rarity').value  = card ? card.rarity      : 'common';
+  document.getElementById('f-cost').value    = card ? card.coin_cost   : 0;
+  document.getElementById('f-series').value  = card ? (card.series||'') : '';
+  document.getElementById('f-starter').checked = card ? !!card.is_starter : false;
+
+  onTypeChange(card);
+
+  document.getElementById('drawer-overlay').classList.add('open');
+  document.getElementById('drawer').classList.add('open');
+}
+
+function closeDrawer() {
+  document.getElementById('drawer-overlay').classList.remove('open');
+  document.getElementById('drawer').classList.remove('open');
+  EDITING_ID = null;
+}
+
+function onTypeChange(card) {
+  const type = document.getElementById('f-type').value;
+  const data = card ? (card.data || {}) : {};
+
+  const showStats  = type === 'cat_breed';
+  const showEffect = !showStats;
+  document.getElementById('stats-section').style.display  = showStats  ? '' : 'none';
+  document.getElementById('effect-section').style.display = showEffect ? '' : 'none';
+
+  if (showStats) {
+    const stats = data.stats || {};
+    document.getElementById('stat-grid').innerHTML = CAT_STATS.map(s =>
+      `<div class="stat-input-wrap">
+        <div class="stat-lbl">${s}</div>
+        <input class="stat-input" id="stat-${s}" type="number" min="0" max="100" value="${stats[s] || 0}">
+      </div>`
+    ).join('');
+    document.getElementById('f-slots').value = data.base_inventory_slots || 4;
+    document.getElementById('f-growth-label').value = (data.home_dev_traits && data.home_dev_traits.label) || '';
+  } else {
+    // For non-breed cards, show raw JSON editor
+    const jsonData = card ? JSON.stringify(card.data || {}, null, 2) : '{}';
+    document.getElementById('f-data-json').value = jsonData;
+  }
+}
+
+async function saveCard() {
+  const btn   = document.getElementById('drawer-save-btn');
+  const errEl = document.getElementById('drawer-err');
+  const okEl  = document.getElementById('drawer-ok');
+  errEl.style.display = 'none';
+  okEl.style.display  = 'none';
+
+  const id   = document.getElementById('f-id').value.trim();
+  const name = document.getElementById('f-name').value.trim();
+  const type = document.getElementById('f-type').value;
+
+  if (!id || !name) { errEl.textContent = 'Card ID and Name are required.'; errEl.style.display = ''; return; }
+
+  // Build data payload
+  let data = {};
+  if (type === 'cat_breed') {
+    const stats = {};
+    CAT_STATS.forEach(s => { stats[s] = parseInt(document.getElementById('stat-' + s).value) || 0; });
+    data = {
+      base_inventory_slots: parseInt(document.getElementById('f-slots').value) || 4,
+      stats,
+      home_dev_traits: { label: document.getElementById('f-growth-label').value.trim() || 'Steady Growth' }
+    };
+  } else {
+    try { data = JSON.parse(document.getElementById('f-data-json').value || '{}'); }
+    catch(e) { errEl.textContent = 'Effect JSON is invalid. Fix the syntax and try again.'; errEl.style.display = ''; return; }
+  }
+
+  const payload = {
+    id, type, name,
+    description: document.getElementById('f-desc').value.trim(),
+    rarity:      document.getElementById('f-rarity').value,
+    coin_cost:   parseInt(document.getElementById('f-cost').value) || 0,
+    series:      document.getElementById('f-series').value.trim() || null,
+    is_starter:  document.getElementById('f-starter').checked,
+    data,
+    updated_at:  new Date().toISOString()
+  };
+
+  btn.disabled = true; btn.textContent = 'Saving…';
+  const { error } = await db.from('cards').upsert(payload, { onConflict: 'id' });
+  btn.disabled = false; btn.textContent = 'Save Card';
+
+  if (error) { errEl.textContent = error.message; errEl.style.display = ''; return; }
+
+  okEl.textContent = '✓ Card saved!'; okEl.style.display = '';
+  await loadCards();
+  setTimeout(() => { okEl.style.display = 'none'; }, 2000);
+}
+
+function confirmDelete(id, name) {
+  if (!confirm(`Delete "${name}"? This cannot be undone.`)) return;
+  deleteCardById(id);
+}
+
+async function deleteCard() {
+  if (!EDITING_ID) return;
+  const card = ALL_CARDS.find(c => c.id === EDITING_ID);
+  if (!confirm(`Delete "${card ? card.name : EDITING_ID}"? This cannot be undone.`)) return;
+  await deleteCardById(EDITING_ID);
+  closeDrawer();
+}
+
+async function deleteCardById(id) {
+  const { error } = await db.from('cards').delete().eq('id', id);
+  if (error) { alert('Delete failed: ' + error.message); return; }
+  await loadCards();
 }
 
 /* ── Players ── */
 async function loadPlayers() {
   const wrap = document.getElementById('players-table-wrap');
   wrap.innerHTML = '<div class="empty"><span class="spinner"></span></div>';
-
   const { data: players, error } = await db.from('players').select('*').order('created_at', { ascending: false });
-  if (error || !players) {
-    wrap.innerHTML = '<div class="empty">Could not load players. Check admin RLS policies.</div>';
-    return;
-  }
+  if (error || !players) { wrap.innerHTML = '<div class="empty">Could not load players.</div>'; return; }
 
-  // Stats
   document.getElementById('st-total').textContent = players.length;
-  document.getElementById('st-wins').textContent  = players.reduce((s, p) => s + (p.wins || 0), 0);
-  document.getElementById('st-runs').textContent  = players.reduce((s, p) => s + (p.runs || 0), 0);
-  const avgCoins = players.length ? Math.round(players.reduce((s, p) => s + (p.coins || 0), 0) / players.length) : 0;
-  document.getElementById('st-coins').textContent = avgCoins.toLocaleString();
+  document.getElementById('st-wins').textContent  = players.reduce((s,p) => s+(p.wins||0),0);
+  document.getElementById('st-runs').textContent  = players.reduce((s,p) => s+(p.runs||0),0);
+  const avg = players.length ? Math.round(players.reduce((s,p) => s+(p.coins||0),0)/players.length) : 0;
+  document.getElementById('st-coins').textContent = avg.toLocaleString();
   document.getElementById('player-count').textContent = players.length + ' players';
 
-  if (!players.length) {
-    wrap.innerHTML = '<div class="empty">No players yet.</div>';
-    return;
-  }
-
-  wrap.innerHTML = `<table>
-    <thead><tr>
-      <th>Callsign</th><th>Coins</th><th>Wins</th><th>Losses</th><th>Runs</th><th>Admin</th><th>Joined</th>
-    </tr></thead>
-    <tbody>${players.map(p => `<tr>
-      <td><strong>${esc(p.callsign)}</strong></td>
-      <td>${(p.coins || 0).toLocaleString()}</td>
-      <td>${p.wins || 0}</td>
-      <td>${p.losses || 0}</td>
-      <td>${p.runs || 0}</td>
-      <td>${p.is_admin ? '<span class="badge badge-green">Admin</span>' : '<span class="badge badge-gray">Player</span>'}</td>
-      <td style="color:var(--t3)">${fmtDate(p.created_at)}</td>
-    </tr>`).join('')}</tbody>
-  </table>`;
-}
-
-/* ── Library ── */
-const TYPE_LABELS = { cat_breed:'Cat Breed', battle_gear:'Battle Gear', home_item:'Home Item', special_ability:'Special Ability', home:'Home' };
-
-function renderLibraryAdmin() {
-  // Pull card data from the game's window scope if same origin, otherwise show message
-  const grid = document.getElementById('lib-grid-admin');
-  // The library lives in index.html — we'll display a placeholder pointing there
-  grid.innerHTML = `<div style="grid-column:1/-1;padding:32px 0;text-align:center;color:var(--t3)">
-    Card Library is managed directly in <code style="background:var(--s2);padding:2px 6px;border-radius:4px">index.html</code>.<br>
-    <a href="/" target="_blank" class="game-link" style="margin-top:12px;display:inline-flex">↗ Open game to preview cards</a>
-  </div>`;
+  if (!players.length) { wrap.innerHTML = '<div class="empty">No players yet.</div>'; return; }
+  wrap.innerHTML = `<table><thead><tr>
+    <th>Callsign</th><th>Coins</th><th>Wins</th><th>Runs</th><th>Admin</th><th>Joined</th>
+  </tr></thead><tbody>${players.map(p => `<tr>
+    <td><strong>${esc(p.callsign)}</strong></td>
+    <td>${(p.coins||0).toLocaleString()}</td>
+    <td>${p.wins||0}</td>
+    <td>${p.runs||0}</td>
+    <td>${p.is_admin?'<span class="badge badge-green">Admin</span>':'<span class="badge badge-gray">Player</span>'}</td>
+    <td style="color:var(--t3)">${fmtDate(p.created_at)}</td>
+  </tr>`).join('')}</tbody></table>`;
 }
 
 /* ── Helpers ── */
-function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-function fmtDate(iso) {
-  if (!iso) return '—';
-  const d = new Date(iso);
-  return d.toLocaleDateString('en-MY', { day:'numeric', month:'short', year:'numeric' });
-}
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') }
+function fmtDate(iso){ if(!iso)return'—'; return new Date(iso).toLocaleDateString('en-MY',{day:'numeric',month:'short',year:'numeric'}); }
 
-// Boot
 checkSession();
 </script>
 </body>
