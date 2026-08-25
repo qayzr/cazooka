@@ -289,6 +289,21 @@
         <textarea class="form-textarea" id="f-desc" placeholder="Flavour text / ability description"></textarea>
       </div>
     </div>
+    <div class="form-row full">
+      <div class="form-group">
+        <label class="form-lbl">Card Image</label>
+        <div style="display:flex;gap:12px;align-items:center">
+          <div id="f-image-preview" style="width:64px;height:64px;border-radius:8px;background:var(--s2);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;font-size:10px;color:var(--t3);text-align:center">No image</div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <input type="file" id="f-image-file" accept="image/*" onchange="onImageFileSelected(event)" style="font-size:12px">
+            <div style="display:flex;gap:8px;align-items:center">
+              <span id="f-image-status" style="font-size:11px;color:var(--t3)"></span>
+              <button type="button" class="btn btn-ghost btn-sm" id="f-image-remove-btn" style="display:none" onclick="removeCardImage()">Remove image</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <div class="form-section">Properties</div>
     <div class="form-row">
@@ -327,23 +342,133 @@
           <label class="form-lbl">Inventory Slots</label>
           <input class="form-input stat-input" id="f-slots" type="number" min="0" max="10" placeholder="4">
         </div>
+      </div>
+      <div id="breed-growth-block"></div>
+    </div>
+
+    <!-- Battle gear -->
+    <div id="gear-section" style="display:none">
+      <div class="form-section">Gear Properties</div>
+      <div class="form-row">
         <div class="form-group">
-          <label class="form-lbl">Growth Label</label>
-          <input class="form-input" id="f-growth-label" placeholder="e.g. Balanced Growth">
+          <label class="form-lbl">Gear Slot</label>
+          <select class="form-select" id="f-gear-slot">
+            <option value="1">1</option>
+            <option value="2">2</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-lbl">Weight</label>
+          <input class="form-input" id="f-gear-weight" type="number" min="0" placeholder="1">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-lbl">Special Property</label>
+        <select class="form-select" id="f-gear-special" onchange="toggleSpecialCustom()"></select>
+        <input class="form-input" id="f-gear-special-custom" placeholder="custom value" style="display:none;margin-top:6px">
+      </div>
+      <div id="gear-expiry-block"></div>
+      <div class="form-section">Stat Effects</div>
+      <div id="gear-effects-rows"></div>
+      <button type="button" class="btn btn-ghost btn-sm" onclick="addStatModRow('gear-effects-rows')">+ Add effect</button>
+      <div id="gear-growth-block" style="margin-top:16px"></div>
+    </div>
+
+    <!-- Special ability -->
+    <div id="ability-section" style="display:none">
+      <div class="form-section">Ability Details</div>
+      <div class="form-row full">
+        <div class="form-group">
+          <label class="form-lbl">Positive Description</label>
+          <input class="form-input" id="f-ability-pos-desc" placeholder="e.g. Once per battle, dodge the next hit.">
+        </div>
+      </div>
+      <div class="form-row full">
+        <div class="form-group">
+          <label class="form-lbl">Negative Description (optional)</label>
+          <input class="form-input" id="f-ability-neg-desc" placeholder="e.g. -5 stamina for the rest of the fight">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-lbl">Memory Slots Required</label>
+          <input class="form-input" id="f-ability-memory" type="number" min="0" placeholder="1">
+        </div>
+        <div class="form-group">
+          <label class="form-lbl">Min Intelligence + Loyalty</label>
+          <input class="form-input" id="f-ability-gate" type="number" min="0" placeholder="0">
+        </div>
+      </div>
+      <div id="ability-expiry-block"></div>
+      <div class="form-section">Stat Buffs</div>
+      <div id="ability-buffs-rows"></div>
+      <button type="button" class="btn btn-ghost btn-sm" onclick="addStatModRow('ability-buffs-rows')">+ Add buff</button>
+      <div class="form-section">Penalties</div>
+      <div id="ability-penalties-rows"></div>
+      <button type="button" class="btn btn-ghost btn-sm" onclick="addStatModRow('ability-penalties-rows')">+ Add penalty</button>
+    </div>
+
+    <!-- Home item -->
+    <div id="item-section" style="display:none">
+      <div class="form-section">Item Properties</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-lbl">Item Type</label>
+          <select class="form-select" id="f-item-type">
+            <option value="passive">Passive</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-lbl">Slot Requirement</label>
+          <input class="form-input" id="f-item-slot" type="number" min="0" placeholder="1">
+        </div>
+      </div>
+      <div id="item-expiry-block"></div>
+      <div class="form-section">Development Rates <span style="text-transform:none;letter-spacing:0;color:var(--t3)">(passive stat growth over time)</span></div>
+      <div id="item-rates-rows"></div>
+      <button type="button" class="btn btn-ghost btn-sm" onclick="addDevRateRow('item-rates-rows')">+ Add rate</button>
+    </div>
+
+    <!-- Home -->
+    <div id="home-section" style="display:none">
+      <div class="form-section">Home Properties</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-lbl">Max Occupants</label>
+          <input class="form-input" id="f-home-occupants" type="number" min="1" placeholder="2">
+        </div>
+        <div class="form-group">
+          <label class="form-lbl">Training Tier</label>
+          <select class="form-select" id="f-home-tier">
+            <option value="basic">Basic</option>
+            <option value="intermediate">Intermediate</option>
+            <option value="advanced">Advanced</option>
+            <option value="elite">Elite</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-lbl">Expansion Slots</label>
+          <input class="form-input" id="f-home-slots" type="number" min="0" placeholder="3">
+        </div>
+        <div class="form-group">
+          <label class="form-lbl">Comfort Multiplier</label>
+          <input class="form-input" id="f-home-comfort" type="number" step="0.01" min="0" placeholder="1">
         </div>
       </div>
     </div>
 
-    <!-- Special ability / battle gear effect -->
-    <div id="effect-section" style="display:none">
-      <div class="form-section">Effect</div>
-      <div class="form-row full">
+    <!-- Advanced escape hatch -->
+    <details id="adv-json-details" style="margin-top:20px">
+      <summary style="cursor:pointer;font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--t3)">Advanced: edit raw JSON instead</summary>
+      <div class="form-row full" style="margin-top:10px">
         <div class="form-group">
-          <label class="form-lbl">Effect JSON (data field)</label>
+          <label class="form-lbl">data field (used instead of the fields above while this is open)</label>
           <textarea class="form-textarea" id="f-data-json" placeholder="{}" style="min-height:120px;font-family:monospace;font-size:12px"></textarea>
         </div>
       </div>
-    </div>
+    </details>
 
   </div>
   <div class="drawer-foot">
@@ -356,7 +481,7 @@
 <script>
 const SUPA_URL = 'https://jrgplarvzlrmczsrzswo.supabase.co';
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpyZ3BsYXJ2emxybWN6c3J6c3dvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc2NTM1NTQsImV4cCI6MjEwMzIyOTU1NH0.uqtQPvsayt4UJ6XFzGGX61YvWVCK-371SxGO2lJzA3s';
-const db = window.supabase.createClient(SUPA_URL, SUPA_KEY);
+const db = window.supabase ? window.supabase.createClient(SUPA_URL, SUPA_KEY) : null;
 
 let ADMIN_USER = null;
 let ALL_CARDS  = [];
@@ -365,6 +490,8 @@ let EDITING_ID = null;
 const CAT_STATS = ['weight','strength','stamina','loyalty','affection','amicability','intelligence','speed','agility','stealth'];
 const TYPE_LABELS = {cat_breed:'Cat Breed',battle_gear:'Battle Gear',home_item:'Home Item',special_ability:'Special Ability',home:'Home'};
 const RARITY_BADGE = {common:'badge-gray',uncommon:'badge-green',rare:'badge-blue',legendary:'badge-yellow'};
+const KNOWN_SPECIAL_PROPS = ['ranged_attack','first_strike','aoe_confusion','armor_pierce','team_sync','post_fight_recovery','free_escape','charm_disarm','post_win_rally','memory_boost'];
+let CURRENT_IMAGE_URL = null;
 
 /* ── Auth ── */
 async function doLogin() {
@@ -373,21 +500,30 @@ async function doLogin() {
   const btn   = document.getElementById('login-btn');
   const errEl = document.getElementById('login-err');
   if (!email || !pass) return;
+  if (!db) { errEl.textContent = 'Could not reach Supabase — check your connection or ad blocker and reload.'; errEl.style.display = ''; return; }
   btn.disabled = true; btn.textContent = 'Signing in…';
   errEl.style.display = 'none';
 
-  const { data, error } = await db.auth.signInWithPassword({ email, password: pass });
-  if (error) { errEl.textContent = error.message; errEl.style.display = ''; btn.disabled = false; btn.textContent = 'Sign In'; return; }
+  try {
+    const { data, error } = await db.auth.signInWithPassword({ email, password: pass });
+    if (error) { errEl.textContent = error.message; errEl.style.display = ''; return; }
 
-  const { data: player } = await db.from('players').select('is_admin,callsign').eq('id', data.user.id).single();
-  if (!player || !player.is_admin) {
-    await db.auth.signOut();
-    errEl.textContent = 'Access denied — not an admin.'; errEl.style.display = '';
-    btn.disabled = false; btn.textContent = 'Sign In'; return;
+    const { data: player } = await db.from('players').select('is_admin,callsign').eq('id', data.user.id).single();
+    if (!player || !player.is_admin) {
+      await db.auth.signOut();
+      errEl.textContent = 'Access denied — not an admin.'; errEl.style.display = '';
+      return;
+    }
+    ADMIN_USER = data.user;
+    document.getElementById('tb-user').textContent = player.callsign || email;
+    showAdmin();
+  } catch (e) {
+    console.error('Login failed:', e);
+    errEl.textContent = 'Login failed unexpectedly — check your connection and try again.';
+    errEl.style.display = '';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Sign In';
   }
-  ADMIN_USER = data.user;
-  document.getElementById('tb-user').textContent = player.callsign || email;
-  showAdmin();
 }
 
 async function doLogout() { await db.auth.signOut(); location.reload(); }
@@ -399,6 +535,12 @@ function showAdmin() {
 }
 
 async function checkSession() {
+  if (!db) {
+    const errEl = document.getElementById('login-err');
+    errEl.textContent = 'Could not reach Supabase — check your connection or ad blocker and reload.';
+    errEl.style.display = '';
+    return;
+  }
   const { data: { session } } = await db.auth.getSession();
   if (!session) return;
   const { data: player } = await db.from('players').select('is_admin,callsign').eq('id', session.user.id).single();
@@ -439,6 +581,7 @@ function renderCards(cards) {
   document.getElementById('card-grid').innerHTML = cards.map(c => `
     <div class="card-tile rarity-${esc(c.rarity)}" onclick="openDrawer('${esc(c.id)}')">
       <button class="card-tile-del" title="Delete" onclick="event.stopPropagation();confirmDelete('${esc(c.id)}','${esc(c.name)}')">✕</button>
+      ${c.image_url ? `<img src="${esc(c.image_url)}" style="width:100%;height:70px;object-fit:cover;border-radius:5px;margin-bottom:8px">` : ''}
       <div class="card-tile-name">${esc(c.name)}</div>
       <div class="card-tile-type">${TYPE_LABELS[c.type] || c.type}</div>
       <div class="card-tile-foot">
@@ -461,6 +604,219 @@ function filterCards() {
 }
 
 /* ── Drawer ── */
+/* ── Shared: stat+modifier repeatable rows (battle_gear.effects,
+   special_ability.stat_buffs/penalties) ── */
+function statOptionsHtml(selected) {
+  return CAT_STATS.map(s => `<option value="${s}"${s===selected?' selected':''}>${s}</option>`).join('');
+}
+function parseModifierNum(mod) {
+  if (mod == null) return 0;
+  if (typeof mod === 'number') return mod;
+  return parseInt(String(mod).replace('+','')) || 0;
+}
+function statModRowHtml(stat, modifier) {
+  return `<div class="stat-mod-row" style="display:flex;gap:6px;margin-bottom:6px">
+    <select class="form-select stat-mod-stat" style="flex:1">${statOptionsHtml(stat || CAT_STATS[0])}</select>
+    <input class="form-input stat-mod-val" type="number" value="${parseModifierNum(modifier)}" style="width:80px">
+    <button type="button" class="btn btn-ghost btn-sm" onclick="this.closest('.stat-mod-row').remove()">✕</button>
+  </div>`;
+}
+function renderStatModRows(containerId, rows) {
+  document.getElementById(containerId).innerHTML = (rows||[]).map(r => statModRowHtml(r.stat, r.modifier)).join('');
+}
+function addStatModRow(containerId) {
+  document.getElementById(containerId).insertAdjacentHTML('beforeend', statModRowHtml(CAT_STATS[0], 0));
+}
+function collectStatModRows(containerId) {
+  return Array.from(document.querySelectorAll('#'+containerId+' .stat-mod-row')).map(row => {
+    const stat = row.querySelector('.stat-mod-stat').value;
+    const val  = parseInt(row.querySelector('.stat-mod-val').value) || 0;
+    return { stat, modifier: (val >= 0 ? '+' : '') + val };
+  });
+}
+
+/* ── Shared: stat+rate+period rows (home_item.development_rates) ── */
+function devRateRowHtml(stat, rate, period) {
+  return `<div class="dev-rate-row" style="display:flex;gap:6px;margin-bottom:6px;align-items:center">
+    <select class="form-select dr-stat" style="flex:1">${statOptionsHtml(stat || CAT_STATS[0])}</select>
+    <input class="form-input dr-rate" type="number" step="0.01" value="${rate!=null?rate:0.1}" style="width:70px" title="Rate">
+    <input class="form-input dr-period" type="number" value="${period!=null?period:24}" style="width:70px" title="Period (hours)">
+    <button type="button" class="btn btn-ghost btn-sm" onclick="this.closest('.dev-rate-row').remove()">✕</button>
+  </div>`;
+}
+function renderDevRateRows(containerId, rows) {
+  document.getElementById(containerId).innerHTML = (rows||[]).map(r => devRateRowHtml(r.stat, r.rate, r.period_hours)).join('');
+}
+function addDevRateRow(containerId) {
+  document.getElementById(containerId).insertAdjacentHTML('beforeend', devRateRowHtml(CAT_STATS[0], 0.1, 24));
+}
+function collectDevRateRows(containerId) {
+  return Array.from(document.querySelectorAll('#'+containerId+' .dev-rate-row')).map(row => ({
+    stat: row.querySelector('.dr-stat').value,
+    rate: parseFloat(row.querySelector('.dr-rate').value) || 0,
+    period_hours: parseInt(row.querySelector('.dr-period').value) || 24
+  }));
+}
+
+/* ── Shared: stat+multiplier rows (home_dev_traits/home_dev_effect) ── */
+function statMultRowHtml(stat, mult) {
+  return `<div class="stat-mult-row" style="display:flex;gap:6px;margin-bottom:6px">
+    <select class="form-select sm-stat" style="flex:1">${statOptionsHtml(stat || CAT_STATS[0])}</select>
+    <input class="form-input sm-val" type="number" step="0.01" value="${mult!=null?mult:1}" style="width:80px">
+    <button type="button" class="btn btn-ghost btn-sm" onclick="this.closest('.stat-mult-row').remove()">✕</button>
+  </div>`;
+}
+function renderStatMultRows(containerId, obj) {
+  const rows = Object.entries(obj||{}).map(([stat,mult]) => ({stat,mult}));
+  document.getElementById(containerId).innerHTML = rows.map(r => statMultRowHtml(r.stat, r.mult)).join('');
+}
+function addStatMultRow(containerId) {
+  document.getElementById(containerId).insertAdjacentHTML('beforeend', statMultRowHtml(CAT_STATS[0], 1));
+}
+function collectStatMultRows(containerId) {
+  const out = {};
+  document.querySelectorAll('#'+containerId+' .stat-mult-row').forEach(row => {
+    const stat = row.querySelector('.sm-stat').value;
+    const val  = parseFloat(row.querySelector('.sm-val').value);
+    if (stat && !isNaN(val)) out[stat] = val;
+  });
+  return out;
+}
+
+/* ── Shared: growth-modifier sub-block (home_dev_traits / home_dev_effect) ── */
+function growthBlockHtml(prefix, title) {
+  return `
+    <div class="form-group" style="margin-top:12px">
+      <label class="form-check"><input type="checkbox" id="${prefix}-enabled" onchange="toggleGrowthBlock('${prefix}')"> ${title}</label>
+    </div>
+    <div id="${prefix}-body" style="display:none">
+      <div class="form-row">
+        <div class="form-group"><label class="form-lbl">Label</label><input class="form-input" id="${prefix}-label" placeholder="e.g. Steady Growth"></div>
+        <div class="form-group"><label class="form-lbl">Overall Multiplier</label><input class="form-input" id="${prefix}-mult" type="number" step="0.01" placeholder="1"></div>
+      </div>
+      <label class="form-lbl">Per-stat multipliers</label>
+      <div id="${prefix}-stat-mults" style="margin-top:6px"></div>
+      <button type="button" class="btn btn-ghost btn-sm" onclick="addStatMultRow('${prefix}-stat-mults')">+ Add stat multiplier</button>
+    </div>`;
+}
+function toggleGrowthBlock(prefix) {
+  document.getElementById(prefix+'-body').style.display = document.getElementById(prefix+'-enabled').checked ? '' : 'none';
+}
+function populateGrowthBlock(prefix, obj) {
+  const enabled = !!obj;
+  document.getElementById(prefix+'-enabled').checked = enabled;
+  document.getElementById(prefix+'-body').style.display = enabled ? '' : 'none';
+  document.getElementById(prefix+'-label').value = (obj && obj.label) || '';
+  document.getElementById(prefix+'-mult').value = (obj && obj.multiplier != null) ? obj.multiplier : '';
+  renderStatMultRows(prefix+'-stat-mults', obj && obj.stat_multipliers);
+}
+function collectGrowthBlock(prefix) {
+  if (!document.getElementById(prefix+'-enabled').checked) return undefined;
+  const label = document.getElementById(prefix+'-label').value.trim();
+  const multRaw = document.getElementById(prefix+'-mult').value;
+  const mult = multRaw === '' ? undefined : parseFloat(multRaw);
+  const statMults = collectStatMultRows(prefix+'-stat-mults');
+  const out = {};
+  if (label) out.label = label;
+  if (mult !== undefined && !isNaN(mult)) out.multiplier = mult;
+  if (Object.keys(statMults).length) out.stat_multipliers = statMults;
+  return out;
+}
+
+/* ── Shared: expiry (permanent vs timed-rounds) ── */
+function expiryBlockHtml(prefix) {
+  return `
+    <div class="form-group" style="margin:12px 0">
+      <label class="form-lbl">Expiry</label>
+      <div style="display:flex;gap:14px;align-items:center;margin-top:4px">
+        <label class="form-check"><input type="radio" name="${prefix}-expiry" value="none" onchange="toggleExpiryRounds('${prefix}')"> Permanent</label>
+        <label class="form-check"><input type="radio" name="${prefix}-expiry" value="rounds" onchange="toggleExpiryRounds('${prefix}')"> Timed</label>
+        <input class="form-input" id="${prefix}-expiry-rounds" type="number" min="1" placeholder="rounds" style="width:80px;display:none">
+      </div>
+    </div>`;
+}
+function toggleExpiryRounds(prefix) {
+  const checked = document.querySelector(`input[name="${prefix}-expiry"]:checked`);
+  document.getElementById(prefix+'-expiry-rounds').style.display = (checked && checked.value === 'rounds') ? '' : 'none';
+}
+function populateExpiry(prefix, expiry) {
+  const type = (expiry && expiry.type) || 'none';
+  const radio = document.querySelector(`input[name="${prefix}-expiry"][value="${type}"]`);
+  if (radio) radio.checked = true;
+  document.getElementById(prefix+'-expiry-rounds').style.display = type === 'rounds' ? '' : 'none';
+  document.getElementById(prefix+'-expiry-rounds').value = (expiry && expiry.value) || 3;
+}
+function collectExpiry(prefix) {
+  const checked = document.querySelector(`input[name="${prefix}-expiry"]:checked`);
+  const type = checked ? checked.value : 'none';
+  if (type === 'rounds') return { type:'rounds', value: parseInt(document.getElementById(prefix+'-expiry-rounds').value) || 3 };
+  return { type:'none' };
+}
+
+/* ── battle_gear.special_properties ── */
+function populateSpecialPropsSelect() {
+  const sel = document.getElementById('f-gear-special');
+  if (sel.dataset.populated) return;
+  sel.innerHTML = `<option value="">— none —</option>` +
+    KNOWN_SPECIAL_PROPS.map(p => `<option value="${p}">${p}</option>`).join('') +
+    `<option value="__custom__">Custom…</option>`;
+  sel.dataset.populated = '1';
+}
+function populateSpecialProps(value) {
+  const sel = document.getElementById('f-gear-special');
+  const isKnown = value && KNOWN_SPECIAL_PROPS.includes(value);
+  sel.value = value ? (isKnown ? value : '__custom__') : '';
+  document.getElementById('f-gear-special-custom').style.display = (value && !isKnown) ? '' : 'none';
+  document.getElementById('f-gear-special-custom').value = (value && !isKnown) ? value : '';
+}
+function toggleSpecialCustom() {
+  const v = document.getElementById('f-gear-special').value;
+  document.getElementById('f-gear-special-custom').style.display = v === '__custom__' ? '' : 'none';
+}
+function collectSpecialProps() {
+  const v = document.getElementById('f-gear-special').value;
+  if (!v) return null;
+  if (v === '__custom__') return document.getElementById('f-gear-special-custom').value.trim() || null;
+  return v;
+}
+
+/* ── Card image upload ── */
+function updateImagePreview() {
+  const el = document.getElementById('f-image-preview');
+  const removeBtn = document.getElementById('f-image-remove-btn');
+  if (CURRENT_IMAGE_URL) {
+    el.innerHTML = `<img src="${CURRENT_IMAGE_URL}" style="width:100%;height:100%;object-fit:cover">`;
+    removeBtn.style.display = '';
+  } else {
+    el.textContent = 'No image';
+    removeBtn.style.display = 'none';
+  }
+}
+async function onImageFileSelected(evt) {
+  const file = evt.target.files[0];
+  if (!file) return;
+  const statusEl = document.getElementById('f-image-status');
+  const id = document.getElementById('f-id').value.trim();
+  if (!id) { statusEl.textContent = 'Set a Card ID first.'; evt.target.value = ''; return; }
+  if (!file.type.startsWith('image/')) { statusEl.textContent = 'Must be an image file.'; evt.target.value = ''; return; }
+  if (file.size > 2*1024*1024) { statusEl.textContent = 'Max 2MB.'; evt.target.value = ''; return; }
+
+  statusEl.textContent = 'Uploading…';
+  const ext = (file.name.split('.').pop() || 'png').toLowerCase();
+  const path = `${id}-${Date.now()}.${ext}`;
+  const { error } = await db.storage.from('card-images').upload(path, file, { upsert: true });
+  if (error) { statusEl.textContent = 'Upload failed: ' + error.message; evt.target.value = ''; return; }
+  const { data } = db.storage.from('card-images').getPublicUrl(path);
+  CURRENT_IMAGE_URL = data.publicUrl;
+  updateImagePreview();
+  statusEl.textContent = 'Uploaded.';
+  evt.target.value = '';
+}
+function removeCardImage() {
+  CURRENT_IMAGE_URL = null;
+  updateImagePreview();
+}
+
 function openDrawer(cardId) {
   EDITING_ID = cardId;
   const card = cardId ? ALL_CARDS.find(c => c.id === cardId) : null;
@@ -481,7 +837,13 @@ function openDrawer(cardId) {
   document.getElementById('f-series').value  = card ? (card.series||'') : '';
   document.getElementById('f-starter').checked = card ? !!card.is_starter : false;
 
+  CURRENT_IMAGE_URL = card ? (card.image_url || null) : null;
+  updateImagePreview();
+  document.getElementById('f-image-file').value = '';
+  document.getElementById('f-image-status').textContent = '';
+
   onTypeChange(card);
+  document.getElementById('adv-json-details').open = false;
 
   document.getElementById('drawer-overlay').classList.add('open');
   document.getElementById('drawer').classList.add('open');
@@ -497,12 +859,12 @@ function onTypeChange(card) {
   const type = document.getElementById('f-type').value;
   const data = card ? (card.data || {}) : {};
 
-  const showStats  = type === 'cat_breed';
-  const showEffect = !showStats;
-  document.getElementById('stats-section').style.display  = showStats  ? '' : 'none';
-  document.getElementById('effect-section').style.display = showEffect ? '' : 'none';
+  ['stats-section','gear-section','ability-section','item-section','home-section'].forEach(id => {
+    document.getElementById(id).style.display = 'none';
+  });
 
-  if (showStats) {
+  if (type === 'cat_breed') {
+    document.getElementById('stats-section').style.display = '';
     const stats = data.stats || {};
     document.getElementById('stat-grid').innerHTML = CAT_STATS.map(s =>
       `<div class="stat-input-wrap">
@@ -511,12 +873,50 @@ function onTypeChange(card) {
       </div>`
     ).join('');
     document.getElementById('f-slots').value = data.base_inventory_slots || 4;
-    document.getElementById('f-growth-label').value = (data.home_dev_traits && data.home_dev_traits.label) || '';
-  } else {
-    // For non-breed cards, show raw JSON editor
-    const jsonData = card ? JSON.stringify(card.data || {}, null, 2) : '{}';
-    document.getElementById('f-data-json').value = jsonData;
+    document.getElementById('breed-growth-block').innerHTML = growthBlockHtml('breed-growth', 'Growth modifier (home_dev_traits)');
+    populateGrowthBlock('breed-growth', data.home_dev_traits);
+
+  } else if (type === 'battle_gear') {
+    document.getElementById('gear-section').style.display = '';
+    document.getElementById('f-gear-slot').value = data.gear_slot || 1;
+    document.getElementById('f-gear-weight').value = data.weight != null ? data.weight : 1;
+    populateSpecialPropsSelect();
+    populateSpecialProps(data.special_properties);
+    document.getElementById('gear-expiry-block').innerHTML = expiryBlockHtml('gear-expiry');
+    populateExpiry('gear-expiry', data.expiry);
+    renderStatModRows('gear-effects-rows', data.effects);
+    document.getElementById('gear-growth-block').innerHTML = growthBlockHtml('gear-growth', 'Growth modifier (home_dev_effect)');
+    populateGrowthBlock('gear-growth', data.home_dev_effect);
+
+  } else if (type === 'special_ability') {
+    document.getElementById('ability-section').style.display = '';
+    document.getElementById('f-ability-pos-desc').value = data.positive_description || '';
+    document.getElementById('f-ability-neg-desc').value = data.negative_description || '';
+    document.getElementById('f-ability-memory').value = data.memory_slots_required || 0;
+    document.getElementById('f-ability-gate').value = data.min_intelligence_plus_loyalty || 0;
+    document.getElementById('ability-expiry-block').innerHTML = expiryBlockHtml('ability-expiry');
+    populateExpiry('ability-expiry', data.expiry);
+    renderStatModRows('ability-buffs-rows', data.stat_buffs);
+    renderStatModRows('ability-penalties-rows', data.penalties);
+
+  } else if (type === 'home_item') {
+    document.getElementById('item-section').style.display = '';
+    document.getElementById('f-item-type').value = data.item_type || 'passive';
+    document.getElementById('f-item-slot').value = data.slot_requirement != null ? data.slot_requirement : 1;
+    document.getElementById('item-expiry-block').innerHTML = expiryBlockHtml('item-expiry');
+    populateExpiry('item-expiry', data.expiry);
+    renderDevRateRows('item-rates-rows', data.development_rates);
+
+  } else if (type === 'home') {
+    document.getElementById('home-section').style.display = '';
+    document.getElementById('f-home-occupants').value = data.max_occupants || 2;
+    document.getElementById('f-home-tier').value = data.training_tier || 'basic';
+    document.getElementById('f-home-slots').value = data.expansion_slots || 3;
+    document.getElementById('f-home-comfort').value = data.comfort_multiplier != null ? data.comfort_multiplier : 1;
   }
+
+  // Advanced JSON fallback stays in sync as a starting point whenever it's opened
+  document.getElementById('f-data-json').value = JSON.stringify(data, null, 2);
 }
 
 async function saveCard() {
@@ -532,19 +932,52 @@ async function saveCard() {
 
   if (!id || !name) { errEl.textContent = 'Card ID and Name are required.'; errEl.style.display = ''; return; }
 
-  // Build data payload
-  let data = {};
-  if (type === 'cat_breed') {
+  let data;
+  if (document.getElementById('adv-json-details').open) {
+    try { data = JSON.parse(document.getElementById('f-data-json').value || '{}'); }
+    catch(e) { errEl.textContent = 'Advanced JSON is invalid. Fix the syntax and try again.'; errEl.style.display = ''; return; }
+  } else if (type === 'cat_breed') {
     const stats = {};
     CAT_STATS.forEach(s => { stats[s] = parseInt(document.getElementById('stat-' + s).value) || 0; });
+    data = { base_inventory_slots: parseInt(document.getElementById('f-slots').value) || 4, stats };
+    const growth = collectGrowthBlock('breed-growth');
+    if (growth) data.home_dev_traits = growth;
+  } else if (type === 'battle_gear') {
     data = {
-      base_inventory_slots: parseInt(document.getElementById('f-slots').value) || 4,
-      stats,
-      home_dev_traits: { label: document.getElementById('f-growth-label').value.trim() || 'Steady Growth' }
+      gear_slot: parseInt(document.getElementById('f-gear-slot').value) || 1,
+      weight: parseFloat(document.getElementById('f-gear-weight').value) || 0,
+      effects: collectStatModRows('gear-effects-rows'),
+      special_properties: collectSpecialProps(),
+      expiry: collectExpiry('gear-expiry')
+    };
+    const growth = collectGrowthBlock('gear-growth');
+    if (growth) data.home_dev_effect = growth;
+  } else if (type === 'special_ability') {
+    data = {
+      positive_description: document.getElementById('f-ability-pos-desc').value.trim() || null,
+      negative_description: document.getElementById('f-ability-neg-desc').value.trim() || null,
+      memory_slots_required: parseInt(document.getElementById('f-ability-memory').value) || 0,
+      min_intelligence_plus_loyalty: parseInt(document.getElementById('f-ability-gate').value) || 0,
+      stat_buffs: collectStatModRows('ability-buffs-rows'),
+      penalties: collectStatModRows('ability-penalties-rows'),
+      expiry: collectExpiry('ability-expiry')
+    };
+  } else if (type === 'home_item') {
+    data = {
+      item_type: document.getElementById('f-item-type').value,
+      slot_requirement: parseInt(document.getElementById('f-item-slot').value) || 0,
+      development_rates: collectDevRateRows('item-rates-rows'),
+      expiry: collectExpiry('item-expiry')
+    };
+  } else if (type === 'home') {
+    data = {
+      max_occupants: parseInt(document.getElementById('f-home-occupants').value) || 1,
+      training_tier: document.getElementById('f-home-tier').value,
+      expansion_slots: parseInt(document.getElementById('f-home-slots').value) || 0,
+      comfort_multiplier: parseFloat(document.getElementById('f-home-comfort').value) || 1
     };
   } else {
-    try { data = JSON.parse(document.getElementById('f-data-json').value || '{}'); }
-    catch(e) { errEl.textContent = 'Effect JSON is invalid. Fix the syntax and try again.'; errEl.style.display = ''; return; }
+    data = {};
   }
 
   const payload = {
@@ -554,6 +987,7 @@ async function saveCard() {
     coin_cost:   parseInt(document.getElementById('f-cost').value) || 0,
     series:      document.getElementById('f-series').value.trim() || null,
     is_starter:  document.getElementById('f-starter').checked,
+    image_url:   CURRENT_IMAGE_URL,
     data,
     updated_at:  new Date().toISOString()
   };

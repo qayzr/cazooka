@@ -1747,9 +1747,35 @@ const ONBOARD = {
   startingCoins: 1500
 };
 
+/* Cloud-backed card library: Supabase is authoritative when reachable;
+   the hardcoded LIBRARY above is only a bootstrap/offline fallback. */
+let REMOTE_CARDS = null;
+
+async function loadCardsFromCloud() {
+  if (!db) return;
+  const { data, error } = await db.from('cards').select('*');
+  if (error || !data || !data.length) return;
+  REMOTE_CARDS = data;
+  try { localStorage.setItem('cz_remote_cards_cache', JSON.stringify(data)); } catch(e) {}
+}
+
+function baseLibrary() {
+  if (REMOTE_CARDS) return REMOTE_CARDS;
+  try {
+    const cached = JSON.parse(localStorage.getItem('cz_remote_cards_cache') || 'null');
+    if (cached && cached.length) return cached;
+  } catch(e) {}
+  return LIBRARY;
+}
+
 function effectiveCard(card) {
   const edit = CARD_EDITS[card.id];
   if (!edit) return card;
+  // A local edit stamped against an older version of this card (server-side
+  // change since) is dropped rather than merged against a shape it no longer matches.
+  if (edit._baseUpdatedAt !== undefined && edit._baseUpdatedAt !== (card.updated_at || null)) {
+    return card;
+  }
   const merged = {...card};
   if (edit.name !== undefined) merged.name = edit.name;
   if (edit.description !== undefined) merged.description = edit.description;
@@ -1763,11 +1789,13 @@ function effectiveCard(card) {
   return merged;
 }
 
-function getLibrary() { return [...LIBRARY.map(effectiveCard), ...CUSTOM_CARDS]; }
+function getLibrary() { return [...baseLibrary().map(effectiveCard), ...CUSTOM_CARDS]; }
 
 function getCard(id) { return getLibrary().find(c => c.id === id) || null; }
 
 function saveCardEdit(id, patch) {
+  const base = baseLibrary().find(c => c.id === id);
+  patch._baseUpdatedAt = base ? (base.updated_at || null) : null;
   CARD_EDITS[id] = patch;
   try { localStorage.setItem('cz_card_edits', JSON.stringify(CARD_EDITS)); } catch(e) {}
   renderLibrary();
@@ -1796,6 +1824,13 @@ const RAR_COLOR = {
   rare:'var(--rar-rare)', epic:'var(--rar-epic)', legendary:'var(--rar-legendary)'
 };
 const STATS_ORDER = ['strength','speed','agility','stamina','intelligence','stealth','loyalty'];
+
+function cardArtHTML(card, tm) {
+  if (card && card.image_url) {
+    return `<img src="${card.image_url}" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover">`;
+  }
+  return tm.emoji;
+}
 
 function parseModifier(str) {
   if (!str) return 0;
@@ -1904,7 +1939,7 @@ function buildCardTile(card) {
       <div class="cv-name">${card.name}</div>
       ${card.series ? `<div class="cv-series">${card.series}</div>` : ''}
     </div>
-    <div class="cv-art">${tm.emoji}</div>
+    <div class="cv-art">${cardArtHTML(card, tm)}</div>
     <div class="cv-body">${body}</div>
     <div class="cv-foot">
       <span class="cv-cost">${card.coin_cost > 0 ? '◈ '+card.coin_cost : 'Free'}</span>
@@ -2005,7 +2040,7 @@ function buildModalCardHtml(card) {
         <div class="cv-name">${card.name}</div>
       ${card.series ? `<div class="cv-series">${card.series}</div>` : ''}
       </div>
-      <div class="cv-art">${tm.emoji}</div>
+      <div class="cv-art">${cardArtHTML(card, tm)}</div>
       <div class="cv-body">${body}</div>
       <div class="cv-foot">
         <span class="cv-cost">${card.coin_cost > 0 ? '◈ '+card.coin_cost : 'Free'}</span>
@@ -2031,7 +2066,7 @@ function openCardModal(cardId) {
 }
 
 function openEditPanel(cardId) {
-  const baseCard = LIBRARY.find(c => c.id === cardId) || CUSTOM_CARDS.find(c => c.id === cardId);
+  const baseCard = baseLibrary().find(c => c.id === cardId) || CUSTOM_CARDS.find(c => c.id === cardId);
   const card = getCard(cardId);
   if (!card) return;
   const isCustom = cardId.startsWith('custom-');
@@ -2154,7 +2189,7 @@ function openEditPanel(cardId) {
               <div class="cv-name" id="eful-prev-name">${card.name}</div>
               <div class="cv-series" id="eful-prev-series" style="${card.series?'':'display:none'}">${card.series||''}</div>
             </div>
-            <div class="cv-art">${tm.emoji}</div>
+            <div class="cv-art">${cardArtHTML(card, tm)}</div>
             <div class="cv-body" id="eful-prev-body">${cardPreviewBody}</div>
             <div class="cv-foot">
               <span class="cv-cost" id="eful-prev-cost">${card.coin_cost > 0 ? '◈ '+card.coin_cost : 'Free'}</span>
@@ -3040,7 +3075,7 @@ function renderCardDetail() {
         </div>
         <div class="cv-name">${card.name}</div>
       </div>
-      <div class="cv-art">${tm.emoji}</div>
+      <div class="cv-art">${cardArtHTML(card, tm)}</div>
       <div class="cv-body">${bodyContent}</div>
       <div class="cv-foot">
         <span class="cv-cost">${card.coin_cost > 0 ? '◈ '+card.coin_cost : 'Free'}</span>
@@ -3054,7 +3089,7 @@ function renderCardDetail() {
 }
 
 function toggleDeck(id) {
-  const card = LIBRARY.find(c => c.id === id);
+  const card = getCard(id);
   if (!card) return;
   const idx = sbx.deck.findIndex(c => c.id === id);
   if (idx >= 0) {
@@ -4748,7 +4783,7 @@ function buildMiniCardHtml(card) {
     });
   }
   return `<div class="omc" id="omc-${card.id}">
-    <div class="omc-art">${tm.emoji}</div>
+    <div class="omc-art">${cardArtHTML(card, tm)}</div>
     <div class="omc-body">
       <div class="omc-name">${card.name}</div>
       <div class="omc-rar" style="color:${rc}">${card.rarity||''}</div>
@@ -4952,6 +4987,13 @@ function exitSimulation() {
 
 async function initApp() {
   renderLibrary();
+  // Pull the live card library from Supabase; a slow/dead network just
+  // means we keep whatever baseLibrary() already fell back to.
+  try {
+    await loadCardsFromCloud();
+    renderLibrary();
+    if (typeof renderShopBrowser === 'function') renderShopBrowser();
+  } catch(e) { /* keep local/bootstrap library */ }
   // Check for an existing Supabase session (returning player)
   if (db) {
     try {
