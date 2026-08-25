@@ -880,7 +880,7 @@ function renderCards(cards) {
   document.getElementById('card-grid').innerHTML = cards.map(c => `
     <div class="card-grid-item">
       <button class="card-tile-del" title="Delete" onclick="event.stopPropagation();confirmDelete('${esc(c.id)}','${esc(c.name)}')">✕</button>
-      ${buildCardFaceHtml(c, { onclick: `openDrawer('${esc(c.id)}')`, interactive: false })}
+      ${buildCardFaceHtml(c, { cssClass: 'cv cmo-cv', onclick: `openDrawer('${esc(c.id)}')`, interactive: false })}
     </div>`).join('');
 }
 
