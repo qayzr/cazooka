@@ -6,7 +6,7 @@
 <title>Cazooka Dashboard</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Mono:wght@400;500&family=Bodoni+Moda:wght@600;700&display=swap">
 
 <style>
 /* ── TOKENS ── */
@@ -187,7 +187,7 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .cv-tdot{width:6px;height:6px;border-radius:50%;background:var(--cv-c);flex-shrink:0}
 .cv-tlbl{font-family:var(--fm);font-size:8px;text-transform:uppercase;letter-spacing:.1em;color:var(--cv-c);flex:1}
 .cv-rpill{font-family:var(--fm);font-size:7px;text-transform:uppercase;letter-spacing:.07em;padding:2px 7px;border-radius:999px;border:1px solid color-mix(in srgb,var(--cv-r) 50%,transparent);background:color-mix(in srgb,var(--cv-r) 12%,transparent);color:var(--cv-r)}
-.cv-name{font-family:var(--fd);font-weight:700;font-size:14px;color:var(--t1);line-height:1.25;text-wrap:balance}
+.cv-name{font-family:'Bodoni Moda',Georgia,serif;font-weight:700;font-size:14px;color:var(--t1);line-height:1.25;text-wrap:balance}
 .cv-series{font-family:var(--fm);font-size:8px;text-transform:uppercase;letter-spacing:.1em;color:var(--cv-c);opacity:.75;margin-top:2px}
 .cv-art{height:96px;background:linear-gradient(135deg,color-mix(in srgb,var(--cv-r,var(--cv-c)) 28%,var(--s3)),color-mix(in srgb,var(--cv-r,var(--cv-c)) 6%,var(--s2)));display:flex;align-items:center;justify-content:center;font-size:44px;position:relative;overflow:hidden;user-select:none}
 .cv-art::after{content:'';position:absolute;inset:0;background:linear-gradient(to bottom,transparent 50%,var(--s1))}
@@ -597,7 +597,7 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .omc-hdr{height:4px;flex-shrink:0}
 .omc-art{height:52px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:var(--s2);font-size:26px}
 .omc-body{flex:1;padding:6px 7px;display:flex;flex-direction:column;gap:2px;min-height:0;overflow:hidden}
-.omc-name{font-family:var(--fd);font-size:10px;font-weight:700;color:var(--t1);line-height:1.2}
+.omc-name{font-family:'Bodoni Moda',Georgia,serif;font-size:10px;font-weight:700;color:var(--t1);line-height:1.2}
 .omc-rar{font-family:var(--fm);font-size:7.5px;text-transform:uppercase;letter-spacing:.06em}
 .omc-type-lbl{font-family:var(--fm);font-size:7px;color:var(--t3);text-transform:uppercase;letter-spacing:.05em}
 .omc-stats{display:flex;flex-wrap:wrap;gap:2px;margin-top:2px}
@@ -1324,7 +1324,7 @@ function buildCardBodyHtml(card, showDesc=true) {
     body += `<div class="cv-subtext" style="color:var(--t3)">◈ Carry slots: ${card.data.base_inventory_slots}</div>`;
     const hdt = card.data.home_dev_traits;
     if (hdt) {
-      let hdtStr = `🏡 ${hdt.label}`;
+      let hdtStr = hdt.label;
       if (hdt.multiplier && hdt.multiplier !== 1.0) {
         const pct = Math.round((hdt.multiplier-1)*100);
         hdtStr += ` · ${pct > 0 ? '+' : ''}${pct}% home dev rate`;
@@ -1333,8 +1333,8 @@ function buildCardBodyHtml(card, showDesc=true) {
     }
   } else if (card.type === 'home') {
     body += `<div class="cv-hchips">
-      <span class="cv-hchip">🐱 ${card.data.max_occupants} cats</span>
-      <span class="cv-hchip">📦 ${card.data.expansion_slots} item slots</span>
+      <span class="cv-hchip">${card.data.max_occupants} cats</span>
+      <span class="cv-hchip">${card.data.expansion_slots} item slots</span>
       <span class="cv-hchip">×${card.data.comfort_multiplier} comfort</span>
       <span class="cv-hchip">${card.data.training_tier}</span>
     </div>`;
@@ -1342,7 +1342,7 @@ function buildCardBodyHtml(card, showDesc=true) {
     // Show development rates instead of instant effects
     const devChips = devRateChips(card);
     if (devChips) {
-      body += `<div style="font-family:var(--fm);font-size:8px;text-transform:uppercase;letter-spacing:.08em;color:var(--t3);margin-bottom:3px">🌱 Development / 24h</div>`;
+      body += `<div style="font-family:var(--fm);font-size:8px;text-transform:uppercase;letter-spacing:.08em;color:var(--t3);margin-bottom:3px">Development / 24h</div>`;
       body += `<div class="cv-effs">${devChips}</div>`;
     }
     body += `<div class="cv-subtext" style="color:var(--t3)">passive · permanent stat growth</div>`;
@@ -1357,7 +1357,7 @@ function buildCardBodyHtml(card, showDesc=true) {
     if (card.type === 'cat_breed') {
       const hdt = card.data.home_dev_traits;
       if (hdt) {
-        body += `<div class="cv-subtext" style="color:#a78bfa;margin-top:4px">🏡 ${hdt.label}`;
+        body += `<div class="cv-subtext" style="color:#a78bfa;margin-top:4px">${hdt.label}`;
         if (hdt.multiplier && hdt.multiplier !== 1.0) {
           body += ` · ${hdt.multiplier > 1 ? '+' : ''}${Math.round((hdt.multiplier-1)*100)}% dev rate`;
         }
@@ -1370,7 +1370,7 @@ function buildCardBodyHtml(card, showDesc=true) {
       if (card.data.home_dev_effect) {
         const hde = card.data.home_dev_effect;
         const mulStr = hde.multiplier ? ` · ×${hde.multiplier} all dev` : '';
-        body += `<div class="cv-subtext" style="color:#a78bfa;margin-top:2px">🏡 ${hde.label}${mulStr}</div>`;
+        body += `<div class="cv-subtext" style="color:#a78bfa;margin-top:2px">${hde.label}${mulStr}</div>`;
       }
     } else if (card.type === 'special_ability') {
       body += `<div class="cv-subtext" style="color:var(--t3)">${card.data.memory_slots_required} memory slot${card.data.memory_slots_required>1?'s':''} · min INT+LOY ${card.data.min_intelligence_plus_loyalty}</div>`;
@@ -1381,8 +1381,8 @@ function buildCardBodyHtml(card, showDesc=true) {
   if (card.is_limited) {
     const mySerial = PLAYER && PLAYER.cardSerials && PLAYER.cardSerials[card.id];
     body += mySerial
-      ? `<div class="cv-subtext" style="color:var(--acc);margin-top:2px">✦ Limited Edition — #${mySerial}/${card.edition_size || '?'}</div>`
-      : `<div class="cv-subtext" style="color:var(--acc);margin-top:2px">✦ Limited Edition (${card.edition_size || '?'})</div>`;
+      ? `<div class="cv-subtext" style="color:var(--acc);margin-top:2px">Limited Edition — #${mySerial}/${card.edition_size || '?'}</div>`
+      : `<div class="cv-subtext" style="color:var(--acc);margin-top:2px">Limited Edition (${card.edition_size || '?'})</div>`;
   }
   return body;
 }
@@ -1436,7 +1436,7 @@ function buildCardFaceHtml(card, opts = {}) {
     <div class="cv-body"${art.bodyOffset ? ` style="transform:translateY(${Math.round(art.bodyOffset/100*140)}px)"` : ''}>${body}</div>
     <div class="cv-foot">
       <span class="cv-cost">${card.coin_cost > 0 ? '◈ '+card.coin_cost : 'Free'}</span>
-      ${showStarterPill && card.is_starter ? '<span class="cv-startpill">★ Starter</span>' : ''}
+      ${showStarterPill && card.is_starter ? '<span class="cv-startpill">Starter</span>' : ''}
     </div>
   </div>`;
 }
@@ -4168,7 +4168,7 @@ function buildMiniCardHtml(card) {
       ${statsHtml ? `<div class="omc-stats">${statsHtml}</div>` : ''}
     </div>
     <div class="omc-foot">
-      <div class="omc-cost">🪙 ${card.coin_cost||0}</div>
+      <div class="omc-cost">◈ ${card.coin_cost||0}</div>
     </div>
   </div>`;
 }
