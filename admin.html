@@ -180,7 +180,10 @@
   .ced-overlay.open{display:block}
   .ced-modal{position:fixed;inset:0;margin:auto;z-index:101;background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);width:min(1060px,calc(100% - 48px));height:min(780px,calc(100% - 48px));display:none;overflow:hidden}
   .ced-modal.open{display:flex}
-  .ced-preview-col{width:300px;flex-shrink:0;background:var(--bg);border-right:1px solid var(--bd);display:flex;flex-direction:column;align-items:center;padding:24px 16px;gap:12px;overflow-y:auto}
+  .ced-preview-col{width:340px;flex-shrink:0;background:var(--bg);border-right:1px solid var(--bd);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;gap:14px;overflow-y:auto}
+  .ced-slider-row{display:flex;align-items:center;gap:8px;width:100%;font-size:14px;color:var(--t3)}
+  .ced-slider-row input[type=range]{flex:1;accent-color:var(--acc)}
+  .ced-slider-lbl{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--t3);width:100%;margin-top:2px}
   .ced-preview-hint{font-size:10px;color:var(--t3);text-align:center;line-height:1.5}
   .ced-zoom-row{display:flex;align-items:center;gap:8px;width:100%;font-size:14px;color:var(--t3)}
   .ced-zoom-row input[type=range]{flex:1;accent-color:var(--acc)}
@@ -325,6 +328,11 @@
       <input type="range" id="f-art-zoom" min="1" max="3" step="0.05" value="1" oninput="onArtZoomInput()">
     </div>
     <div class="ced-preview-hint" id="ced-preview-hint" style="display:none">Drag the art to reposition it</div>
+    <div class="ced-slider-lbl">Content position</div>
+    <div class="ced-slider-row">
+      <span>↕</span>
+      <input type="range" id="f-content-offset" min="0" max="100" value="0" oninput="onContentOffsetInput()">
+    </div>
   </div>
 
   <div class="ced-main-col">
@@ -592,7 +600,7 @@ let CURRENT_IMAGE_URL = null;
 let CURRENT_ART = null; // { mode, position:{x,y}, zoom, overlay:{enabled,color,opacity} }
 let ART_DRAG_STATE = null;
 
-function defaultArt() { return { mode: 'inset', position: { x: 50, y: 50 }, zoom: 1, overlay: { enabled: false, color: '#000000', opacity: 40 } }; }
+function defaultArt() { return { mode: 'inset', position: { x: 50, y: 50 }, zoom: 1, overlay: { enabled: false, color: '#000000', opacity: 40 }, bodyOffset: 0 }; }
 
 /* Twin of index.html's TYPE_META/RAR_COLOR — keep values identical. */
 const TYPE_META = {
@@ -747,7 +755,7 @@ function buildCardFaceHtml(card, opts = {}) {
       ${showSeries && card.series ? `<div class="cv-series">${card.series}</div>` : ''}
     </div>
     ${artBoxHtml}
-    <div class="cv-body">${body}</div>
+    <div class="cv-body"${art.bodyOffset ? ` style="transform:translateY(${Math.round(art.bodyOffset/100*140)}px)"` : ''}>${body}</div>
     <div class="cv-foot">
       <span class="cv-cost">${card.coin_cost > 0 ? '◈ '+card.coin_cost : 'Free'}</span>
       ${showStarterPill && card.is_starter ? '<span class="cv-startpill">★ Starter</span>' : ''}
@@ -1104,6 +1112,12 @@ function onArtZoomInput() {
   refreshPreview();
 }
 
+function onContentOffsetInput() {
+  if (!CURRENT_ART) CURRENT_ART = defaultArt();
+  CURRENT_ART.bodyOffset = parseInt(document.getElementById('f-content-offset').value) || 0;
+  refreshPreview();
+}
+
 function applyArtPositionLive() {
   if (!CURRENT_ART) return;
   const pos = CURRENT_ART.position;
@@ -1196,12 +1210,14 @@ function collectCardData(type) {
 
 function syncArtFromFields() {
   // CURRENT_ART.mode is set by setArtMode() and .position by the drag
-  // handler; zoom/tint always get re-read from their fields here so any
-  // field change (typed, dragged, or via the delegated listener) is
-  // reflected regardless of which specific control fired.
-  if (!CURRENT_IMAGE_URL) return null;
+  // handler; everything else always gets re-read from its field here so
+  // any change (typed, dragged, or via the delegated listener) is
+  // reflected regardless of which specific control fired. bodyOffset
+  // applies regardless of whether an image is set, so this never
+  // gates on CURRENT_IMAGE_URL.
   if (!CURRENT_ART) CURRENT_ART = defaultArt();
   CURRENT_ART.zoom = parseFloat(document.getElementById('f-art-zoom').value) || 1;
+  CURRENT_ART.bodyOffset = parseInt(document.getElementById('f-content-offset').value) || 0;
   CURRENT_ART.overlay = CURRENT_ART.overlay || defaultArt().overlay;
   CURRENT_ART.overlay.enabled = document.getElementById('f-art-tint-enabled').checked;
   CURRENT_ART.overlay.color   = document.getElementById('f-art-tint-color').value;
@@ -1258,6 +1274,7 @@ function openDrawer(cardId) {
   document.getElementById('f-image-file').value = '';
   document.getElementById('f-image-status').textContent = '';
   document.getElementById('f-art-zoom').value = CURRENT_ART.zoom;
+  document.getElementById('f-content-offset').value = CURRENT_ART.bodyOffset || 0;
   document.getElementById('f-art-tint-enabled').checked = !!(CURRENT_ART.overlay && CURRENT_ART.overlay.enabled);
   document.getElementById('f-art-tint-color').value = (CURRENT_ART.overlay && CURRENT_ART.overlay.color) || '#000000';
   document.getElementById('f-art-tint-opacity').value = (CURRENT_ART.overlay && CURRENT_ART.overlay.opacity != null) ? CURRENT_ART.overlay.opacity : 40;

@@ -1427,7 +1427,7 @@ function buildCardFaceHtml(card, opts = {}) {
       ${showSeries && card.series ? `<div class="cv-series">${card.series}</div>` : ''}
     </div>
     ${artBoxHtml}
-    <div class="cv-body">${body}</div>
+    <div class="cv-body"${art.bodyOffset ? ` style="transform:translateY(${Math.round(art.bodyOffset/100*140)}px)"` : ''}>${body}</div>
     <div class="cv-foot">
       <span class="cv-cost">${card.coin_cost > 0 ? '◈ '+card.coin_cost : 'Free'}</span>
       ${showStarterPill && card.is_starter ? '<span class="cv-startpill">★ Starter</span>' : ''}
