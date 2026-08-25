@@ -513,6 +513,12 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .ob-btn-primary:hover{opacity:.85}
 .ob-btn-primary:disabled{opacity:.35;cursor:default}
 .ob-fine-print{font-family:var(--fb);font-size:11px;color:var(--t3);line-height:1.6}
+.ob-auth-tabs{display:flex;gap:0;border:1px solid var(--bd);border-radius:var(--r-md);overflow:hidden;width:100%}
+.ob-auth-tab{flex:1;padding:10px;background:var(--s2);border:none;color:var(--t2);font-family:var(--fm);font-size:11px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:background .15s,color .15s}
+.ob-auth-tab.active{background:var(--acc);color:#0D1117;font-weight:700}
+.ob-btn-ghost{padding:11px 24px;background:transparent;border:1px solid var(--bd);border-radius:var(--r-md);color:var(--t3);font-family:var(--fb);font-size:12px;cursor:pointer;transition:border-color .15s,color .15s;width:100%}
+.ob-btn-ghost:hover{border-color:var(--acc);color:var(--t1)}
+.ob-auth-err{font-family:var(--fb);font-size:12px;color:#F43F5E;text-align:center;padding:8px 12px;background:rgba(244,63,94,0.08);border-radius:var(--r-sm);border:1px solid rgba(244,63,94,0.2)}
 /* Draft */
 .ob-draft{display:flex;flex-direction:column;width:100%;max-width:700px;height:100%;min-height:0;margin:auto 0}
 .ob-draft-head{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:10px;padding:24px 20px 16px;border-bottom:1px solid var(--bd)}
@@ -1052,7 +1058,17 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 <!-- Card lightbox modal -->
 <div id="card-modal" class="card-modal hidden"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
+/* ══════════════════════════════════════════
+   SUPABASE CLIENT
+══════════════════════════════════════════ */
+const SUPA_URL = 'https://jrgplarvzlrmczsrzswo.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpyZ3BsYXJ2emxybWN6c3J6c3dvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc2NTM1NTQsImV4cCI6MjEwMzIyOTU1NH0.uqtQPvsayt4UJ6XFzGGX61YvWVCK-371SxGO2lJzA3s';
+const db = window.supabase ? window.supabase.createClient(SUPA_URL, SUPA_KEY) : null;
+
+let CZ_USER = null; // current Supabase auth user
+
 /* ══════════════════════════════════════════
    CARD LIBRARY DATA
 ══════════════════════════════════════════ */
@@ -4402,25 +4418,133 @@ function buildRegisterHtml() {
   return `<div class="ob-register">
     <div class="ob-biglogo">CAZOOKA</div>
     <div class="ob-tagline">Cat Deployment Ops</div>
-    <div class="ob-reg-form">
-      <label class="ob-lbl">Your callsign</label>
-      <input class="ob-input" id="ob-name-input" type="text" placeholder="Enter your name" maxlength="24" autocomplete="off"
-        oninput="document.getElementById('ob-start-btn').disabled=!this.value.trim()"
-        onkeydown="if(event.key==='Enter'&&this.value.trim())startOnboard()">
-      <button class="ob-btn-primary" id="ob-start-btn" disabled onclick="startOnboard()">Begin Draft</button>
+    <div class="ob-auth-tabs">
+      <button class="ob-auth-tab active" id="ob-tab-new" onclick="switchAuthTab('new')">New Player</button>
+      <button class="ob-auth-tab" id="ob-tab-login" onclick="switchAuthTab('login')">Login</button>
     </div>
-    <div class="ob-fine-print">Draft your cat, 5 items, and 3 special abilities from 10 cards each.<br>Then choose what to keep within your starting coins.</div>
+
+    <!-- New player form -->
+    <div class="ob-reg-form" id="ob-form-new">
+      <label class="ob-lbl">Callsign</label>
+      <input class="ob-input" id="ob-name-input" type="text" placeholder="Your in-game name" maxlength="24" autocomplete="off"
+        oninput="checkNewForm()" onkeydown="if(event.key==='Enter')tryStartOnboard()">
+      <label class="ob-lbl">Email</label>
+      <input class="ob-input" id="ob-email-input" type="email" placeholder="you@example.com" autocomplete="email"
+        oninput="checkNewForm()" onkeydown="if(event.key==='Enter')tryStartOnboard()">
+      <label class="ob-lbl">Password</label>
+      <input class="ob-input" id="ob-pass-input" type="password" placeholder="Min 6 characters" autocomplete="new-password"
+        oninput="checkNewForm()" onkeydown="if(event.key==='Enter')tryStartOnboard()">
+      <div class="ob-auth-err" id="ob-new-err" style="display:none"></div>
+      <button class="ob-btn-primary" id="ob-start-btn" disabled onclick="tryStartOnboard()">Begin Draft</button>
+      <button class="ob-btn-ghost" onclick="skipAuth()">Play as Guest (no save)</button>
+    </div>
+
+    <!-- Login form -->
+    <div class="ob-reg-form" id="ob-form-login" style="display:none">
+      <label class="ob-lbl">Email</label>
+      <input class="ob-input" id="ob-login-email" type="email" placeholder="you@example.com" autocomplete="email"
+        onkeydown="if(event.key==='Enter')tryLogin()">
+      <label class="ob-lbl">Password</label>
+      <input class="ob-input" id="ob-login-pass" type="password" placeholder="Password" autocomplete="current-password"
+        onkeydown="if(event.key==='Enter')tryLogin()">
+      <div class="ob-auth-err" id="ob-login-err" style="display:none"></div>
+      <button class="ob-btn-primary" id="ob-login-btn" onclick="tryLogin()">Login</button>
+    </div>
+
+    <div class="ob-fine-print">Draft your cat, items, and abilities.<br>Create an account to save progress across devices.</div>
   </div>`;
 }
 
-function startOnboard() {
+function switchAuthTab(tab) {
+  document.getElementById('ob-form-new').style.display   = tab === 'new'   ? '' : 'none';
+  document.getElementById('ob-form-login').style.display = tab === 'login' ? '' : 'none';
+  document.getElementById('ob-tab-new').classList.toggle('active', tab === 'new');
+  document.getElementById('ob-tab-login').classList.toggle('active', tab === 'login');
+}
+
+function checkNewForm() {
+  const name  = (document.getElementById('ob-name-input')?.value || '').trim();
+  const email = (document.getElementById('ob-email-input')?.value || '').trim();
+  const pass  = (document.getElementById('ob-pass-input')?.value || '');
+  const btn   = document.getElementById('ob-start-btn');
+  if (btn) btn.disabled = !(name && email && pass.length >= 6);
+}
+
+function skipAuth() {
+  // Guest play — no Supabase account, localStorage only
   const nameEl = document.getElementById('ob-name-input');
-  if (!nameEl || !nameEl.value.trim()) return;
-  ONBOARD.name = nameEl.value.trim();
+  const name   = nameEl ? nameEl.value.trim() : 'Guest';
+  ONBOARD.name = name || 'Guest';
   ONBOARD.draftStep = 0;
   ONBOARD.selections = [[], [], [], []];
   buildDraftPool();
   showOnboardStep('draft');
+}
+
+async function tryStartOnboard() {
+  const name  = document.getElementById('ob-name-input')?.value.trim();
+  const email = document.getElementById('ob-email-input')?.value.trim();
+  const pass  = document.getElementById('ob-pass-input')?.value;
+  const errEl = document.getElementById('ob-new-err');
+  const btn   = document.getElementById('ob-start-btn');
+  if (!name || !email || !pass) return;
+
+  btn.disabled = true;
+  btn.textContent = 'Creating account…';
+  if (errEl) errEl.style.display = 'none';
+
+  if (db) {
+    const { data, error } = await db.auth.signUp({ email, password: pass });
+    if (error) {
+      if (errEl) { errEl.textContent = error.message; errEl.style.display = ''; }
+      btn.disabled = false; btn.textContent = 'Begin Draft';
+      return;
+    }
+    CZ_USER = data.user;
+  }
+
+  ONBOARD.name = name;
+  ONBOARD.draftStep = 0;
+  ONBOARD.selections = [[], [], [], []];
+  buildDraftPool();
+  showOnboardStep('draft');
+}
+
+async function tryLogin() {
+  const email  = document.getElementById('ob-login-email')?.value.trim();
+  const pass   = document.getElementById('ob-login-pass')?.value;
+  const errEl  = document.getElementById('ob-login-err');
+  const btn    = document.getElementById('ob-login-btn');
+  if (!email || !pass) return;
+
+  btn.disabled = true; btn.textContent = 'Logging in…';
+  if (errEl) errEl.style.display = 'none';
+
+  if (!db) { if (errEl) { errEl.textContent = 'Cloud not available.'; errEl.style.display = ''; } btn.disabled = false; btn.textContent = 'Login'; return; }
+
+  const { data, error } = await db.auth.signInWithPassword({ email, password: pass });
+  if (error) {
+    if (errEl) { errEl.textContent = error.message; errEl.style.display = ''; }
+    btn.disabled = false; btn.textContent = 'Login';
+    return;
+  }
+  CZ_USER = data.user;
+  const restored = await loadPlayerFromCloud(CZ_USER.id);
+  if (!restored) {
+    if (errEl) { errEl.textContent = 'No saved player found for this account.'; errEl.style.display = ''; }
+    btn.disabled = false; btn.textContent = 'Login';
+    CZ_USER = null;
+    return;
+  }
+  // Hide onboard overlay and go to game
+  const ov = document.getElementById('onboard');
+  if (ov) ov.style.display = 'none';
+  showGameHome();
+}
+
+function startOnboard() {
+  // Legacy entry point — delegates to auth-aware version
+  tryStartOnboard();
 }
 
 function buildDraftPool() {
@@ -4770,7 +4894,6 @@ function completeOnboarding() {
     deckIds: kept.map(c => c.id),
     inventory: {}
   };
-  // Store simulation state only (no cz_player write — this is simulation, not a real save)
   PLAYER = player;
   SIM_MODE = true;
   sbx.deck  = kept.map(c => c.id);
@@ -4783,9 +4906,12 @@ function completeOnboarding() {
     sbx.cats = keptBreeds.map(b => ({ breed: b, gear: keptGear, abilities: keptAbilities, home_joined_at: Date.now(), home_dev_gains: {}, rep: 100, allies: [] }));
     sbx.homeItems = keptHomeItems;
   }
+  // Save to localStorage
+  try { localStorage.setItem('cz_player', JSON.stringify(player)); } catch(e) {}
+  // Save to Supabase if signed in
+  savePlayerToCloud();
   const ov = document.getElementById('onboard');
   if (ov) { ov.style.opacity = '0'; ov.style.transition = 'opacity .45s ease'; setTimeout(() => { ov.style.display = 'none'; ov.style.opacity = ''; }, 500); }
-  // Update dashboard sim card to show "resume"
   const sf = document.getElementById('dash-sim-foot'); if (sf) sf.textContent = '▶ Resume simulation';
   setTimeout(showGameHome, 480);
 }
@@ -4824,10 +4950,23 @@ function exitSimulation() {
   showTab('dashboard');
 }
 
-function initApp() {
+async function initApp() {
   renderLibrary();
-  // Players land directly in Simulate.
-  // Studio is accessible via the secret: hold Shift and press S three times.
+  // Check for an existing Supabase session (returning player)
+  if (db) {
+    try {
+      const { data: { session } } = await db.auth.getSession();
+      if (session) {
+        CZ_USER = session.user;
+        const restored = await loadPlayerFromCloud(CZ_USER.id);
+        if (restored) {
+          showGameHome();
+          return;
+        }
+      }
+    } catch(e) { /* no session — fall through to onboarding */ }
+  }
+  // New player or guest — show onboarding
   startSimulation();
 }
 
@@ -6171,6 +6310,53 @@ function savePlayer() {
   if (!PLAYER) return;
   PLAYER.coins = sbx.coins;
   try { localStorage.setItem('cz_player', JSON.stringify(PLAYER)); } catch(e) {}
+  savePlayerToCloud();
+}
+
+function buildGameState() {
+  return {
+    player: PLAYER,
+    cats:   sbx.cats,
+    deck:   sbx.deck,
+    coins:  sbx.coins,
+    homeItems: sbx.homeItems || []
+  };
+}
+
+async function savePlayerToCloud() {
+  if (!db || !CZ_USER || !PLAYER) return;
+  const state = buildGameState();
+  const wins   = (PLAYER.stats && PLAYER.stats.wins)   || 0;
+  const losses = (PLAYER.stats && PLAYER.stats.losses) || 0;
+  const runs   = (PLAYER.stats && PLAYER.stats.runs)   || 0;
+  try {
+    await db.from('players').upsert({
+      id:         CZ_USER.id,
+      callsign:   PLAYER.name,
+      coins:      sbx.coins,
+      wins, losses, runs,
+      game_state: state,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'id' });
+  } catch(e) { /* silently ignore cloud errors — game continues */ }
+}
+
+async function loadPlayerFromCloud(userId) {
+  if (!db || !userId) return false;
+  try {
+    const { data, error } = await db.from('players').select('*').eq('id', userId).single();
+    if (error || !data || !data.game_state) return false;
+    const gs = data.game_state;
+    PLAYER    = gs.player || null;
+    sbx.cats  = gs.cats   || [];
+    sbx.deck  = gs.deck   || [];
+    sbx.coins = gs.coins  || 1500;
+    sbx.homeItems = gs.homeItems || [];
+    SIM_MODE  = true;
+    if (PLAYER) PLAYER.coins = sbx.coins;
+    try { localStorage.setItem('cz_player', JSON.stringify(PLAYER)); } catch(e) {}
+    return true;
+  } catch(e) { return false; }
 }
 
 /* ══════════════════════════════════════════
