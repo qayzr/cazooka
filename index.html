@@ -1,3 +1,8 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Cazooka Dashboard</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -503,7 +508,7 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .onboard-ov.draft-mode{overflow:hidden;padding:0;justify-content:stretch}
 /* Register */
 .ob-register{display:flex;flex-direction:column;align-items:center;gap:20px;max-width:400px;width:100%;text-align:center;margin:auto 0}
-.ob-biglogo{font-family:var(--fd);font-weight:800;font-size:clamp(52px,12vw,96px);letter-spacing:.04em;color:var(--acc2);line-height:1}
+.ob-biglogo{font-family:var(--fd);font-weight:800;font-size:clamp(26px,8vw,40px);letter-spacing:.04em;color:var(--acc2);line-height:1}
 .ob-tagline{font-family:var(--fm);font-size:10px;text-transform:uppercase;letter-spacing:.2em;color:var(--t3)}
 .ob-reg-form{display:flex;flex-direction:column;gap:12px;width:100%;margin-top:16px}
 .ob-lbl{font-family:var(--fm);font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--t3);text-align:left}
@@ -961,6 +966,8 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
   .card-edit-panel{width:min(300px,90vw)}
 }
 </style>
+</head>
+<body>
 
 <div id="onboard" class="onboard-ov" style="display:none"></div>
 <div id="game-home" class="game-ov" style="display:none"></div>
@@ -6493,3 +6500,5 @@ function buyCard(cardId, cost) {
 ══════════════════════════════════════════ */
 initApp();
 </script>
+</body>
+</html>
