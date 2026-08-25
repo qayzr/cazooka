@@ -1378,6 +1378,12 @@ function buildCardBodyHtml(card, showDesc=true) {
       if (card.data.negative_description) body += `<div class="cv-subtext" style="color:#F87171;font-size:10px">${card.data.negative_description}</div>`;
     }
   }
+  if (card.is_limited) {
+    const mySerial = PLAYER && PLAYER.cardSerials && PLAYER.cardSerials[card.id];
+    body += mySerial
+      ? `<div class="cv-subtext" style="color:var(--acc);margin-top:2px">✦ Limited Edition — #${mySerial}/${card.edition_size || '?'}</div>`
+      : `<div class="cv-subtext" style="color:var(--acc);margin-top:2px">✦ Limited Edition (${card.edition_size || '?'})</div>`;
+  }
   return body;
 }
 
@@ -2886,6 +2892,48 @@ function pickLoot(rarity) {
   return pick(getLibrary().filter(c => c.type==='home_item'||c.type==='battle_gear'));
 }
 
+/* ── Limited-edition drops ──
+   A small chance per cat, per outside run, to bring back a numbered copy
+   of a card marked is_limited in the Studio. Guests (no CZ_USER) never
+   roll — there's no account to atomically claim a serial against. Serial
+   issuance goes through the issue_card_serial() Postgres RPC, which locks
+   the card row so concurrent claims across players can't double-issue the
+   same number or exceed edition_size. */
+const LIMITED_DROP_INT_FACTOR = 0.002;         // +0.2% chance per intelligence point
+const LIMITED_DROP_TREASURE_SENSE_BONUS = 0.05; // gear tagged 'treasure_sense'
+const LIMITED_DROP_MAX_CHANCE = 0.15;           // hard cap, 15%
+
+async function tryLimitedCardDrop(runs) {
+  if (!CZ_USER || !db || !PLAYER) return;
+  const limitedCards = baseLibrary().filter(c => c.is_limited);
+  if (!limitedCards.length) return;
+
+  for (const run of runs) {
+    const cs = sbx.cats[run.catIdx];
+    if (!cs) continue;
+    const stats = run.stats || {};
+    const { specials } = getGearSpecials(cs.gear || []);
+    const chance = Math.min(
+      LIMITED_DROP_MAX_CHANCE,
+      (stats.intelligence || 0) * LIMITED_DROP_INT_FACTOR + (specials.has('treasure_sense') ? LIMITED_DROP_TREASURE_SENSE_BONUS : 0)
+    );
+    if (Math.random() >= chance) continue;
+
+    const candidate = pick(limitedCards);
+    try {
+      const { data: serial, error } = await db.rpc('issue_card_serial', { p_card_id: candidate.id });
+      if (error || serial == null) continue; // sold out, or another transient issue — skip silently
+      PLAYER.deckIds = [...(PLAYER.deckIds || []), candidate.id];
+      sbx.deck = [...(sbx.deck || []), candidate.id];
+      PLAYER.cardSerials = PLAYER.cardSerials || {};
+      PLAYER.cardSerials[candidate.id] = serial;
+      savePlayer();
+      showCareToast(`✦ LIMITED DROP! ${run.name} found something rare…`);
+      setTimeout(() => openCardModal(candidate.id), 1400);
+    } catch(e) { /* network hiccup — skip silently, no near-miss messaging */ }
+  }
+}
+
 /* ── BATTLE ENGINE ── */
 
 function getGearSpecials(gearCards) {
@@ -3589,6 +3637,11 @@ function buildEventHtml(enc) {
 function finishRun() {
   const { runs, readyIndices } = sbx.activeRun;
 
+  // Fire-and-forget: each cat gets an independent roll for a limited-edition
+  // find. Not awaited — the reveal (if any) surfaces asynchronously via its
+  // own toast + card modal once the server confirms a serial was claimed.
+  tryLimitedCardDrop(runs);
+
   // ── Capture pre-boost state, apply return stat changes, store diffs ──
   const returnDiffs = {};
   if (readyIndices && readyIndices.length) {
@@ -4251,6 +4304,7 @@ function completeOnboarding() {
     name: ONBOARD.name, registered: true,
     coins: ONBOARD.startingCoins - spent,
     deckIds: kept.map(c => c.id),
+    cardSerials: {},
     inventory: {}
   };
   PLAYER = player;
@@ -5703,7 +5757,10 @@ async function loadPlayerFromCloud(userId) {
     sbx.coins = gs.coins  || 1500;
     sbx.homeItems = gs.homeItems || [];
     SIM_MODE  = true;
-    if (PLAYER) PLAYER.coins = sbx.coins;
+    if (PLAYER) {
+      PLAYER.coins = sbx.coins;
+      PLAYER.cardSerials = PLAYER.cardSerials || {}; // older saves predate limited editions
+    }
     try { localStorage.setItem('cz_player', JSON.stringify(PLAYER)); } catch(e) {}
     return true;
   } catch(e) { return false; }

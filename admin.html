@@ -437,6 +437,24 @@
       </div>
     </div>
 
+    <div class="form-section">Limited Edition</div>
+    <div class="form-row">
+      <div class="form-group" style="justify-content:flex-end;padding-bottom:2px">
+        <label class="form-check">
+          <input type="checkbox" id="f-is-limited" onchange="onIsLimitedToggle()"> Limited edition
+        </label>
+      </div>
+      <div class="form-group" id="edition-size-group" style="display:none">
+        <label class="form-lbl">Edition Size</label>
+        <input class="form-input" id="f-edition-size" type="number" min="1" placeholder="e.g. 50">
+      </div>
+    </div>
+    <div class="form-row full" id="edition-issued-row" style="display:none">
+      <div class="form-group">
+        <span id="edition-issued-lbl" style="font-size:11px;color:var(--t3)"></span>
+      </div>
+    </div>
+
     <!-- Cat breed stats -->
     <div id="stats-section" style="display:none">
       <div class="form-section">Cat Stats</div>
@@ -595,7 +613,7 @@ let EDITING_ID = null;
 const CAT_STATS = ['weight','strength','stamina','loyalty','affection','amicability','intelligence','speed','agility','stealth'];
 const TYPE_LABELS = {cat_breed:'Cat Breed',battle_gear:'Battle Gear',home_item:'Home Item',special_ability:'Special Ability',home:'Home'};
 const RARITY_BADGE = {common:'badge-gray',uncommon:'badge-green',rare:'badge-blue',legendary:'badge-yellow'};
-const KNOWN_SPECIAL_PROPS = ['ranged_attack','first_strike','aoe_confusion','armor_pierce','team_sync','post_fight_recovery','free_escape','charm_disarm','post_win_rally','memory_boost'];
+const KNOWN_SPECIAL_PROPS = ['ranged_attack','first_strike','aoe_confusion','armor_pierce','team_sync','post_fight_recovery','free_escape','charm_disarm','post_win_rally','memory_boost','treasure_sense'];
 let CURRENT_IMAGE_URL = null;
 let CURRENT_ART = null; // { mode, position:{x,y}, zoom, overlay:{enabled,color,opacity} }
 let ART_DRAG_STATE = null;
@@ -714,6 +732,9 @@ function buildCardBodyHtml(card, showDesc = true) {
       if (data.positive_description) body += `<div class="cv-subtext" style="color:#34D399;font-size:10px">${data.positive_description}</div>`;
       if (data.negative_description) body += `<div class="cv-subtext" style="color:#F87171;font-size:10px">${data.negative_description}</div>`;
     }
+  }
+  if (card.is_limited) {
+    body += `<div class="cv-subtext" style="color:var(--yellow);margin-top:2px">✦ Limited Edition (${card.edition_size || '?'})</div>`;
   }
   return body;
 }
@@ -1236,11 +1257,20 @@ function collectCardFromForm() {
     coin_cost:   parseInt(document.getElementById('f-cost').value) || 0,
     series:      document.getElementById('f-series').value.trim() || null,
     is_starter:  document.getElementById('f-starter').checked,
+    is_limited:  document.getElementById('f-is-limited').checked,
+    edition_size: document.getElementById('f-is-limited').checked
+      ? (parseInt(document.getElementById('f-edition-size').value) || null)
+      : null,
     image_url:   CURRENT_IMAGE_URL,
     art:         syncArtFromFields(),
     data,
   };
   return { card, error };
+}
+
+function onIsLimitedToggle() {
+  document.getElementById('edition-size-group').style.display = document.getElementById('f-is-limited').checked ? '' : 'none';
+  refreshPreview();
 }
 
 function refreshPreview() {
@@ -1268,6 +1298,16 @@ function openDrawer(cardId) {
   document.getElementById('f-cost').value    = card ? card.coin_cost   : 0;
   document.getElementById('f-series').value  = card ? (card.series||'') : '';
   document.getElementById('f-starter').checked = card ? !!card.is_starter : false;
+  document.getElementById('f-is-limited').checked = card ? !!card.is_limited : false;
+  document.getElementById('edition-size-group').style.display = (card && card.is_limited) ? '' : 'none';
+  document.getElementById('f-edition-size').value = (card && card.edition_size) || '';
+  document.getElementById('edition-issued-row').style.display = 'none';
+  if (card && card.is_limited) {
+    db.from('card_serials').select('*', { count: 'exact', head: true }).eq('card_id', card.id).then(({ count }) => {
+      document.getElementById('edition-issued-row').style.display = '';
+      document.getElementById('edition-issued-lbl').textContent = `Issued: ${count || 0} / ${card.edition_size || '?'}`;
+    });
+  }
 
   CURRENT_IMAGE_URL = card ? (card.image_url || null) : null;
   CURRENT_ART = card && card.art ? { ...defaultArt(), ...card.art } : defaultArt();
