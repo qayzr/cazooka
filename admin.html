@@ -211,7 +211,7 @@
 <script>
 const SUPA_URL = 'https://jrgplarvzlrmczsrzswo.supabase.co';
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpyZ3BsYXJ2emxybWN6c3J6c3dvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc2NTM1NTQsImV4cCI6MjEwMzIyOTU1NH0.uqtQPvsayt4UJ6XFzGGX61YvWVCK-371SxGO2lJzA3s';
-const db = window.supabase.createClient(SUPA_URL, SUPA_KEY);
+const db = window.supabase ? window.supabase.createClient(SUPA_URL, SUPA_KEY) : null;
 
 let ADMIN_USER = null;
 
@@ -223,29 +223,41 @@ async function doLogin() {
   const errEl = document.getElementById('login-err');
   if (!email || !pass) return;
 
+  if (!db) {
+    errEl.textContent = 'Could not reach Supabase — check your connection or ad blocker and reload.';
+    errEl.style.display = '';
+    return;
+  }
+
   btn.disabled = true; btn.textContent = 'Signing in…';
   errEl.style.display = 'none';
 
-  const { data, error } = await db.auth.signInWithPassword({ email, password: pass });
-  if (error) {
-    errEl.textContent = error.message; errEl.style.display = '';
-    btn.disabled = false; btn.textContent = 'Sign In';
-    return;
-  }
+  try {
+    const { data, error } = await db.auth.signInWithPassword({ email, password: pass });
+    if (error) {
+      errEl.textContent = error.message; errEl.style.display = '';
+      return;
+    }
 
-  // Check is_admin flag
-  const { data: player } = await db.from('players').select('is_admin, callsign').eq('id', data.user.id).single();
-  if (!player || !player.is_admin) {
-    await db.auth.signOut();
-    errEl.textContent = 'Access denied — you are not an admin.';
+    // Check is_admin flag
+    const { data: player } = await db.from('players').select('is_admin, callsign').eq('id', data.user.id).single();
+    if (!player || !player.is_admin) {
+      await db.auth.signOut();
+      errEl.textContent = 'Access denied — you are not an admin.';
+      errEl.style.display = '';
+      return;
+    }
+
+    ADMIN_USER = data.user;
+    document.getElementById('tb-user').textContent = player.callsign || email;
+    showAdmin();
+  } catch (e) {
+    console.error('Login failed:', e);
+    errEl.textContent = 'Login failed unexpectedly — check your connection and try again.';
     errEl.style.display = '';
+  } finally {
     btn.disabled = false; btn.textContent = 'Sign In';
-    return;
   }
-
-  ADMIN_USER = data.user;
-  document.getElementById('tb-user').textContent = player.callsign || email;
-  showAdmin();
 }
 
 async function doLogout() {
@@ -262,6 +274,12 @@ function showAdmin() {
 
 /* ── Session restore ── */
 async function checkSession() {
+  if (!db) {
+    const errEl = document.getElementById('login-err');
+    errEl.textContent = 'Could not reach Supabase — check your connection or ad blocker and reload.';
+    errEl.style.display = '';
+    return;
+  }
   const { data: { session } } = await db.auth.getSession();
   if (!session) return;
   const { data: player } = await db.from('players').select('is_admin, callsign').eq('id', session.user.id).single();

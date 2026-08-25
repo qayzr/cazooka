@@ -6321,7 +6321,7 @@ async function savePlayerToCloud() {
   const losses = (PLAYER.stats && PLAYER.stats.losses) || 0;
   const runs   = (PLAYER.stats && PLAYER.stats.runs)   || 0;
   try {
-    await db.from('players').upsert({
+    const { error } = await db.from('players').upsert({
       id:         CZ_USER.id,
       callsign:   PLAYER.name,
       coins:      sbx.coins,
@@ -6329,7 +6329,11 @@ async function savePlayerToCloud() {
       game_state: state,
       updated_at: new Date().toISOString()
     }, { onConflict: 'id' });
-  } catch(e) { /* silently ignore cloud errors — game continues */ }
+    if (error) throw error;
+  } catch(e) {
+    console.error('Cloud save failed:', e);
+    showCareToast('⚠️ Cloud save failed — progress kept locally only');
+  }
 }
 
 async function loadPlayerFromCloud(userId) {
