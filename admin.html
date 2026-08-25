@@ -136,8 +136,7 @@
   .cv{position:relative;width:210px;flex-shrink:0;border-radius:12px;overflow:hidden;border:1.5px solid var(--cv-r,var(--cv-c,var(--bd)));box-shadow:0 0 0 1px color-mix(in srgb,var(--cv-r,var(--cv-c,var(--bd))) 28%,transparent),0 10px 36px rgba(0,0,0,.45)}
   .cv-full-art-img{position:absolute;inset:0;z-index:0;background-repeat:no-repeat;user-select:none}
   .cv-full-art-tint{position:absolute;inset:0;z-index:1;pointer-events:none}
-  .cv.art-full .cv-hdr,.cv.art-full .cv-body,.cv.art-full .cv-foot{position:relative;z-index:2;background:rgba(10,12,20,.55);backdrop-filter:blur(1px)}
-  .cv.art-full .cv-body{background:linear-gradient(to bottom,rgba(10,12,20,.35),rgba(10,12,20,.72))}
+  .cv.art-full .cv-hdr,.cv.art-full .cv-body,.cv.art-full .cv-foot{position:relative;z-index:2;background:transparent}
   .cv-hdr{padding:9px 12px 7px;background:color-mix(in srgb,var(--cv-c) 10%,var(--s2))}
   .cv-trow{display:flex;align-items:center;gap:5px;margin-bottom:4px}
   .cv-tdot{width:6px;height:6px;border-radius:50%;background:var(--cv-c);flex-shrink:0}
@@ -200,6 +199,14 @@
   .art-mode-toggle{display:flex;gap:8px}
   .art-mode-btn{flex:1;padding:9px;border-radius:var(--r-sm);border:1px solid var(--bd);background:var(--s2);color:var(--t2);font-size:12px;font-weight:600;cursor:pointer;transition:border-color .15s,color .15s}
   .art-mode-btn.active{border-color:var(--acc);color:var(--acc);background:var(--acc-dim)}
+  .comp-style-block{background:var(--s2);border:1px solid var(--bd);border-radius:var(--r-sm);padding:12px;margin-bottom:10px}
+  .comp-style-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--t2);margin-bottom:8px}
+  .comp-style-row{display:flex;gap:16px}
+  .comp-style-col{flex:1;display:flex;flex-direction:column;gap:6px}
+  .comp-style-col label.form-check{font-size:12px}
+  .comp-style-controls{display:none;gap:8px;align-items:center}
+  .comp-style-controls input[type=color]{width:32px;height:28px;padding:2px;background:var(--s1);border:1px solid var(--bd);border-radius:4px;cursor:pointer}
+  .comp-style-controls input[type=range]{flex:1;accent-color:var(--acc)}
 
   /* ── Form ── */
   .form-section{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--t3);margin:20px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--bd)}
@@ -412,6 +419,10 @@
         </div>
       </div>
 
+      <div class="form-section">Component Styling</div>
+      <div style="font-size:11px;color:var(--t3);margin-bottom:10px">Transparent by default. Enable a background or text colour per section — useful for legibility over full-art images, or just a custom look.</div>
+      <div id="comp-style-blocks"></div>
+
       <div class="form-section">Properties</div>
     <div class="form-row">
       <div class="form-group">
@@ -621,7 +632,75 @@ let CURRENT_IMAGE_URL = null;
 let CURRENT_ART = null; // { mode, position:{x,y}, zoom, overlay:{enabled,color,opacity} }
 let ART_DRAG_STATE = null;
 
-function defaultArt() { return { mode: 'inset', position: { x: 50, y: 50 }, zoom: 1, overlay: { enabled: false, color: '#000000', opacity: 40 }, bodyOffset: 0 }; }
+function defaultComponentStyle() { return { bgEnabled: false, bgColor: '#000000', bgOpacity: 55, textEnabled: false, textColor: '#ffffff' }; }
+function defaultArt() {
+  return {
+    mode: 'inset', position: { x: 50, y: 50 }, zoom: 1,
+    overlay: { enabled: false, color: '#000000', opacity: 40 }, bodyOffset: 0,
+    components: { header: defaultComponentStyle(), body: defaultComponentStyle(), footer: defaultComponentStyle() },
+  };
+}
+
+const COMPONENT_LABELS = { header: 'Header', body: 'Body', footer: 'Footer' };
+
+function componentStyleBlocksHtml() {
+  return Object.keys(COMPONENT_LABELS).map(comp => `
+    <div class="comp-style-block">
+      <div class="comp-style-title">${COMPONENT_LABELS[comp]}</div>
+      <div class="comp-style-row">
+        <div class="comp-style-col">
+          <label class="form-check"><input type="checkbox" id="f-comp-${comp}-bg-en"> Background</label>
+          <div class="comp-style-controls" id="comp-${comp}-bg-controls">
+            <input type="color" id="f-comp-${comp}-bg-color">
+            <input type="range" id="f-comp-${comp}-bg-opacity" min="0" max="100">
+          </div>
+        </div>
+        <div class="comp-style-col">
+          <label class="form-check"><input type="checkbox" id="f-comp-${comp}-text-en"> Text colour</label>
+          <div class="comp-style-controls" id="comp-${comp}-text-controls">
+            <input type="color" id="f-comp-${comp}-text-color">
+          </div>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function populateComponentStyleBlocks(components) {
+  document.getElementById('comp-style-blocks').innerHTML = componentStyleBlocksHtml();
+  Object.keys(COMPONENT_LABELS).forEach(comp => {
+    const c = (components && components[comp]) || defaultComponentStyle();
+    document.getElementById(`f-comp-${comp}-bg-en`).checked = !!c.bgEnabled;
+    document.getElementById(`f-comp-${comp}-bg-color`).value = c.bgColor || '#000000';
+    document.getElementById(`f-comp-${comp}-bg-opacity`).value = c.bgOpacity != null ? c.bgOpacity : 55;
+    document.getElementById(`comp-${comp}-bg-controls`).style.display = c.bgEnabled ? 'flex' : 'none';
+    document.getElementById(`f-comp-${comp}-text-en`).checked = !!c.textEnabled;
+    document.getElementById(`f-comp-${comp}-text-color`).value = c.textColor || '#ffffff';
+    document.getElementById(`comp-${comp}-text-controls`).style.display = c.textEnabled ? 'flex' : 'none';
+
+    document.getElementById(`f-comp-${comp}-bg-en`).onchange = () => {
+      document.getElementById(`comp-${comp}-bg-controls`).style.display = document.getElementById(`f-comp-${comp}-bg-en`).checked ? 'flex' : 'none';
+      refreshPreview();
+    };
+    document.getElementById(`f-comp-${comp}-text-en`).onchange = () => {
+      document.getElementById(`comp-${comp}-text-controls`).style.display = document.getElementById(`f-comp-${comp}-text-en`).checked ? 'flex' : 'none';
+      refreshPreview();
+    };
+  });
+}
+
+function collectComponentStyles() {
+  const out = {};
+  Object.keys(COMPONENT_LABELS).forEach(comp => {
+    out[comp] = {
+      bgEnabled: document.getElementById(`f-comp-${comp}-bg-en`).checked,
+      bgColor: document.getElementById(`f-comp-${comp}-bg-color`).value,
+      bgOpacity: parseInt(document.getElementById(`f-comp-${comp}-bg-opacity`).value) || 0,
+      textEnabled: document.getElementById(`f-comp-${comp}-text-en`).checked,
+      textColor: document.getElementById(`f-comp-${comp}-text-en`).checked ? document.getElementById(`f-comp-${comp}-text-color`).value : null,
+    };
+  });
+  return out;
+}
 
 /* Twin of index.html's TYPE_META/RAR_COLOR — keep values identical. */
 const TYPE_META = {
@@ -742,6 +821,22 @@ function buildCardBodyHtml(card, showDesc = true) {
   return body;
 }
 
+/* Twin of index.html's hexToRgba/componentStyle — keep in sync. */
+function hexToRgba(hex, opacityPct) {
+  const h = (hex || '#000000').replace('#', '');
+  const r = parseInt(h.substring(0,2), 16) || 0;
+  const g = parseInt(h.substring(2,4), 16) || 0;
+  const b = parseInt(h.substring(4,6), 16) || 0;
+  return `rgba(${r},${g},${b},${(opacityPct != null ? opacityPct : 55) / 100})`;
+}
+function componentStyle(art, comp) {
+  const c = (art.components && art.components[comp]) || {};
+  const parts = [];
+  if (c.bgEnabled) parts.push(`background:${hexToRgba(c.bgColor, c.bgOpacity)}`);
+  if (c.textColor) parts.push(`--t1:${c.textColor};--t2:${c.textColor};--t3:${c.textColor};--acc2:${c.textColor}`);
+  return parts.join(';');
+}
+
 function buildCardFaceHtml(card, opts = {}) {
   const { cssClass = 'cv', showSeries = true, showStarterPill = true, showDesc = true, onclick = null, interactive = true } = opts;
   const tm = TYPE_META[card.type] || TYPE_META.cat_breed;
@@ -773,9 +868,11 @@ function buildCardFaceHtml(card, opts = {}) {
     artBoxHtml = `<div class="cv-art" style="position:relative">${cardArtHTML(card, tm)}${dragTargetHtml}</div>`;
   }
 
+  const bodyStyle = [componentStyle(art, 'body'), art.bodyOffset ? `transform:translateY(${Math.round(art.bodyOffset/100*140)}px)` : ''].filter(Boolean).join(';');
+
   return `<div class="${cssClass}${isFull ? ' art-full' : ''}" style="--cv-c:${tm.color};--cv-r:${rc}"${clickAttr}>
     ${artLayers}
-    <div class="cv-hdr">
+    <div class="cv-hdr" style="${componentStyle(art, 'header')}">
       <div class="cv-trow">
         <div class="cv-tdot"></div>
         <span class="cv-tlbl">${tm.label}</span>
@@ -785,8 +882,8 @@ function buildCardFaceHtml(card, opts = {}) {
       ${showSeries && card.series ? `<div class="cv-series">${card.series}</div>` : ''}
     </div>
     ${artBoxHtml}
-    <div class="cv-body"${art.bodyOffset ? ` style="transform:translateY(${Math.round(art.bodyOffset/100*140)}px)"` : ''}>${body}</div>
-    <div class="cv-foot">
+    <div class="cv-body" style="${bodyStyle}">${body}</div>
+    <div class="cv-foot" style="${componentStyle(art, 'footer')}">
       <span class="cv-cost">${card.coin_cost > 0 ? '◈ '+card.coin_cost : 'Free'}</span>
       ${showStarterPill && card.is_starter ? '<span class="cv-startpill">Starter</span>' : ''}
     </div>
@@ -1246,6 +1343,9 @@ function syncArtFromFields() {
   CURRENT_ART.overlay.enabled = document.getElementById('f-art-tint-enabled').checked;
   CURRENT_ART.overlay.color   = document.getElementById('f-art-tint-color').value;
   CURRENT_ART.overlay.opacity = parseInt(document.getElementById('f-art-tint-opacity').value) || 0;
+  if (document.getElementById('comp-style-blocks').children.length) {
+    CURRENT_ART.components = collectComponentStyles();
+  }
   return CURRENT_ART;
 }
 
@@ -1324,6 +1424,7 @@ function openDrawer(cardId) {
   document.getElementById('art-tint-controls').style.display = (CURRENT_ART.overlay && CURRENT_ART.overlay.enabled) ? 'flex' : 'none';
   document.getElementById('art-mode-inset-btn').classList.toggle('active', CURRENT_ART.mode !== 'full');
   document.getElementById('art-mode-full-btn').classList.toggle('active', CURRENT_ART.mode === 'full');
+  populateComponentStyleBlocks(CURRENT_ART.components);
 
   onTypeChange(card);
   document.getElementById('adv-json-details').open = false;

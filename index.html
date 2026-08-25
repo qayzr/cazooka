@@ -180,8 +180,7 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .cv{position:relative;width:210px;flex-shrink:0;border-radius:12px;overflow:hidden;border:1.5px solid var(--cv-r,var(--cv-c,var(--bd)));box-shadow:0 0 0 1px color-mix(in srgb,var(--cv-r,var(--cv-c,var(--bd))) 28%,transparent),0 10px 36px rgba(0,0,0,.45)}
 .cv-full-art-img{position:absolute;inset:0;z-index:0;background-repeat:no-repeat;user-select:none}
 .cv-full-art-tint{position:absolute;inset:0;z-index:1;pointer-events:none}
-.cv.art-full .cv-hdr,.cv.art-full .cv-body,.cv.art-full .cv-foot{position:relative;z-index:2;background:rgba(10,12,20,.55);backdrop-filter:blur(1px)}
-.cv.art-full .cv-body{background:linear-gradient(to bottom,rgba(10,12,20,.35),rgba(10,12,20,.72))}
+.cv.art-full .cv-hdr,.cv.art-full .cv-body,.cv.art-full .cv-foot{position:relative;z-index:2;background:transparent}
 .cv-hdr{padding:9px 12px 7px;background:color-mix(in srgb,var(--cv-c) 10%,var(--s2))}
 .cv-trow{display:flex;align-items:center;gap:5px;margin-bottom:4px}
 .cv-tdot{width:6px;height:6px;border-radius:50%;background:var(--cv-c);flex-shrink:0}
@@ -1391,6 +1390,29 @@ function buildCardBodyHtml(card, showDesc=true) {
    and the sandbox detail panel. `card.art` (set via the admin Card
    Studio) drives full-art vs inset rendering; keep this in sync with the
    twin implementation in admin.html's live preview if either changes. */
+/* Per-component background/text-color overrides (art.components.{header,
+   body,footer}). Text-color works by overriding the CSS custom properties
+   that a component's default-colored text already reads (--t1/--t2/--t3/
+   --acc2), so it cascades to the card name, description, stat labels,
+   cost, etc. — but NOT the intentionally-semantic colors (rarity pill,
+   type label, growth-trait purple, limited-edition amber, ability
+   positive/negative), which are hardcoded or keyed off --cv-c/--cv-r on
+   purpose and stay put regardless of this override. */
+function hexToRgba(hex, opacityPct) {
+  const h = (hex || '#000000').replace('#', '');
+  const r = parseInt(h.substring(0,2), 16) || 0;
+  const g = parseInt(h.substring(2,4), 16) || 0;
+  const b = parseInt(h.substring(4,6), 16) || 0;
+  return `rgba(${r},${g},${b},${(opacityPct != null ? opacityPct : 55) / 100})`;
+}
+function componentStyle(art, comp) {
+  const c = (art.components && art.components[comp]) || {};
+  const parts = [];
+  if (c.bgEnabled) parts.push(`background:${hexToRgba(c.bgColor, c.bgOpacity)}`);
+  if (c.textColor) parts.push(`--t1:${c.textColor};--t2:${c.textColor};--t3:${c.textColor};--acc2:${c.textColor}`);
+  return parts.join(';');
+}
+
 function buildCardFaceHtml(card, opts = {}) {
   const {
     cssClass = 'cv',
@@ -1421,9 +1443,11 @@ function buildCardFaceHtml(card, opts = {}) {
     artBoxHtml = '';
   }
 
+  const bodyStyle = [componentStyle(art, 'body'), art.bodyOffset ? `transform:translateY(${Math.round(art.bodyOffset/100*140)}px)` : ''].filter(Boolean).join(';');
+
   return `<div class="${cssClass}${isFull ? ' art-full' : ''}" style="--cv-c:${tm.color};--cv-r:${rc}"${clickAttr}>
     ${artLayers}
-    <div class="cv-hdr">
+    <div class="cv-hdr" style="${componentStyle(art, 'header')}">
       <div class="cv-trow">
         <div class="cv-tdot"></div>
         <span class="cv-tlbl">${tm.label}</span>
@@ -1433,8 +1457,8 @@ function buildCardFaceHtml(card, opts = {}) {
       ${showSeries && card.series ? `<div class="cv-series">${card.series}</div>` : ''}
     </div>
     ${artBoxHtml}
-    <div class="cv-body"${art.bodyOffset ? ` style="transform:translateY(${Math.round(art.bodyOffset/100*140)}px)"` : ''}>${body}</div>
-    <div class="cv-foot">
+    <div class="cv-body" style="${bodyStyle}">${body}</div>
+    <div class="cv-foot" style="${componentStyle(art, 'footer')}">
       <span class="cv-cost">${card.coin_cost > 0 ? '◈ '+card.coin_cost : 'Free'}</span>
       ${showStarterPill && card.is_starter ? '<span class="cv-startpill">Starter</span>' : ''}
     </div>
