@@ -34,8 +34,11 @@
 }
 
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html{-webkit-font-smoothing:antialiased;font-size:15px}
-body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;height:100vh;overflow:hidden;display:flex;flex-direction:column}
+html{-webkit-font-smoothing:antialiased;font-size:15px;background:var(--bg)}
+/* This is a mobile/tablet game — on large screens, frame it to a vertical
+   tablet width instead of stretching edge-to-edge. Admin (admin.html) is a
+   separate document and is unaffected. */
+body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;height:100vh;overflow:hidden;display:flex;flex-direction:column;position:relative;max-width:768px;margin:0 auto;border-left:1px solid var(--bd);border-right:1px solid var(--bd)}
 .app-wrap{display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden}
 
 /* ── HEADER ── */
@@ -347,7 +350,7 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .empty-state p{font-size:12px;font-style:italic}
 
 /* ── CARD LIGHTBOX MODAL ── */
-.card-modal{position:fixed;inset:0;z-index:2000;display:flex;align-items:center;justify-content:center;padding:20px}
+.card-modal{position:absolute;inset:0;z-index:2000;display:flex;align-items:center;justify-content:center;padding:20px}
 .card-modal.hidden{display:none}
 .cmo-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);cursor:pointer}
 .cmo-wrap{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:12px;animation:cmo-in .2s cubic-bezier(.34,1.4,.64,1)}
@@ -503,17 +506,19 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .care-btn.cb-rest.on{background:rgba(56,189,248,.1);border-color:#38BDF8;color:#38BDF8}
 .care-btn.cb-rest:hover{border-color:#38BDF8;color:#38BDF8}
 .care-empty-state{font-size:12px;color:var(--t3);font-style:italic;text-align:center;padding:60px 20px;line-height:1.8}
-.care-toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);font-family:var(--fm);font-size:10px;padding:7px 18px;background:var(--s3);border:1px solid var(--bd2);border-radius:var(--r-f);color:var(--t1);z-index:500;animation:toast-in .2s ease;pointer-events:none;transition:opacity .4s ease}
+.care-toast{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);font-family:var(--fm);font-size:10px;padding:7px 18px;background:var(--s3);border:1px solid var(--bd2);border-radius:var(--r-f);color:var(--t1);z-index:500;animation:toast-in .2s ease;pointer-events:none;transition:opacity .4s ease}
 @keyframes toast-in{from{opacity:0;transform:translateX(-50%) translateY(8px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
 
 /* ── ONBOARDING ── */
-.onboard-ov{position:fixed;inset:0;z-index:1000;background:var(--bg);display:flex;flex-direction:column;align-items:center;overflow-y:auto;padding:32px 20px}
+.onboard-ov{position:absolute;inset:0;z-index:1000;background:var(--bg);display:flex;flex-direction:column;align-items:center;overflow-y:auto;padding:32px 20px}
 .onboard-ov.draft-mode{overflow:hidden;padding:0;justify-content:stretch}
 /* Register */
-.ob-register{display:flex;flex-direction:column;align-items:center;gap:20px;max-width:400px;width:100%;text-align:center;margin:auto 0}
+.ob-register{display:flex;flex-direction:column;align-items:center;gap:20px;max-width:400px;width:100%;text-align:center;margin:0 0 auto}
 .ob-biglogo{font-family:var(--fd);font-weight:800;font-size:clamp(52px,12vw,96px);letter-spacing:.04em;color:var(--acc2);line-height:1}
 .ob-tagline{font-family:var(--fm);font-size:10px;text-transform:uppercase;letter-spacing:.2em;color:var(--t3)}
-.ob-reg-form{display:flex;flex-direction:column;gap:12px;width:100%;margin-top:16px}
+.ob-reg-form-wrap{width:100%;overflow:hidden;margin-top:16px;transition:height .28s cubic-bezier(.4,0,.2,1)}
+.ob-reg-form{display:flex;flex-direction:column;gap:12px;width:100%;animation:ob-form-fadein .2s ease}
+@keyframes ob-form-fadein{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
 .ob-lbl{font-family:var(--fm);font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--t3);text-align:left}
 .ob-input{width:100%;padding:12px 16px;background:var(--s2);border:1px solid var(--bd);border-radius:var(--r-md);color:var(--t1);font-family:var(--fb);font-size:15px;outline:none;transition:border-color .15s}
 .ob-input:focus{border-color:var(--acc)}
@@ -544,7 +549,7 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .ob-info-btn{width:38px;height:38px;border-radius:50%;border:1px solid var(--bd);background:var(--s1);color:var(--t2);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s}
 .ob-info-btn:hover{border-color:var(--acc);color:var(--acc);background:var(--acc-bg)}
 /* Draft info modal */
-.draft-info-ov{position:fixed;inset:0;z-index:9999;display:flex;align-items:flex-end;justify-content:center;padding:0 0 0 0;background:rgba(0,0,0,.55);animation:di-fadein .18s ease}
+.draft-info-ov{position:absolute;inset:0;z-index:9999;display:flex;align-items:flex-end;justify-content:center;padding:0 0 0 0;background:rgba(0,0,0,.55);animation:di-fadein .18s ease}
 @keyframes di-fadein{from{opacity:0}to{opacity:1}}
 .draft-info-sheet{width:100%;max-width:480px;background:var(--bg);border-radius:var(--r-lg) var(--r-lg) 0 0;padding:24px 20px 32px;animation:di-slideup .22s cubic-bezier(.4,0,.2,1)}
 @keyframes di-slideup{from{transform:translateY(60px);opacity:0}to{transform:none;opacity:1}}
@@ -627,7 +632,7 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .sim-exit-btn{margin-left:auto;padding:4px 12px;font-family:var(--fm);font-size:9px;text-transform:uppercase;letter-spacing:.07em;background:none;border:1px solid rgba(240,160,48,.4);border-radius:var(--r-md);color:var(--acc2);cursor:pointer;transition:all .15s}
 .sim-exit-btn:hover{background:rgba(240,160,48,.15);border-color:var(--acc)}
 /* ── GAME HOME ── */
-.game-ov{position:fixed;inset:0;z-index:900;background:var(--bg);display:flex;flex-direction:column;overflow:hidden}
+.game-ov{position:absolute;inset:0;z-index:900;background:var(--bg);display:flex;flex-direction:column;overflow:hidden}
 .gh-hdr{flex-shrink:0;height:52px;display:flex;align-items:center;gap:12px;padding:0 20px;background:var(--s1);border-bottom:1px solid var(--bd)}
 .gh-home-name{font-family:var(--fd);font-size:14px;font-weight:700;color:var(--t1);flex:1}
 .gh-coins{font-family:var(--fm);font-size:12px;color:var(--acc2);display:flex;align-items:center;gap:5px}
@@ -701,7 +706,7 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .gh-care-option-eff.stat{background:rgba(52,211,153,0.12);border-color:rgba(52,211,153,0.3);color:#34D399}
 .gh-care-mkt-btn{width:100%;padding:10px;font-family:var(--fm);font-size:11px;font-weight:700;border-radius:var(--r-md);border:none;background:var(--acc);color:#0D1117;cursor:pointer;margin-top:2px}
 /* Care popup modal */
-#care-popup-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.62);display:none;align-items:center;justify-content:center;z-index:9500;padding:20px;backdrop-filter:blur(3px)}
+#care-popup-overlay{position:absolute;inset:0;background:rgba(0,0,0,0.62);display:none;align-items:center;justify-content:center;z-index:9500;padding:20px;backdrop-filter:blur(3px)}
 .care-popup{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r-lg);padding:22px 20px;max-width:280px;width:100%;display:flex;flex-direction:column;gap:8px;animation:popup-in .18s ease}
 @keyframes popup-in{0%{opacity:0;transform:scale(.93) translateY(6px)}100%{opacity:1;transform:scale(1) translateY(0)}}
 .care-popup-icon{font-size:34px;text-align:center;line-height:1;margin-bottom:2px}
@@ -785,7 +790,7 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 /* Radar chart */
 .radar-wrap{display:flex;justify-content:center;padding:8px 0 4px}
 .radar-svg{width:100%;max-width:220px;height:auto;display:block}
-.radar-tip{position:fixed;bottom:130px;left:50%;transform:translateX(-50%);background:rgba(10,14,22,0.97);border:1px solid rgba(96,165,250,0.35);border-radius:10px;padding:10px 14px;max-width:220px;width:max-content;z-index:9999;pointer-events:none;box-shadow:0 4px 24px rgba(0,0,0,0.5);display:none}
+.radar-tip{position:absolute;bottom:130px;left:50%;transform:translateX(-50%);background:rgba(10,14,22,0.97);border:1px solid rgba(96,165,250,0.35);border-radius:10px;padding:10px 14px;max-width:220px;width:max-content;z-index:9999;pointer-events:none;box-shadow:0 4px 24px rgba(0,0,0,0.5);display:none}
 .rtip-name{font-family:var(--fm);font-size:12px;font-weight:700;color:#60a5fa;margin-bottom:4px}
 .rtip-desc{font-size:11px;color:rgba(255,255,255,0.72);line-height:1.45}
 .rtip-pos{color:#34D399}
@@ -908,7 +913,7 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .gh-items-section .gh-drop{border:1px solid var(--bd);border-radius:var(--r-lg);background:var(--s1);padding:0 16px}
 
 /* ── MARKET ── */
-.mkt-ov{position:fixed;inset:0;z-index:950;background:var(--bg);display:flex;flex-direction:column;overflow:hidden}
+.mkt-ov{position:absolute;inset:0;z-index:950;background:var(--bg);display:flex;flex-direction:column;overflow:hidden}
 .mkt-hdr{flex-shrink:0;height:52px;display:flex;align-items:center;gap:12px;padding:0 20px;background:var(--s1);border-bottom:1px solid var(--bd)}
 .mkt-back{padding:6px 14px;font-family:var(--fm);font-size:10px;text-transform:uppercase;letter-spacing:.07em;background:none;border:1px solid var(--bd);border-radius:var(--r-md);color:var(--t3);cursor:pointer;transition:all .15s;flex-shrink:0}
 .mkt-back:hover{border-color:var(--acc);color:var(--acc2)}
@@ -3859,32 +3864,34 @@ function buildRegisterHtml() {
       <button class="ob-auth-tab" id="ob-tab-login" onclick="switchAuthTab('login')">Login</button>
     </div>
 
-    <!-- New player form -->
-    <div class="ob-reg-form" id="ob-form-new">
-      <label class="ob-lbl">Callsign</label>
-      <input class="ob-input" id="ob-name-input" type="text" placeholder="Your in-game name" maxlength="24" autocomplete="off"
-        oninput="checkNewForm()" onkeydown="if(event.key==='Enter')tryStartOnboard()">
-      <label class="ob-lbl">Email</label>
-      <input class="ob-input" id="ob-email-input" type="email" placeholder="you@example.com" autocomplete="email"
-        oninput="checkNewForm()" onkeydown="if(event.key==='Enter')tryStartOnboard()">
-      <label class="ob-lbl">Password</label>
-      <input class="ob-input" id="ob-pass-input" type="password" placeholder="Min 6 characters" autocomplete="new-password"
-        oninput="checkNewForm()" onkeydown="if(event.key==='Enter')tryStartOnboard()">
-      <div class="ob-auth-err" id="ob-new-err" style="display:none"></div>
-      <button class="ob-btn-primary" id="ob-start-btn" disabled onclick="tryStartOnboard()">Begin Draft</button>
-      <button class="ob-btn-ghost" onclick="skipAuth()">Play as Guest (no save)</button>
-    </div>
+    <div class="ob-reg-form-wrap" id="ob-form-wrap">
+      <!-- New player form -->
+      <div class="ob-reg-form" id="ob-form-new">
+        <label class="ob-lbl">Callsign</label>
+        <input class="ob-input" id="ob-name-input" type="text" placeholder="Your in-game name" maxlength="24" autocomplete="off"
+          oninput="checkNewForm()" onkeydown="if(event.key==='Enter')tryStartOnboard()">
+        <label class="ob-lbl">Email</label>
+        <input class="ob-input" id="ob-email-input" type="email" placeholder="you@example.com" autocomplete="email"
+          oninput="checkNewForm()" onkeydown="if(event.key==='Enter')tryStartOnboard()">
+        <label class="ob-lbl">Password</label>
+        <input class="ob-input" id="ob-pass-input" type="password" placeholder="Min 6 characters" autocomplete="new-password"
+          oninput="checkNewForm()" onkeydown="if(event.key==='Enter')tryStartOnboard()">
+        <div class="ob-auth-err" id="ob-new-err" style="display:none"></div>
+        <button class="ob-btn-primary" id="ob-start-btn" disabled onclick="tryStartOnboard()">Begin Draft</button>
+        <button class="ob-btn-ghost" onclick="skipAuth()">Play as Guest (no save)</button>
+      </div>
 
-    <!-- Login form -->
-    <div class="ob-reg-form" id="ob-form-login" style="display:none">
-      <label class="ob-lbl">Email</label>
-      <input class="ob-input" id="ob-login-email" type="email" placeholder="you@example.com" autocomplete="email"
-        onkeydown="if(event.key==='Enter')tryLogin()">
-      <label class="ob-lbl">Password</label>
-      <input class="ob-input" id="ob-login-pass" type="password" placeholder="Password" autocomplete="current-password"
-        onkeydown="if(event.key==='Enter')tryLogin()">
-      <div class="ob-auth-err" id="ob-login-err" style="display:none"></div>
-      <button class="ob-btn-primary" id="ob-login-btn" onclick="tryLogin()">Login</button>
+      <!-- Login form -->
+      <div class="ob-reg-form" id="ob-form-login" style="display:none">
+        <label class="ob-lbl">Email</label>
+        <input class="ob-input" id="ob-login-email" type="email" placeholder="you@example.com" autocomplete="email"
+          onkeydown="if(event.key==='Enter')tryLogin()">
+        <label class="ob-lbl">Password</label>
+        <input class="ob-input" id="ob-login-pass" type="password" placeholder="Password" autocomplete="current-password"
+          onkeydown="if(event.key==='Enter')tryLogin()">
+        <div class="ob-auth-err" id="ob-login-err" style="display:none"></div>
+        <button class="ob-btn-primary" id="ob-login-btn" onclick="tryLogin()">Login</button>
+      </div>
     </div>
 
     <div class="ob-fine-print">Draft your cat, items, and abilities.<br>Create an account to save progress across devices.</div>
@@ -3892,10 +3899,20 @@ function buildRegisterHtml() {
 }
 
 function switchAuthTab(tab) {
-  document.getElementById('ob-form-new').style.display   = tab === 'new'   ? '' : 'none';
-  document.getElementById('ob-form-login').style.display = tab === 'login' ? '' : 'none';
   document.getElementById('ob-tab-new').classList.toggle('active', tab === 'new');
   document.getElementById('ob-tab-login').classList.toggle('active', tab === 'login');
+
+  const target  = document.getElementById(tab === 'new' ? 'ob-form-new' : 'ob-form-login');
+  const current = document.getElementById(tab === 'new' ? 'ob-form-login' : 'ob-form-new');
+  if (target.style.display !== 'none') return; // already on this tab
+
+  const wrap = document.getElementById('ob-form-wrap');
+  wrap.style.height = wrap.offsetHeight + 'px'; // lock current height so the swap below doesn't jump
+  current.style.display = 'none';
+  target.style.display = '';
+  requestAnimationFrame(() => { wrap.style.height = target.scrollHeight + 'px'; });
+  clearTimeout(wrap._resetT);
+  wrap._resetT = setTimeout(() => { wrap.style.height = 'auto'; }, 300);
 }
 
 function checkNewForm() {
