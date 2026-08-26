@@ -38,7 +38,7 @@ html{-webkit-font-smoothing:antialiased;font-size:15px;background:var(--bg)}
 /* This is a mobile/tablet game — on large screens, frame it to a vertical
    tablet width instead of stretching edge-to-edge. Admin (admin.html) is a
    separate document and is unaffected. */
-body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;height:100vh;overflow:hidden;display:flex;flex-direction:column;position:relative;max-width:768px;margin:0 auto;border-left:1px solid var(--bd);border-right:1px solid var(--bd)}
+body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;height:100vh;height:100dvh;overflow:hidden;display:flex;flex-direction:column;position:relative;max-width:768px;margin:0 auto;border-left:1px solid var(--bd);border-right:1px solid var(--bd)}
 .app-wrap{display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden}
 
 /* ── HEADER ── */
@@ -534,7 +534,7 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .ob-auth-err{font-family:var(--fb);font-size:12px;color:#F43F5E;text-align:center;padding:8px 12px;background:rgba(244,63,94,0.08);border-radius:var(--r-sm);border:1px solid rgba(244,63,94,0.2)}
 /* Draft */
 .ob-draft{display:flex;flex-direction:column;width:100%;max-width:700px;height:100%;min-height:0;margin:auto 0}
-.ob-draft-head{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:10px;padding:24px 20px 16px;border-bottom:1px solid var(--bd)}
+.ob-draft-head{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:10px;padding:24px 20px 16px}
 .ob-draft-progress{display:flex;gap:0;align-items:center}
 .ob-prog-dot{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;border:1px solid var(--bd);background:var(--s2);transition:all .2s}
 .ob-prog-dot.active{border-color:var(--acc);background:var(--acc-bg);box-shadow:0 0 0 3px var(--acc-bg)}
@@ -595,22 +595,29 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .ob-flip-back-logo{font-family:var(--fd);font-size:9px;font-weight:700;color:var(--t3);letter-spacing:.1em}
 .ob-flip-back-paw{font-size:28px;opacity:.3}
 .ob-flip-front{transform:rotateY(180deg);overflow:hidden}
-/* Mini card (omc) */
-.omc{width:100%;height:100%;border-radius:var(--r-md);display:flex;flex-direction:column;overflow:hidden;border:1px solid var(--bd);background:var(--s1);font-family:var(--fb);position:relative;transition:all .15s}
-.omc.unaffordable{opacity:.35;filter:grayscale(.7)}
-.omc-hdr{height:4px;flex-shrink:0}
-.omc-art{height:52px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:var(--s2);font-size:26px}
-.omc-body{flex:1;padding:6px 7px;display:flex;flex-direction:column;gap:2px;min-height:0;overflow:hidden}
-.omc-name{font-family:'Bodoni Moda',Georgia,serif;font-size:10px;font-weight:700;color:var(--t1);line-height:1.2}
-.omc-rar{font-family:var(--fm);font-size:7.5px;text-transform:uppercase;letter-spacing:.06em}
-.omc-type-lbl{font-family:var(--fm);font-size:7px;color:var(--t3);text-transform:uppercase;letter-spacing:.05em}
-.omc-stats{display:flex;flex-wrap:wrap;gap:2px;margin-top:2px}
-.omc-stat{font-family:var(--fm);font-size:7px;padding:1px 5px;background:var(--s2);border-radius:var(--r-sm);color:var(--t2)}
-.omc-stat.top{background:rgba(240,160,48,.18);color:var(--acc2);border:1px solid rgba(240,160,48,.35);font-weight:700}
-.omc-foot{padding:5px 7px;border-top:1px solid var(--bd);display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
-.omc-cost{font-family:var(--fd);font-size:11px;font-weight:700;color:var(--acc2)}
-.omc-sel-badge{font-family:var(--fm);font-size:7px;padding:1px 5px;border-radius:var(--r-f);border:1px solid var(--bd);color:var(--t3)}
-.omc-sel-badge.on{background:var(--acc-bg);border-color:var(--acc2);color:var(--acc2)}
+/* Draft/reveal reuse the real .cv card face (buildCardFaceHtml) so what
+   you draft looks exactly like the card you end up with, full-bleed art
+   included — scoped here to fill the flip-card container and shrink the
+   inner text/art to fit these smaller sizes. */
+.ob-dc-front .cv,.ob-flip-front .cv{width:100%;height:100%;display:flex;flex-direction:column;cursor:default}
+.ob-dc-front .cv .cv-art{height:64px!important;font-size:30px!important;flex-shrink:0!important}
+.ob-dc-front .cv .cv-hdr{padding:8px 10px 6px!important}
+.ob-dc-front .cv .cv-name{font-size:12px!important}
+.ob-dc-front .cv .cv-body{flex:1!important;min-height:0!important;overflow:hidden!important;padding:6px 10px 6px!important;gap:5px!important}
+.ob-dc-front .cv .cv-subtext{font-size:8.5px!important}
+.ob-dc-front .cv .cvs-n,.ob-dc-front .cv .cvs-v{font-size:7px!important}
+.ob-dc-front .cv .cv-foot{flex-shrink:0!important;padding:6px 10px 7px!important}
+
+.ob-flip-front .cv.unaffordable{opacity:.35;filter:grayscale(.7)}
+.ob-flip-front .cv .cv-art{height:38px!important;font-size:18px!important;flex-shrink:0!important}
+.ob-flip-front .cv .cv-hdr{padding:6px 8px 4px!important}
+.ob-flip-front .cv .cv-name{font-size:9.5px!important}
+.ob-flip-front .cv .cv-series,.ob-flip-front .cv .cv-tlbl{font-size:6.5px!important}
+.ob-flip-front .cv .cv-body{flex:1!important;min-height:0!important;overflow:hidden!important;padding:5px 8px 4px!important;gap:3px!important}
+.ob-flip-front .cv .cv-subtext{font-size:7.5px!important}
+.ob-flip-front .cv .cvs-n,.ob-flip-front .cv .cvs-v{font-size:6.5px!important}
+.ob-flip-front .cv .cv-foot{flex-shrink:0!important;padding:4px 8px 5px!important}
+.ob-flip-front .cv .cv-cost{font-size:10px!important}
 .omc-info-btn{font-family:var(--fm);font-size:9px;width:18px;height:18px;border-radius:50%;border:1px solid var(--bd2);background:var(--s3);color:var(--t2);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;line-height:1;padding:0}
 .omc-info-btn:hover{border-color:var(--acc);color:var(--acc2);background:var(--acc-bg)}
 /* Budget bar */
@@ -4062,7 +4069,7 @@ function buildDraftCardHtml(ci) {
         <div class="ob-dc-logo">CAZOOKA</div>
         <div class="ob-dc-num">#${num}</div>
       </div>
-      <div class="ob-dc-front">${buildMiniCardHtml(card)}</div>
+      <div class="ob-dc-front">${buildCardFaceHtml(card, { showDesc: false })}</div>
     </div>
   </div>`;
 }
@@ -4171,49 +4178,6 @@ function draftContinue() {
   }
 }
 
-function buildMiniCardHtml(card) {
-  const TM = {
-    cat_breed:{col:'var(--col-breed)',emoji:'🐱'},
-    home:{col:'var(--col-home)',emoji:'🏠'},
-    battle_gear:{col:'var(--col-gear)',emoji:'⚔️'},
-    home_item:{col:'var(--col-item)',emoji:'📦'},
-    ability:{col:'var(--col-ability)',emoji:'✨'},
-    special_ability:{col:'var(--col-ability)',emoji:'✦'}
-  };
-  const RC = {
-    common:'var(--rar-common)',uncommon:'var(--rar-uncommon)',
-    rare:'var(--rar-rare)',epic:'var(--rar-epic)',legendary:'var(--rar-legendary)'
-  };
-  const tm = TM[card.type] || {col:'var(--t3)',emoji:'❓'};
-  const rc = RC[card.rarity] || 'var(--t3)';
-  const typeLabel = (card.type || '').replace(/_/g,' ');
-  let statsHtml = '';
-  if (card.data && card.data.stats) {
-    const entries = Object.entries(card.data.stats).sort((a,b) => b[1]-a[1]);
-    const topKeys = new Set(entries.slice(0,3).map(e=>e[0]));
-    entries.forEach(([k,v]) => {
-      const cls = topKeys.has(k) ? 'omc-stat top' : 'omc-stat';
-      statsHtml += `<span class="${cls}">${k.slice(0,3).toUpperCase()} ${v}</span>`;
-    });
-  } else if (card.data && card.data.effects) {
-    card.data.effects.slice(0,3).forEach(e => {
-      statsHtml += `<span class="omc-stat">${(e.stat||'').slice(0,3).toUpperCase()} ${e.modifier}</span>`;
-    });
-  }
-  return `<div class="omc" id="omc-${card.id}">
-    <div class="omc-art">${cardArtHTML(card, tm)}</div>
-    <div class="omc-body">
-      <div class="omc-name">${card.name}</div>
-      <div class="omc-rar" style="color:${rc}">${card.rarity||''}</div>
-      <div class="omc-type-lbl">${typeLabel}</div>
-      ${statsHtml ? `<div class="omc-stats">${statsHtml}</div>` : ''}
-    </div>
-    <div class="omc-foot">
-      <div class="omc-cost">◈ ${card.coin_cost||0}</div>
-    </div>
-  </div>`;
-}
-
 function buildRevealHtml() {
   // Compute starting flat-index for each group (groups can have different sizes)
   const groupOffsets = ONBOARD.selections.reduce((acc, grp, i) => {
@@ -4229,7 +4193,7 @@ function buildRevealHtml() {
             <div class="ob-flip-back-paw">🐾</div>
             <div class="ob-flip-back-logo">CAZOOKA</div>
           </div>
-          <div class="ob-flip-front" id="ob-ff-${gIdx}">${buildMiniCardHtml(card)}</div>
+          <div class="ob-flip-front" id="ob-ff-${gIdx}">${buildCardFaceHtml(card, { showDesc: false })}</div>
         </div>
       </div>`;
     }).join('');
@@ -4300,9 +4264,9 @@ function toggleRevealPick(gIdx) {
   } else {
     ONBOARD.purchaseSet.add(card.id);
   }
-  const omc  = document.querySelector(`#ob-ff-${gIdx} .omc`);
+  const cv   = document.querySelector(`#ob-ff-${gIdx} .cv`);
   const keeping = ONBOARD.purchaseSet.has(card.id);
-  if (omc) omc.classList.toggle('unaffordable', !keeping);
+  if (cv) cv.classList.toggle('unaffordable', !keeping);
   updateRevealBudget();
 }
 
