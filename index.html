@@ -997,7 +997,7 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 <div id="game-home" class="game-ov" style="display:none"></div>
 <div id="market-ov" class="mkt-ov" style="display:none"></div>
 
-<div class="app-wrap">
+<div class="app-wrap" id="app-wrap" style="display:none">
   <header class="hdr">
     <div class="hdr-logo">CAZOOKA</div>
     <div class="hdr-sep" id="hdr-sep-back" style="display:none"></div>
@@ -2309,6 +2309,7 @@ function updateSendOutsideButton() {
 const TAB_TITLES = { dashboard:'Admin Panel', library:'Studio', sandbox:'Sandbox' };
 
 function showTab(tab) {
+  document.getElementById('app-wrap').style.display = 'flex';
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
   document.getElementById('tab-'+tab).classList.remove('hidden');
   // Header: back button visible only when not on dashboard
