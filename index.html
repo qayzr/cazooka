@@ -457,8 +457,8 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .ncm-cancel-btn:hover{border-color:var(--bd2);color:var(--t2)}
 /* ── BATTLE LOG ── */
 .btl-log{margin-top:8px;display:flex;flex-direction:column;gap:3px;padding:8px 10px;background:color-mix(in srgb,var(--bg) 70%,var(--s1));border-radius:var(--r-md);border:1px solid var(--bd)}
-.btl-r{font-family:var(--fm);font-size:9.5px;line-height:1.55;padding:1px 0;display:flex;gap:5px;align-items:baseline}
-.btl-r::before{content:'▸';flex-shrink:0;font-size:7px;opacity:.6}
+.btl-r{font-family:var(--fm);font-size:11.5px;line-height:1.55;padding:1px 0;display:flex;gap:5px;align-items:baseline}
+.btl-r::before{content:'▸';flex-shrink:0;font-size:8px;opacity:.6}
 .btl-r.hit{color:#F87171}
 .btl-r.atk{color:#94A3B8}
 .btl-r.dodge{color:#34D399}
@@ -469,7 +469,7 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .btl-r.lose{color:var(--t2)}
 .btl-r.open{color:var(--t2);font-style:italic}
 .btl-r.flavor{color:var(--t3);font-style:italic}
-.btl-persist-note{margin-top:7px;padding:5px 9px;border-radius:var(--r-md);font-family:var(--fm);font-size:9px;display:flex;gap:6px;align-items:flex-start;line-height:1.45}
+.btl-persist-note{margin-top:7px;padding:5px 9px;border-radius:var(--r-md);font-family:var(--fm);font-size:10.5px;display:flex;gap:6px;align-items:flex-start;line-height:1.45}
 .btl-persist-note.yes{background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.2);color:#34D399}
 .btl-persist-note.no{background:rgba(78,88,112,.1);border:1px solid var(--bd);color:var(--t3)}
 .ev-persist{background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.25)}
@@ -803,6 +803,34 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .gh-send-outside-btn{width:100%;padding:14px;font-family:var(--fd);font-size:14px;font-weight:700;border-radius:var(--r-lg);border:none;background:var(--acc);color:#0D1117;cursor:pointer;transition:all .18s;letter-spacing:.01em}
 .gh-send-outside-btn:hover:not(:disabled){background:var(--acc2);transform:translateY(-1px)}
 .gh-send-outside-btn:disabled{background:var(--s3);color:var(--t3);cursor:not-allowed}
+/* Go outside cat picker */
+.outing-picker-ov{position:absolute;inset:0;z-index:970;background:rgba(13,17,23,.78);display:flex;align-items:flex-end;justify-content:center;padding:0;backdrop-filter:blur(6px)}
+.outing-picker-sheet{width:100%;max-width:520px;max-height:min(82vh,680px);background:var(--bg);border:1px solid var(--bd);border-bottom:none;border-radius:var(--r-lg) var(--r-lg) 0 0;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 -18px 60px rgba(0,0,0,.45)}
+.outing-picker-head{flex-shrink:0;padding:18px 20px 14px;border-bottom:1px solid var(--bd);display:flex;align-items:flex-start;gap:12px}
+.outing-picker-title{font-family:var(--fd);font-size:17px;font-weight:700;color:var(--t1);flex:1}
+.outing-picker-sub{font-family:var(--fb);font-size:11.5px;color:var(--t3);margin-top:3px;line-height:1.45}
+.outing-picker-x{width:30px;height:30px;border-radius:var(--r-md);border:1px solid var(--bd);background:var(--s1);color:var(--t3);font-size:16px;cursor:pointer;transition:all .15s;flex-shrink:0}
+.outing-picker-x:hover{border-color:var(--bd2);color:var(--t1)}
+.outing-picker-list{flex:1;min-height:0;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:8px;scrollbar-width:thin;scrollbar-color:var(--bd) transparent}
+.outing-cat-row{width:100%;border:1px solid var(--bd);border-radius:var(--r-lg);background:var(--s1);color:var(--t1);display:flex;align-items:center;gap:12px;padding:12px 13px;text-align:left;cursor:pointer;transition:all .15s}
+.outing-cat-row:hover:not(:disabled){border-color:var(--acc);background:var(--acc-bg)}
+.outing-cat-row.selected{border-color:var(--acc);background:color-mix(in srgb,var(--acc) 12%,var(--s1))}
+.outing-cat-row:disabled{opacity:.48;cursor:not-allowed}
+.outing-cat-check{width:24px;height:24px;border-radius:50%;border:1px solid var(--bd2);display:flex;align-items:center;justify-content:center;font-family:var(--fm);font-size:11px;color:transparent;flex-shrink:0;background:var(--s2)}
+.outing-cat-row.selected .outing-cat-check{background:var(--acc);border-color:var(--acc);color:#0D1117}
+.outing-cat-avatar{font-size:25px;line-height:1;width:30px;text-align:center;flex-shrink:0}
+.outing-cat-main{flex:1;min-width:0}
+.outing-cat-name{font-family:var(--fd);font-size:13px;font-weight:700;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.outing-cat-meta{font-family:var(--fm);font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-top:1px}
+.outing-cat-bars{display:flex;flex-direction:column;gap:4px;width:82px;flex-shrink:0}
+.outing-cat-bar{height:4px;background:var(--s3);border-radius:999px;overflow:hidden}
+.outing-cat-bar-fill{height:100%;border-radius:999px}
+.outing-picker-foot{flex-shrink:0;padding:13px 16px calc(13px + env(safe-area-inset-bottom));border-top:1px solid var(--bd);display:flex;gap:10px;background:var(--s1)}
+.outing-picker-cancel{padding:10px 14px;border-radius:var(--r-md);border:1px solid var(--bd);background:transparent;color:var(--t3);font-family:var(--fm);font-size:10px;text-transform:uppercase;letter-spacing:.06em;cursor:pointer;transition:all .15s}
+.outing-picker-cancel:hover{border-color:var(--bd2);color:var(--t1)}
+.outing-picker-go{flex:1;padding:11px 14px;border-radius:var(--r-md);border:none;background:var(--acc);color:#0D1117;font-family:var(--fd);font-size:13px;font-weight:700;cursor:pointer;transition:all .15s}
+.outing-picker-go:hover:not(:disabled){background:var(--acc2)}
+.outing-picker-go:disabled{background:var(--s3);color:var(--t3);cursor:not-allowed}
 /* Radar chart */
 .radar-wrap{display:flex;justify-content:center;padding:8px 0 4px}
 .radar-svg{width:100%;max-width:220px;height:auto;display:block}
@@ -930,6 +958,7 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 
 /* ── MARKET ── */
 .mkt-ov{position:absolute;inset:0;z-index:950;background:var(--bg);display:flex;flex-direction:column;overflow:hidden}
+.run-ov{position:absolute;inset:0;z-index:960;background:var(--bg);display:flex;flex-direction:column;overflow:hidden}
 .mkt-hdr{flex-shrink:0;height:52px;display:flex;align-items:center;gap:12px;padding:0 20px;background:var(--s1);border-bottom:1px solid var(--bd)}
 .mkt-back{padding:6px 14px;font-family:var(--fm);font-size:10px;text-transform:uppercase;letter-spacing:.07em;background:none;border:1px solid var(--bd);border-radius:var(--r-md);color:var(--t3);cursor:pointer;transition:all .15s;flex-shrink:0}
 .mkt-back:hover{border-color:var(--acc);color:var(--acc2)}
@@ -995,7 +1024,15 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 
 <div id="onboard" class="onboard-ov" style="display:none"></div>
 <div id="game-home" class="game-ov" style="display:none"></div>
+<div id="outing-picker-ov" class="outing-picker-ov" style="display:none"></div>
 <div id="market-ov" class="mkt-ov" style="display:none"></div>
+<div id="run-ov" class="run-ov" style="display:none">
+  <div id="sbxp-results" style="flex:1;display:flex;flex-direction:column;overflow:hidden">
+    <div class="sbx-results" id="sbx-results">
+      <div class="empty-state"><p>No run yet.</p></div>
+    </div>
+  </div>
+</div>
 
 <div class="app-wrap" id="app-wrap" style="display:none">
   <header class="hdr">
@@ -1071,15 +1108,6 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
           <!-- series chips injected by renderSeriesFilter() -->
         </div>
         <div class="lib-grid" id="lib-grid"></div>
-      </div>
-    </div>
-
-    <!-- ══ RESULTS TAB ══ -->
-    <div class="tab-panel hidden" id="tab-results">
-      <div id="sbxp-results" style="flex:1;display:flex;flex-direction:column;overflow:hidden">
-        <div class="sbx-results" id="sbx-results">
-          <div class="empty-state"><p>No run yet.</p></div>
-        </div>
       </div>
     </div>
 
@@ -2399,6 +2427,8 @@ const sbx = {
   activeRun: null
 };
 
+let OUTING_SELECTED = new Set();
+
 function initSandbox() { /* sandbox removed — no-op */ }
 
 /* ── Topbar ── */
@@ -3470,15 +3500,18 @@ function generateEncounters(catName, stats, numEnc, gearCards, homeItems, catRep
   return encounters;
 }
 
-function startRun() {
+function startRun(selectedCatIndices) {
   if (!sbx.cats.length) return;
   if (sbx.activeRun && sbx.activeRun.timer) clearInterval(sbx.activeRun.timer);
 
-  // Filter to cats that have enough energy
-  const readyIndices = sbx.cats.map((cs, ci) => canCatGoOutside(ci, cs).canGo ? ci : -1).filter(ci => ci >= 0);
+  // Filter to cats that have enough energy, optionally narrowed by the picker.
+  const readyIndices = (Array.isArray(selectedCatIndices) && selectedCatIndices.length
+    ? selectedCatIndices
+    : sbx.cats.map((cs, ci) => ci)
+  ).filter(ci => sbx.cats[ci] && canCatGoOutside(ci, sbx.cats[ci]).canGo);
   if (!readyIndices.length) {
     const { reason } = canCatGoOutside(0, sbx.cats[0]);
-    showCareToast('😴 ' + (reason || 'Cats need rest first'));
+    showCareToast('😴 ' + (reason || 'Select at least one ready cat'));
     return;
   }
 
@@ -4338,11 +4371,13 @@ function completeOnboarding() {
   sbx.deck  = kept.map(c => c.id);
   sbx.coins = player.coins;
   const keptBreeds    = kept.filter(c => c.type === 'cat_breed');
-  const keptGear      = kept.filter(c => c.type === 'battle_gear');
   const keptHomeItems = kept.filter(c => c.type === 'home_item');
-  const keptAbilities = kept.filter(c => c.type === 'special_ability');
   if (keptBreeds.length) {
-    sbx.cats = keptBreeds.map(b => ({ breed: b, gear: keptGear, abilities: keptAbilities, home_joined_at: Date.now(), home_dev_gains: {}, rep: 100, allies: [] }));
+    // Gear/abilities are each unique to one cat at a time (see globallyEquipped
+    // in renderGameHome) — start every cat unequipped and let the player
+    // assign drafted gear/abilities from their deck via the Gear/Abilities
+    // dropdowns, instead of attaching the same cards to every cat at once.
+    sbx.cats = keptBreeds.map(b => ({ breed: b, gear: [], abilities: [], home_joined_at: Date.now(), home_dev_gains: {}, rep: 100, allies: [] }));
     sbx.homeItems = keptHomeItems;
   }
   // Save to localStorage
@@ -4368,6 +4403,7 @@ function startSimulation() {
   // Show onboarding
   const gh = document.getElementById('game-home'); if (gh) gh.style.display = 'none';
   const mkt = document.getElementById('market-ov'); if (mkt) mkt.style.display = 'none';
+  const op = document.getElementById('outing-picker-ov'); if (op) op.style.display = 'none';
   showOnboardStep('register');
 }
 
@@ -4385,6 +4421,8 @@ function exitSimulation() {
   document.getElementById('game-home').style.display  = 'none';
   document.getElementById('market-ov').style.display  = 'none';
   document.getElementById('onboard').style.display    = 'none';
+  document.getElementById('outing-picker-ov').style.display = 'none';
+  document.getElementById('run-ov').style.display     = 'none';
   const sf = document.getElementById('dash-sim-foot'); if (sf) sf.textContent = '▶ Start new game';
   showTab('dashboard');
 }
@@ -4435,11 +4473,45 @@ function getCatEmoji(card) { return CAT_EMOJIS[card && card.id] || '🐱'; }
 function showGameHome() {
   document.getElementById('onboard').style.display  = 'none';
   document.getElementById('market-ov').style.display = 'none';
+  document.getElementById('outing-picker-ov').style.display = 'none';
+  document.getElementById('run-ov').style.display = 'none';
   const gh = document.getElementById('game-home');
   gh.style.display = 'flex';
   renderGameHome();
   if (GAME_CARE_TIMER) clearInterval(GAME_CARE_TIMER);
-  GAME_CARE_TIMER = setInterval(renderGameHome, 30000);
+  GAME_CARE_TIMER = setInterval(updateGameHomeBars, 30000);
+}
+
+// Periodic tick: update only the hunger/mood/energy bar widths + labels in
+// place (no innerHTML rebuild), so the .gh-need-fill CSS transition eases
+// smoothly from the current value to the new one instead of the whole
+// screen re-rendering and every bar snapping back to 0% and refilling.
+function updateGameHomeBars() {
+  const gh = document.getElementById('game-home');
+  if (!gh || gh.style.display === 'none') return;
+  const cats = sbx.cats || [];
+  const catEls = gh.querySelectorAll('.gh-cats-scroll .gh-cat');
+  catEls.forEach((catEl, ci) => {
+    const cs = cats[ci];
+    if (!cs) return;
+    const needsEl = catEl.querySelector('.gh-needs');
+    if (!needsEl) return; // sleeping cat — no bars shown
+    const state = getLiveCatState(ci, cs);
+    const rows = [
+      Math.round(state.hunger),
+      Math.round(state.mood),
+      Math.round(state.energy),
+    ];
+    const colFor = (i, v) => i === 2
+      ? (v > 60 ? '#60A5FA' : v > 30 ? '#F0A030' : '#F43F5E')
+      : (v > 60 ? '#34D399' : v > 30 ? '#F0A030' : '#F43F5E');
+    const pctEls  = needsEl.querySelectorAll('.gh-need-pct');
+    const fillEls = needsEl.querySelectorAll('.gh-need-fill');
+    rows.forEach((pct, i) => {
+      if (fillEls[i]) { fillEls[i].style.width = pct + '%'; fillEls[i].style.background = colFor(i, pct); fillEls[i].dataset.w = pct; }
+      if (pctEls[i])  pctEls[i].textContent = pct + '%';
+    });
+  });
 }
 
 // Drive all [data-w] bars to their target widths (triggers CSS transition)
@@ -5444,6 +5516,7 @@ function ghEquipAbility(ci, cardId, evt) {
     cs.abilities.push(cardId);
   }
   GH_OPEN_ABILITY.add(ci);
+  savePlayer();
   renderGameHomeKeepScroll();
 }
 
@@ -5472,6 +5545,7 @@ function ghEquipGear(ci, cardId, evt) {
     cs.gear.push(cardId);
   }
   GH_OPEN_GEAR.add(ci); // keep dropdown open after equip/unequip
+  savePlayer();
   renderGameHomeKeepScroll();
 
   // Animate radar from old shape → new shape (runs after rAF in renderGameHomeKeepScroll)
@@ -5712,7 +5786,96 @@ function ghRest(ci)  { toggleRest(ci); renderGameHomeKeepScroll(); }
   }, true); // capture phase so we beat onclick handlers
 })();
 
-function ghSendOutside() {
+function getReadyCatIndices() {
+  return (sbx.cats || []).map((cs, ci) => canCatGoOutside(ci, cs).canGo ? ci : -1).filter(ci => ci >= 0);
+}
+
+function renderOutingPicker() {
+  const ov = document.getElementById('outing-picker-ov');
+  if (!ov) return;
+  const cats = sbx.cats || [];
+  const selectedCount = OUTING_SELECTED.size;
+  const rows = cats.map((cs, ci) => {
+    const state = getLiveCatState(ci, cs);
+    const outside = canCatGoOutside(ci, cs);
+    const selected = OUTING_SELECTED.has(ci);
+    const traits = getTraits(cs.breed);
+    const emoji = getCatEmoji(cs.breed);
+    const h = Math.round(state.hunger);
+    const m = Math.round(state.mood);
+    const e = Math.round(state.energy);
+    const hCol = h > 60 ? '#34D399' : h > 30 ? '#F0A030' : '#F43F5E';
+    const mCol = m > 60 ? '#34D399' : m > 30 ? '#F0A030' : '#F43F5E';
+    const eCol = e > 60 ? '#60A5FA' : e > 30 ? '#F0A030' : '#F43F5E';
+    const meta = outside.canGo
+      ? `${traits.type} · ${e}% energy · ${cs.rep || 100} rep`
+      : outside.reason || 'Needs rest';
+    return `<button class="outing-cat-row${selected ? ' selected' : ''}" ${outside.canGo ? '' : 'disabled'} onclick="toggleOutingCat(${ci})">
+      <span class="outing-cat-check">${selected ? '✓' : ''}</span>
+      <span class="outing-cat-avatar">${emoji}</span>
+      <span class="outing-cat-main">
+        <span class="outing-cat-name">${cs.name || (cs.breed && cs.breed.name) || 'Cat'}</span>
+        <span class="outing-cat-meta">${meta}</span>
+      </span>
+      <span class="outing-cat-bars" aria-hidden="true">
+        <span class="outing-cat-bar"><span class="outing-cat-bar-fill" style="width:${h}%;background:${hCol}"></span></span>
+        <span class="outing-cat-bar"><span class="outing-cat-bar-fill" style="width:${m}%;background:${mCol}"></span></span>
+        <span class="outing-cat-bar"><span class="outing-cat-bar-fill" style="width:${e}%;background:${eCol}"></span></span>
+      </span>
+    </button>`;
+  }).join('');
+
+  ov.innerHTML = `<div class="outing-picker-sheet">
+    <div class="outing-picker-head">
+      <div>
+        <div class="outing-picker-title">Choose cats to send out</div>
+        <div class="outing-picker-sub">Ready cats are selected by default. Leave tired or risky cats at home.</div>
+      </div>
+      <button class="outing-picker-x" onclick="closeOutingPicker()">×</button>
+    </div>
+    <div class="outing-picker-list">${rows}</div>
+    <div class="outing-picker-foot">
+      <button class="outing-picker-cancel" onclick="closeOutingPicker()">Cancel</button>
+      <button class="outing-picker-go" onclick="confirmOutingSelection()" ${selectedCount ? '' : 'disabled'}>
+        Send ${selectedCount || 0} Cat${selectedCount === 1 ? '' : 's'} Outside
+      </button>
+    </div>
+  </div>`;
+}
+
+function openOutingPicker() {
+  const ready = getReadyCatIndices();
+  if (!ready.length) {
+    const { reason } = sbx.cats[0] ? canCatGoOutside(0, sbx.cats[0]) : { reason:null };
+    showCareToast('😴 ' + (reason || 'No cats are ready to go outside'));
+    return;
+  }
+  OUTING_SELECTED = new Set(ready);
+  const ov = document.getElementById('outing-picker-ov');
+  if (ov) ov.style.display = 'flex';
+  renderOutingPicker();
+}
+
+function closeOutingPicker() {
+  const ov = document.getElementById('outing-picker-ov');
+  if (ov) ov.style.display = 'none';
+}
+
+function toggleOutingCat(ci) {
+  if (!sbx.cats[ci] || !canCatGoOutside(ci, sbx.cats[ci]).canGo) return;
+  if (OUTING_SELECTED.has(ci)) OUTING_SELECTED.delete(ci);
+  else OUTING_SELECTED.add(ci);
+  renderOutingPicker();
+}
+
+function confirmOutingSelection() {
+  const selected = [...OUTING_SELECTED].filter(ci => sbx.cats[ci] && canCatGoOutside(ci, sbx.cats[ci]).canGo);
+  if (!selected.length) {
+    showCareToast('Select at least one ready cat');
+    renderOutingPicker();
+    return;
+  }
+  closeOutingPicker();
   document.getElementById('game-home').style.display = 'none';
   if (GAME_CARE_TIMER) { clearInterval(GAME_CARE_TIMER); GAME_CARE_TIMER = null; }
   if (PLAYER) {
@@ -5720,20 +5883,19 @@ function ghSendOutside() {
     sbx.coins = PLAYER.coins;
   }
 
-  // Convert gear IDs → card objects (game home stores IDs; startRun needs objects)
+  // Convert gear IDs to card objects for run calculations. Abilities can stay
+  // as IDs because getEffectiveStats resolves them through getCard().
   sbx.cats = sbx.cats.map(cs => ({
     ...cs,
     gear: (cs.gear || []).map(g => typeof g === 'string' ? getCard(g) : g).filter(Boolean)
   }));
 
-  // Show the results tab
-  document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
-  document.getElementById('tab-results').classList.remove('hidden');
-  document.getElementById('hdr-back').style.display = '';
-  document.getElementById('hdr-sep-back').style.display = '';
-  document.getElementById('hdr-section-title').textContent = 'Adventure';
+  document.getElementById('run-ov').style.display = 'flex';
+  startRun(selected);
+}
 
-  startRun();
+function ghSendOutside() {
+  openOutingPicker();
 }
 
 function savePlayer() {
