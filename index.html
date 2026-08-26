@@ -376,6 +376,8 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .cmo-close:hover{border-color:#F43F5E;color:#F43F5E}
 .cmo-edit-btn{font-family:var(--fm);font-size:10px;text-transform:uppercase;letter-spacing:.08em;padding:6px 18px;background:var(--s2);border:1px solid var(--bd);border-radius:var(--r-f);color:var(--acc2);cursor:pointer;transition:all .15s}
 .cmo-edit-btn:hover{border-color:var(--acc2);background:rgba(99,102,241,.12)}
+.cmo-peek-close{position:absolute;top:16px;right:16px;z-index:2;width:36px;height:36px;border-radius:50%;border:1px solid var(--bd2);background:var(--s2);color:var(--t1);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.cmo-peek-close:hover{border-color:#F43F5E;color:#F43F5E}
 /* Card Edit Panel */
 .card-edit-panel{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r-lg);width:300px;padding:14px;display:flex;flex-direction:column;gap:10px;animation:cmo-in .18s cubic-bezier(.34,1.4,.64,1)}
 .cep-title{font-family:var(--fd);font-size:13px;font-weight:700;color:var(--t1);border-bottom:1px solid var(--bd);padding-bottom:8px;margin-bottom:2px}
@@ -562,14 +564,13 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .draft-info-close:hover{background:var(--s2);color:var(--t1)}
 /* Face-down draft card — flip mechanic */
 @keyframes ob-card-pop{from{opacity:0;transform:scale(.88) translateY(6px)}to{opacity:1;transform:none}}
-.ob-dc{aspect-ratio:2/3;border-radius:var(--r-md);cursor:pointer;position:relative;user-select:none;animation:ob-card-pop .18s ease both}
+.ob-dc{aspect-ratio:5/7;border-radius:var(--r-md);cursor:pointer;position:relative;user-select:none;animation:ob-card-pop .18s ease both}
 .ob-dc.locked{cursor:default;opacity:.45;pointer-events:none}
 .ob-dc-inner{position:absolute;inset:0;border-radius:var(--r-md);transform-style:preserve-3d;transition:transform .46s cubic-bezier(.4,0,.2,1)}
 .ob-dc-inner.flipped{transform:rotateY(180deg)}
 .ob-dc-back{position:absolute;inset:0;border-radius:var(--r-md);backface-visibility:hidden;-webkit-backface-visibility:hidden;background:var(--s2);border:1px solid var(--bd2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;transition:border-color .15s,box-shadow .15s}
 .ob-dc:not(.locked):hover .ob-dc-back{border-color:var(--acc);box-shadow:0 0 0 1px var(--acc)}
 .ob-dc-front{position:absolute;inset:0;border-radius:var(--r-md);backface-visibility:hidden;-webkit-backface-visibility:hidden;transform:rotateY(180deg);overflow:hidden}
-.ob-dc.selected .ob-dc-front{box-shadow:0 0 0 2px var(--dc-r,var(--acc2))}
 .ob-dc-logo{font-family:var(--fd);font-size:9px;font-weight:700;color:var(--t3);letter-spacing:.1em}
 .ob-dc-paw{font-size:22px;opacity:.35}
 .ob-dc-num{font-family:var(--fm);font-size:9px;color:var(--t3)}
@@ -588,7 +589,7 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .ob-reveal-sticky-bot{flex-shrink:0;padding:12px 20px 20px;display:flex;flex-direction:column;align-items:center;gap:8px;background:var(--bg);border-top:1px solid var(--bd)}
 /* Flip card */
 .ob-flip-wrap{width:130px;flex-shrink:0;perspective:700px;cursor:pointer}
-.ob-flip-inner{width:100%;aspect-ratio:2/3;position:relative;transform-style:preserve-3d;transition:transform .55s cubic-bezier(.4,0,.2,1)}
+.ob-flip-inner{width:100%;aspect-ratio:5/7;position:relative;transform-style:preserve-3d;transition:transform .55s cubic-bezier(.4,0,.2,1)}
 .ob-flip-inner.flipped{transform:rotateY(180deg)}
 .ob-flip-back,.ob-flip-front{position:absolute;inset:0;border-radius:var(--r-md);backface-visibility:hidden;-webkit-backface-visibility:hidden}
 .ob-flip-back{background:var(--s2);border:1px solid var(--bd2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}
@@ -1432,12 +1433,19 @@ function buildCardFaceHtml(card, opts = {}) {
     showSeries = true,
     showStarterPill = true,
     showDesc = true,
+    // Draft/reveal show every card at a fraction of real size, where a
+    // per-card bodyOffset/component color tuned for the full 420px card can
+    // shove text off-screen or unreadable. standardLayout keeps the art
+    // (image, position, zoom, tint) exactly as configured but ignores those
+    // text-layout overrides so name/stats/cost always sit in the same place.
+    standardLayout = false,
   } = opts;
 
   const tm = TYPE_META[card.type];
   const rc = RAR_COLOR[card.rarity] || 'var(--t3)';
   const body = buildCardBodyHtml(card, showDesc);
   const art = card.art || {};
+  const layoutArt = standardLayout ? {} : art;
   const isFull = art.mode === 'full' && !!card.image_url;
   const clickAttr = onclick ? ` onclick="${onclick}"` : '';
 
@@ -1455,11 +1463,11 @@ function buildCardFaceHtml(card, opts = {}) {
     artBoxHtml = '';
   }
 
-  const bodyStyle = [componentStyle(art, 'body'), art.bodyOffset ? `transform:translateY(${Math.round(art.bodyOffset/100*140)}px)` : ''].filter(Boolean).join(';');
+  const bodyStyle = [componentStyle(layoutArt, 'body'), layoutArt.bodyOffset ? `transform:translateY(${Math.round(layoutArt.bodyOffset/100*140)}px)` : ''].filter(Boolean).join(';');
 
   return `<div class="${cssClass}${isFull ? ' art-full' : ''}" style="--cv-c:${tm.color};--cv-r:${rc}"${clickAttr}>
     ${artLayers}
-    <div class="cv-hdr" style="${componentStyle(art, 'header')}">
+    <div class="cv-hdr" style="${componentStyle(layoutArt, 'header')}">
       <div class="cv-trow">
         <div class="cv-tdot"></div>
         <span class="cv-tlbl">${tm.label}</span>
@@ -1470,14 +1478,17 @@ function buildCardFaceHtml(card, opts = {}) {
     </div>
     ${artBoxHtml}
     <div class="cv-body" style="${bodyStyle}">${body}</div>
-    <div class="cv-foot" style="${componentStyle(art, 'footer')}">
+    <div class="cv-foot" style="${componentStyle(layoutArt, 'footer')}">
       <span class="cv-cost">${card.coin_cost > 0 ? '◈ '+card.coin_cost : 'Free'}</span>
       ${showStarterPill && card.is_starter ? '<span class="cv-startpill">Starter</span>' : ''}
     </div>
   </div>`;
 }
 
-function buildModalCardHtml(card) {
+function buildModalCardHtml(card, opts = {}) {
+  // Peek (long-press preview) shows just the card — no edit/close chrome
+  // inside the frame, since those live outside it (backdrop tap / X button).
+  if (opts.peekOnly) return buildCardFaceHtml(card, { cssClass: 'cv cmo-cv' });
   return `
     ${buildCardFaceHtml(card, { cssClass: 'cv cmo-cv' })}
     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center">
@@ -1486,13 +1497,15 @@ function buildModalCardHtml(card) {
     </div>`;
 }
 
-function openCardModal(cardId) {
+function openCardModal(cardId, opts = {}) {
   const card = getCard(cardId);
   if (!card) return;
   const modal = document.getElementById('card-modal');
+  const closeBtn = opts.peekOnly ? `<button class="cmo-peek-close" onclick="closeCardModal()" aria-label="Close">✕</button>` : '';
   modal.innerHTML = `
     <div class="cmo-backdrop" onclick="closeCardModal()"></div>
-    <div class="cmo-wrap">${buildModalCardHtml(card)}</div>`;
+    ${closeBtn}
+    <div class="cmo-wrap">${buildModalCardHtml(card, opts)}</div>`;
   modal.classList.remove('hidden');
   _modalKeyHandler = e => { if (e.key === 'Escape') closeCardModal(); };
   document.addEventListener('keydown', _modalKeyHandler);
@@ -4061,15 +4074,14 @@ function buildDraftCardHtml(ci) {
   const card = ONBOARD.pool[ci];
   const sel  = ONBOARD.pickedInCurrentStep.includes(ci);
   const num  = String(ci + 1).padStart(2, '0');
-  const rc   = RAR_COLOR[card.rarity] || 'var(--acc2)';
-  return `<div class="ob-dc${sel ? ' selected' : ''}" id="ob-dc-${ci}" style="animation-delay:${ci * 30}ms;--dc-r:${rc}" onclick="toggleDraftPick(${ci})">
+  return `<div class="ob-dc${sel ? ' selected' : ''}" id="ob-dc-${ci}" style="animation-delay:${ci * 30}ms" onclick="toggleDraftPick(${ci})"${sel ? ` data-peek-card="${card.id}"` : ''}>
     <div class="ob-dc-inner${sel ? ' flipped' : ''}" id="ob-dci-${ci}">
       <div class="ob-dc-back">
         <div class="ob-dc-paw">🐾</div>
         <div class="ob-dc-logo">CAZOOKA</div>
         <div class="ob-dc-num">#${num}</div>
       </div>
-      <div class="ob-dc-front">${buildCardFaceHtml(card, { showDesc: false })}</div>
+      <div class="ob-dc-front">${buildCardFaceHtml(card, { showDesc: false, standardLayout: true })}</div>
     </div>
   </div>`;
 }
@@ -4084,7 +4096,7 @@ function toggleDraftPick(ci) {
   ONBOARD.pickedInCurrentStep.push(ci);
   const dc    = document.getElementById(`ob-dc-${ci}`);
   const inner = document.getElementById(`ob-dci-${ci}`);
-  if (dc)    dc.classList.add('selected');
+  if (dc)    { dc.classList.add('selected'); dc.dataset.peekCard = ONBOARD.pool[ci].id; }
   if (inner) inner.classList.add('flipped');
 
   const n       = ONBOARD.pickedInCurrentStep.length;
@@ -4193,7 +4205,7 @@ function buildRevealHtml() {
             <div class="ob-flip-back-paw">🐾</div>
             <div class="ob-flip-back-logo">CAZOOKA</div>
           </div>
-          <div class="ob-flip-front" id="ob-ff-${gIdx}">${buildCardFaceHtml(card, { showDesc: false })}</div>
+          <div class="ob-flip-front" id="ob-ff-${gIdx}">${buildCardFaceHtml(card, { showDesc: false, standardLayout: true })}</div>
         </div>
       </div>`;
     }).join('');
@@ -5639,7 +5651,7 @@ function ghRest(ci)  { toggleRest(ci); renderGameHomeKeepScroll(); }
     _peekTimer = setTimeout(() => {
       _peekTimer = null;
       _peekOpened = true;
-      openCardModal(cardId);
+      openCardModal(cardId, { peekOnly: true });
     }, 480);
   }
 
