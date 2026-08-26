@@ -601,6 +601,14 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
    included — scoped here to fill the flip-card container and shrink the
    inner text/art to fit these smaller sizes. */
 .ob-dc-front .cv,.ob-flip-front .cv{width:100%;height:100%;display:flex;flex-direction:column;cursor:default}
+/* Full-bleed art can land under the text anywhere — a busy photo makes
+   name/stats unreadable without a scrim. Force a legible dark backing +
+   light text here regardless of the card's own colors or the app theme,
+   since this is standardized draft/reveal presentation, not the real card. */
+.ob-dc-front .cv.art-full .cv-hdr,.ob-dc-front .cv.art-full .cv-body,.ob-dc-front .cv.art-full .cv-foot,
+.ob-flip-front .cv.art-full .cv-hdr,.ob-flip-front .cv.art-full .cv-body,.ob-flip-front .cv.art-full .cv-foot{
+  background:rgba(13,17,23,.62);--t1:#F3F5FC;--t2:#C7CEE0;--t3:#9AA3BC;
+}
 .ob-dc-front .cv .cv-art{height:64px!important;font-size:30px!important;flex-shrink:0!important}
 .ob-dc-front .cv .cv-hdr{padding:8px 10px 6px!important}
 .ob-dc-front .cv .cv-name{font-size:12px!important}
