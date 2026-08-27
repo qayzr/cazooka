@@ -4912,6 +4912,41 @@ function getHomeSlotCost(card) {
   return Math.max(1, (card && card.data && card.data.slot_requirement) || 1);
 }
 
+function getGearSlotCost(card) {
+  return Math.max(1, (card && card.data && card.data.gear_slot) || 1);
+}
+
+function getCatCarrySlots(catSetup) {
+  return Math.max(0, (catSetup && catSetup.breed && catSetup.breed.data && catSetup.breed.data.base_inventory_slots) || 0);
+}
+
+function getCatUsedCarrySlots(gearEntries) {
+  return (gearEntries || []).reduce((total, entry) => total + getGearSlotCost(cardObjOf(entry)), 0);
+}
+
+function normalizeCatGearForSlots(catSetup) {
+  if (!catSetup || !Array.isArray(catSetup.gear)) return { gear: [], usedSlots: 0, removed: [] };
+  const maxSlots = getCatCarrySlots(catSetup);
+  const kept = [];
+  const removed = [];
+  let usedSlots = 0;
+  catSetup.gear.forEach(entry => {
+    const card = cardObjOf(entry);
+    if (!card) return;
+    const slotCost = getGearSlotCost(card);
+    if (slotCost <= 0 || usedSlots + slotCost > maxSlots) {
+      removed.push(card);
+      return;
+    }
+    kept.push(card.id);
+    usedSlots += slotCost;
+  });
+  if (removed.length || kept.length !== catSetup.gear.length || catSetup.gear.some(entry => typeof entry !== 'string')) {
+    catSetup.gear = kept;
+  }
+  return { gear: kept, usedSlots, removed };
+}
+
 function getConsumableUses(card) {
   if (!card || card.type !== 'consumable') return 0;
   const inv = (PLAYER && PLAYER.inventory) || {};
@@ -5181,6 +5216,11 @@ function renderGameHome() {
   const deckIds      = (player.deckIds) || sbx.deck || [];
   const ownedCounts  = getOwnedCardCounts(deckIds);
   const deckCards    = deckIds.map(entry => cardObjOf(entry)).filter(Boolean);
+  let gearLoadAdjusted = false;
+  cats.forEach(cs => {
+    const load = normalizeCatGearForSlots(cs);
+    if (load.removed.length) gearLoadAdjusted = true;
+  });
   const allHomeCards = deckCards.filter(c => c.type === 'home');
   if (GH_ACTIVE_HOME_IDX >= allHomeCards.length) GH_ACTIVE_HOME_IDX = 0;
   let homeCard = cardObjOf(sbx.home);
@@ -5204,9 +5244,8 @@ function renderGameHome() {
     if (!c || !c.data) return '';
     return (c.data.effects || []).map(e => {
       const lbl = e.stat === 'memory_slots' ? 'MEM' : (e.stat||'').slice(0,3).toUpperCase();
-      const mod = String(e.modifier);
-      const sign = mod.startsWith('-') ? '' : '+';
-      return `<span class="gh-gear-stat" style="${e.stat==='memory_slots'?'background:rgba(168,85,247,.18);color:#c084fc':''}">${lbl} ${sign}${mod}</span>`;
+      const mod = parseModifier(e.modifier);
+      return `<span class="gh-gear-stat" style="${e.stat==='memory_slots'?'background:rgba(168,85,247,.18);color:#c084fc':''}">${lbl} ${mod >= 0 ? '+' : ''}${mod}</span>`;
     }).join('');
   };
 
@@ -5244,18 +5283,25 @@ function renderGameHome() {
       const outside = canCatGoOutside(ci, cs);
 
       // ── GEAR ── (normalize: cs.gear may contain card objects OR string IDs)
+      const carryLoad = normalizeCatGearForSlots(cs);
+      const carrySlotsMax = getCatCarrySlots(cs);
+      const carrySlotsLeft = Math.max(0, carrySlotsMax - carryLoad.usedSlots);
       const equippedIds   = (cs.gear || []).map(g => typeof g === 'string' ? g : g?.id).filter(Boolean);
       const equippedCards = equippedIds.map(id => getCard(id)).filter(Boolean);
       const availableGear = uniqueCards(allGearCards.filter(c =>
-        !equippedIds.includes(c.id) && (homeUsageCounts.battle_gear[c.id] || 0) < (ownedCounts[c.id] || 0)
+        !equippedIds.includes(c.id) &&
+        (homeUsageCounts.battle_gear[c.id] || 0) < (ownedCounts[c.id] || 0) &&
+        getGearSlotCost(c) <= carrySlotsLeft
       ));
-      const gearLabel     = equippedIds.length ? `${equippedIds.length} equipped` : 'none';
+      const gearLabel = `${carryLoad.usedSlots} / ${carrySlotsMax} slots`;
       let gearBodyHtml    = equippedCards.length
-        ? equippedCards.map(c => `<div class="gh-gear-chip equipped" data-peek-card="${c.id}" onclick="ghEquipGear(${ci},'${c.id}',event)"><span>⚔️ ${c.name}</span><div class="gh-gear-stats">${gearEfStr(c)}</div><span class="gh-gear-rm">✕</span></div>`).join('')
+        ? equippedCards.map(c => `<div class="gh-gear-chip equipped" data-peek-card="${c.id}" onclick="ghEquipGear(${ci},'${c.id}',event)"><span>⚔️ ${c.name}</span><span class="gh-home-slot-count">${getGearSlotCost(c)} slot${getGearSlotCost(c) === 1 ? '' : 's'}</span><div class="gh-gear-stats">${gearEfStr(c)}</div><span class="gh-gear-rm">✕</span></div>`).join('')
         : '<div class="gh-drop-empty">No gear equipped</div>';
       if (availableGear.length) {
         gearBodyHtml += `<div class="gh-drop-divider">Available to equip</div>`
-          + availableGear.map(c => `<div class="gh-gear-chip" data-peek-card="${c.id}" onclick="ghEquipGear(${ci},'${c.id}',event)"><span>+ ${c.name}</span><div class="gh-gear-stats">${gearEfStr(c)}</div></div>`).join('');
+          + availableGear.map(c => `<div class="gh-gear-chip" data-peek-card="${c.id}" onclick="ghEquipGear(${ci},'${c.id}',event)"><span>+ ${c.name}</span><span class="gh-home-slot-count">${getGearSlotCost(c)} slot${getGearSlotCost(c) === 1 ? '' : 's'}</span><div class="gh-gear-stats">${gearEfStr(c)}</div></div>`).join('');
+      } else if (allGearCards.some(c => !equippedIds.includes(c.id) && (homeUsageCounts.battle_gear[c.id] || 0) < (ownedCounts[c.id] || 0)) && carrySlotsLeft <= 0) {
+        gearBodyHtml += `<div class="gh-drop-empty" style="margin-top:4px">No carry slots free.</div>`;
       }
       const gearOpen = GH_OPEN_GEAR.has(ci) ? ' open' : '';
 
@@ -5805,6 +5851,7 @@ function renderGameHome() {
       <button class="gh-tab ${GH_TAB==='visits'?'active':''}" onclick="ghSetTab('visits')"><span class="gh-tab-icon">📍</span>Visits</button>
       <button class="gh-tab ${GH_TAB==='cards'?'active':''}" onclick="ghSetTab('cards')"><span class="gh-tab-icon">🃏</span>Cards</button>
     </div>`;
+  if (gearLoadAdjusted) savePlayer();
   animateBars();
 }
 
@@ -6161,6 +6208,7 @@ function ghEquipGear(ci, cardId, evt) {
   if (!cs.gear) cs.gear = [];
   // Normalize to string IDs (gear may have been stored as card objects)
   cs.gear = cs.gear.map(g => typeof g === 'string' ? g : g?.id).filter(Boolean);
+  normalizeCatGearForSlots(cs);
   if (cs.gear.includes(cardId)) {
     cs.gear = cs.gear.filter(id => id !== cardId);
   } else {
@@ -6169,6 +6217,15 @@ function ghEquipGear(ci, cardId, evt) {
     const gearUsage = getHomeUsageCounts().battle_gear;
     if ((gearUsage[cardId] || 0) >= (ownedCounts[cardId] || 0)) {
       showCareToast('That gear is already active in another home.');
+      return;
+    }
+    const card = getCard(cardId);
+    if (!card) return;
+    const usedSlots = getCatUsedCarrySlots(cs.gear);
+    const neededSlots = getGearSlotCost(card);
+    const maxSlots = getCatCarrySlots(cs);
+    if (usedSlots + neededSlots > maxSlots) {
+      showCareToast(`Not enough carry slots: ${usedSlots}/${maxSlots} used.`);
       return;
     }
     cs.gear.push(cardId);
