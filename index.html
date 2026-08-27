@@ -761,11 +761,11 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .gh-sleep-hint{font-family:var(--fm);font-size:9px;text-transform:uppercase;letter-spacing:.11em;color:var(--t3)}
 /* Home tab cat roster */
 .gh-home-cats{display:flex;flex-direction:column;gap:6px;padding:10px 14px;background:var(--s2);border:1px solid var(--bd);border-radius:0 0 var(--r-lg) var(--r-lg);border-top:none;margin-top:-4px}
-.gh-home-cat-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.05)}
+.gh-home-cat-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.05)}
 .gh-home-cat-row:last-child{border-bottom:none}
 .gh-home-cat-emoji{font-size:22px;flex-shrink:0}
 .gh-home-cat-info{flex:1;min-width:0}
-.gh-home-cat-name{font-family:var(--fd);font-size:12px;color:var(--t1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gh-home-cat-name{font-family:var(--fd);font-size:12px;color:var(--t1);display:flex;align-items:center;gap:5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .gh-home-cat-breed{font-family:var(--fm);font-size:9px;color:var(--t3);margin-top:1px}
 .gh-home-cat-bars{display:flex;flex-direction:column;gap:3px;width:70px;flex-shrink:0}
 .gh-home-cat-bar{height:4px;background:var(--s3);border-radius:2px;overflow:hidden}
@@ -859,8 +859,6 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 /* Cat card — full height, single card visible at a time */
 .gh-cat{scroll-snap-align:start;flex-shrink:0;width:100%;height:100%;overflow-y:auto;overflow-x:hidden;box-sizing:border-box}
 .gh-cat-expand{flex:1;display:flex;flex-direction:column;gap:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.1);margin-top:4px}
-/* Canvas bg covering the tab */
-.gh-cat-bg{position:absolute;inset:0;z-index:0;display:block}
 /* Override gh-body when cats tab active */
 .gh-body.gh-body-cats{padding:0;overflow:hidden;align-items:stretch;gap:0}
 /* Inbox tab */
@@ -972,7 +970,8 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .gh-home-cat-row.clickable:hover{background:rgba(255,255,255,.035)}
 .gh-home-items-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
 .gh-home-slot-count{font-family:var(--fm);font-size:8.5px;color:var(--t3);white-space:nowrap}
-.gh-item-row{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:var(--r-md);background:var(--s2);border:1px solid var(--bd)}
+.gh-home-items-list{display:flex;flex-direction:column;gap:8px;margin-bottom:8px}
+.gh-item-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--r-md);background:var(--s2);border:1px solid var(--bd)}
 .gh-item-row.clickable:hover{border-color:var(--col-item);background:rgba(56,189,248,.08)}
 .gh-item-name{font-family:var(--fb);font-size:12px;color:var(--t1);flex:1}
 .gh-item-desc{font-family:var(--fb);font-size:10.5px;color:var(--t3);line-height:1.4;margin-top:1px}
@@ -5487,7 +5486,6 @@ function renderGameHome() {
     ? `<div class="gh-cat-dots" id="gh-cat-dots">${Array.from({length:catCount},(_,i)=>`<div class="gh-cat-dot${i===0?' active':''}" data-idx="${i}"></div>`).join('')}</div>`
     : '';
   const catsTabHtml = `<div class="gh-cats-tab">
-    <canvas id="gh-cats-bg-canvas" class="gh-cat-bg" data-home-env="${homeEnv.kind}"></canvas>
     <div class="gh-cats-scroll" id="gh-cats-scroll" onscroll="ghUpdateCatDots(this)">${catCardsHtml}</div>
     ${dotsHtml}
   </div>`;
@@ -5554,11 +5552,46 @@ function renderGameHome() {
         const _emoji = (cs.breed && cs.breed.data && cs.breed.data.emoji) ? cs.breed.data.emoji : '🐱';
         const _breed = (cs.breed && cs.breed.name) ? cs.breed.name : 'Cat';
         const _catName = cs.name || _breed;
+        const breedTraits = (cs.breed && cs.breed.data && cs.breed.data.home_dev_traits) || {};
+        const traitLabel = breedTraits.label || '';
+        const rates = computeEffectiveDevRates(cs, currentHomeItems);
+        const rateChips = Object.entries(rates).filter(([,r]) => r !== 0).map(([stat, rph]) => {
+          const per24 = +(rph * 24).toFixed(3);
+          const sign = per24 >= 0 ? '+' : '';
+          const cls = per24 >= 0 ? 'pos' : 'neg';
+          return `<span class="gh-dev-rate ${cls}">${sign}${per24} ${stat.slice(0,3).toUpperCase()}/24h</span>`;
+        }).join('');
+        const gains = computeHomeDev(cs, currentHomeItems);
+        const gainChips = Object.entries(gains).filter(([,g]) => Math.abs(g) >= 0.01).map(([stat, g]) => {
+          const rounded = +(g.toFixed(2));
+          const whole = Math.floor(g);
+          const sign = rounded >= 0 ? '+' : '';
+          const applied = whole !== 0 ? ` (${whole >= 0 ? '+' : ''}${whole} applied)` : '';
+          return `<span class="gh-dev-gain">${sign}${rounded} ${stat.slice(0,3).toUpperCase()}${applied}</span>`;
+        }).join('');
+        const gearModStr = (cs.gear || []).map(g => {
+          const gobj = typeof g === 'string' ? getCard(g) : g;
+          if (!gobj || !gobj.data || !gobj.data.home_dev_effect) return '';
+          const hde = gobj.data.home_dev_effect;
+          const isSlow = hde.multiplier && hde.multiplier < 1;
+          return `<span class="gh-dev-mod${isSlow?' slow':''}">${hde.label}</span>`;
+        }).filter(Boolean).join('');
+        const joined = cs.home_joined_at;
+        let elapsedStr = '';
+        if (joined) {
+          const hrs = (Date.now() - joined) / 3600000;
+          if (hrs < 1) elapsedStr = `${Math.round(hrs * 60)}m in home`;
+          else if (hrs < 24) elapsedStr = `${hrs.toFixed(1)}h in home`;
+          else elapsedStr = `${(hrs/24).toFixed(1)} days in home`;
+        }
         return `<div class="gh-home-cat-row clickable" onclick="openCardModal('${cs.breed.id}')">
           <div class="gh-home-cat-emoji">${_emoji}</div>
           <div class="gh-home-cat-info">
-            <div class="gh-home-cat-name">${_catName}</div>
+            <div class="gh-home-cat-name">${_catName}${traitLabel ? ` <span class="gh-dev-cat-trait">${traitLabel}</span>` : ''}${gearModStr ? `<span style="margin-left:4px;display:flex;gap:3px">${gearModStr}</span>` : ''}</div>
             <div class="gh-home-cat-breed">${cs.name ? _breed : ''}</div>
+            ${rateChips ? `<div class="gh-dev-rates">${rateChips}</div>` : ''}
+            ${gainChips ? `<div class="gh-dev-gains">${gainChips}</div>` : ''}
+            ${elapsedStr ? `<div class="gh-dev-elapsed">⏱ ${elapsedStr}</div>` : ''}
           </div>
           <div class="gh-home-cat-bars">
             <div class="gh-home-cat-bar" title="Hunger ${_hPct}%"><div class="gh-home-cat-bar-fill" style="width:${_hPct}%;background:#60a5fa"></div></div>
@@ -5593,77 +5626,12 @@ function renderGameHome() {
           <div class="gh-food-title" style="margin-bottom:0">📦 Active Home Items</div>
           <span class="gh-home-slot-count">${currentHomeLoad.usedSlots} / ${maxItemSlots} slots</span>
         </div>
-        ${itemRows2 || '<div class="gh-food-empty">No items installed in this home.</div>'}
+        ${itemRows2 ? `<div class="gh-home-items-list">${itemRows2}</div>` : '<div class="gh-food-empty">No items installed in this home.</div>'}
         <button class="gh-home-add-item" onclick="ghShowAddHomeItem()" ${remainingItemSlots <= 0 || !installableHomeItems.length ? 'disabled' : ''}>+ Add Item</button>
         <div id="gh-home-item-picker" class="gh-home-item-picker"></div>
       </div>` : ''}
     </div>
     ${addCatHtml}
-    ${(() => {
-      // ── DEVELOPMENT SECTION ──
-      if (!sbx.cats.length || !currentHomeItems.length) return '';
-      const devRows = sbx.cats.map((cs, ci) => {
-        const breedName = (cs.breed && cs.breed.name) ? cs.breed.name : 'Cat';
-        const catName = cs.name ? cs.name : breedName;
-        const breedTraits = (cs.breed && cs.breed.data && cs.breed.data.home_dev_traits) || {};
-        const traitLabel = breedTraits.label || '';
-
-        // Compute effective rates
-        const rates = computeEffectiveDevRates(cs, currentHomeItems);
-        if (!Object.keys(rates).length) return '';
-
-        // Format rate chips
-        const rateChips = Object.entries(rates).filter(([,r]) => r !== 0).map(([stat, rph]) => {
-          const per24 = +(rph * 24).toFixed(3);
-          const sign = per24 >= 0 ? '+' : '';
-          const cls = per24 >= 0 ? 'pos' : 'neg';
-          return `<span class="gh-dev-rate ${cls}">${sign}${per24} ${stat.slice(0,3).toUpperCase()}/24h</span>`;
-        }).join('');
-
-        // Compute accumulated gains
-        const gains = computeHomeDev(cs, currentHomeItems);
-        const gainChips = Object.entries(gains).filter(([,g]) => Math.abs(g) >= 0.01).map(([stat, g]) => {
-          const rounded = +(g.toFixed(2));
-          const whole = Math.floor(g);
-          const sign = rounded >= 0 ? '+' : '';
-          const applied = whole !== 0 ? ` (${whole >= 0 ? '+' : ''}${whole} applied)` : '';
-          return `<span class="gh-dev-gain">${sign}${rounded} ${stat.slice(0,3).toUpperCase()}${applied}</span>`;
-        }).join('');
-
-        // Elapsed time
-        const joined = cs.home_joined_at;
-        let elapsedStr = '';
-        if (joined) {
-          const hrs = (Date.now() - joined) / 3600000;
-          if (hrs < 1) elapsedStr = `${Math.round(hrs * 60)}m in home`;
-          else if (hrs < 24) elapsedStr = `${hrs.toFixed(1)}h in home`;
-          else elapsedStr = `${(hrs/24).toFixed(1)} days in home`;
-        }
-
-        // Gear modifiers that affect home dev
-        const gearModStr = (cs.gear || []).map(g => {
-          const gobj = typeof g === 'string' ? getCard(g) : g;
-          if (!gobj || !gobj.data || !gobj.data.home_dev_effect) return '';
-          const hde = gobj.data.home_dev_effect;
-          const isSlow = hde.multiplier && hde.multiplier < 1;
-          return `<span class="gh-dev-mod${isSlow?' slow':''}">${hde.label}</span>`;
-        }).filter(Boolean).join('');
-
-        const emoji = (cs.breed && cs.breed.data && cs.breed.data.emoji) ? cs.breed.data.emoji : '🐱';
-        return `<div class="gh-dev-cat-row">
-          <div class="gh-dev-cat-name">${emoji} ${catName}${traitLabel ? ` <span class="gh-dev-cat-trait">${traitLabel}</span>` : ''}${gearModStr ? `<span style="margin-left:4px;display:flex;gap:3px">${gearModStr}</span>` : ''}</div>
-          <div class="gh-dev-rates">${rateChips}</div>
-          ${gainChips ? `<div class="gh-dev-gains">${gainChips}</div>` : ''}
-          ${elapsedStr ? `<div class="gh-dev-elapsed">⏱ ${elapsedStr}</div>` : ''}
-        </div>`;
-      }).filter(Boolean).join('');
-
-      if (!devRows) return '';
-      return `<div class="gh-dev-section">
-        <div class="gh-dev-title">🌱 Development Progress</div>
-        ${devRows}
-      </div>`;
-    })()}
     <div class="gh-food-section">
       <div class="gh-food-title">🥣 Consumables</div>
       ${careConsumableRows || '<div class="gh-food-empty">No consumable cards in deck. Visit the Market.</div>'}
@@ -5837,7 +5805,6 @@ function renderGameHome() {
       <button class="gh-tab ${GH_TAB==='visits'?'active':''}" onclick="ghSetTab('visits')"><span class="gh-tab-icon">📍</span>Visits</button>
       <button class="gh-tab ${GH_TAB==='cards'?'active':''}" onclick="ghSetTab('cards')"><span class="gh-tab-icon">🃏</span>Cards</button>
     </div>`;
-  if (GH_TAB === 'cats') setTimeout(initCatsBgCanvas, 0);
   animateBars();
 }
 
@@ -5850,206 +5817,6 @@ function returnToGameHome() {
   showGameHome();
   // Clear diffs after the animation has played (4s)
   setTimeout(() => { GH_RETURN_DIFFS = null; renderGameHome(); }, 4000);
-}
-
-function initCatsBgCanvas() {
-  const canvas = document.getElementById('gh-cats-bg-canvas');
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-  const env = canvas.dataset.homeEnv || getHomeEnvProfile(cardObjOf(sbx.home)).kind;
-  let w, h;
-  function resize() {
-    w = canvas.width  = canvas.offsetWidth;
-    h = canvas.height = canvas.offsetHeight;
-  }
-  resize();
-
-  const PARTICLE_COLS = {
-    forest:['#4a7c3f','#5e9c52','#7ab567','#c8a43a','#d4703a','#b85c2a'],
-    urban:['#fbbf24','#f59e0b','#60a5fa','#cbd5e1'],
-    studio:['#f9a8d4','#fbbf24','#93c5fd','#c4b5fd'],
-    estate:['#fde68a','#d8b4fe','#bfdbfe','#fef3c7'],
-  };
-  const cols = PARTICLE_COLS[env] || PARTICLE_COLS.urban;
-
-  // Particle pool
-  function mkParticle() {
-    return {
-      x:    Math.random() * w,
-      y:    Math.random() * h,
-      size: env === 'urban' ? 1.2 + Math.random() * 2.4 : 3 + Math.random() * 6,
-      vy:   env === 'urban' ? 0.08 + Math.random() * 0.18 : 0.35 + Math.random() * 0.7,
-      vx:   env === 'urban' ? -0.05 + Math.random() * 0.1 : 0.2 + Math.random() * 0.55,
-      spin: Math.random() * Math.PI * 2,
-      spinSpeed: (Math.random() - 0.5) * 0.06,
-      wobble: Math.random() * Math.PI * 2,
-      wobbleAmp: 0.3 + Math.random() * 0.5,
-      wobbleSpd: 0.02 + Math.random() * 0.03,
-      alpha: env === 'urban' ? 0.25 + Math.random() * 0.45 : 0.5 + Math.random() * 0.45,
-      col: cols[Math.floor(Math.random() * cols.length)],
-    };
-  }
-  const particles = Array.from({ length: env === 'urban' ? 34 : 22 }, mkParticle);
-
-  let frame = 0;
-  let rafId;
-
-  // Draw simple pine-style tree silhouette with wind sway
-  function drawTree(bx, by, treeH, phase) {
-    const sway = Math.sin(frame * 0.018 + phase) * 6;
-    const layers = [
-      { yOff: 0,            hw: treeH * 0.18 },
-      { yOff: treeH * 0.22, hw: treeH * 0.26 },
-      { yOff: treeH * 0.42, hw: treeH * 0.33 },
-    ];
-    // trunk
-    ctx.fillStyle = 'rgba(12,8,4,0.75)';
-    ctx.fillRect(bx - 4, by - treeH * 0.18, 8, treeH * 0.18);
-    layers.forEach(({ yOff, hw }, i) => {
-      const tipY  = by - treeH + yOff;
-      const baseY = by - treeH * 0.42 + yOff;
-      const swayAmt = sway * (1 - i * 0.25);
-      ctx.save();
-      ctx.translate(swayAmt, 0);
-      ctx.beginPath();
-      ctx.moveTo(bx, tipY);
-      ctx.lineTo(bx - hw, baseY);
-      ctx.lineTo(bx + hw, baseY);
-      ctx.closePath();
-      ctx.fillStyle = `rgba(8,25,10,${0.62 + i * 0.08})`;
-      ctx.fill();
-      ctx.restore();
-    });
-  }
-
-  function drawUrban() {
-    const sky = ctx.createLinearGradient(0, 0, 0, h);
-    sky.addColorStop(0, '#080d18');
-    sky.addColorStop(0.55, '#111827');
-    sky.addColorStop(1, '#1f2937');
-    ctx.fillStyle = sky;
-    ctx.fillRect(0, 0, w, h);
-
-    ctx.fillStyle = 'rgba(4,8,14,0.62)';
-    for (let x = -20; x < w + 40; x += 42) {
-      const bh = h * (0.28 + ((x * 13) % 70) / 220);
-      ctx.fillRect(x, h * 0.78 - bh, 32, bh);
-      ctx.fillStyle = 'rgba(251,191,36,0.32)';
-      for (let y = h * 0.78 - bh + 16; y < h * 0.76; y += 20) {
-        if (((x + y + frame) % 5) > 1) ctx.fillRect(x + 8, y, 5, 7);
-        if (((x + y) % 7) > 2) ctx.fillRect(x + 20, y, 5, 7);
-      }
-      ctx.fillStyle = 'rgba(4,8,14,0.62)';
-    }
-
-    const room = ctx.createLinearGradient(0, h * 0.72, 0, h);
-    room.addColorStop(0, 'rgba(31,41,55,0.72)');
-    room.addColorStop(1, 'rgba(10,14,22,0.96)');
-    ctx.fillStyle = room;
-    ctx.fillRect(0, h * 0.72, w, h * 0.28);
-    ctx.fillStyle = 'rgba(148,163,184,0.12)';
-    ctx.fillRect(w * 0.08, h * 0.22, w * 0.84, 3);
-    ctx.fillRect(w * 0.08, h * 0.66, w * 0.84, 4);
-  }
-
-  function drawStudio() {
-    const wall = ctx.createLinearGradient(0, 0, w, h);
-    wall.addColorStop(0, '#172033');
-    wall.addColorStop(0.52, '#202a3d');
-    wall.addColorStop(1, '#121722');
-    ctx.fillStyle = wall;
-    ctx.fillRect(0, 0, w, h);
-    ctx.fillStyle = 'rgba(249,168,212,0.12)';
-    ctx.fillRect(w * 0.08, h * 0.24, w * 0.32, h * 0.22);
-    ctx.fillStyle = 'rgba(96,165,250,0.13)';
-    ctx.fillRect(w * 0.58, h * 0.18, w * 0.28, h * 0.18);
-    ctx.fillStyle = 'rgba(10,14,22,0.58)';
-    ctx.fillRect(0, h * 0.78, w, h * 0.22);
-  }
-
-  function drawEstate() {
-    const sky = ctx.createLinearGradient(0, 0, 0, h);
-    sky.addColorStop(0, '#172554');
-    sky.addColorStop(0.55, '#312e81');
-    sky.addColorStop(1, '#111827');
-    ctx.fillStyle = sky;
-    ctx.fillRect(0, 0, w, h);
-    ctx.fillStyle = 'rgba(254,243,199,0.2)';
-    for (let x = w * 0.15; x <= w * 0.85; x += w * 0.14) {
-      ctx.beginPath();
-      ctx.arc(x, h * 0.48, 18, Math.PI, 0);
-      ctx.fill();
-      ctx.fillRect(x - 18, h * 0.48, 36, h * 0.22);
-    }
-    ctx.fillStyle = 'rgba(8,13,26,0.72)';
-    ctx.fillRect(0, h * 0.7, w, h * 0.3);
-  }
-
-  function drawForest() {
-    const sky = ctx.createLinearGradient(0, 0, 0, h);
-    sky.addColorStop(0,   '#0e2a4a');
-    sky.addColorStop(0.5, '#1565c0');
-    sky.addColorStop(1,   '#42a5d5');
-    ctx.fillStyle = sky;
-    ctx.fillRect(0, 0, w, h);
-
-    ctx.fillStyle = 'rgba(12,28,14,0.45)';
-    ctx.beginPath();
-    ctx.moveTo(0, h * 0.68);
-    for (let x = 0; x <= w; x += 18) {
-      const bump = Math.sin(x * 0.07 + frame * 0.005) * 14 + Math.sin(x * 0.13) * 8;
-      ctx.lineTo(x, h * 0.68 - bump);
-    }
-    ctx.lineTo(w, h); ctx.lineTo(0, h); ctx.closePath();
-    ctx.fill();
-
-    drawTree(w * 0.06, h * 0.88, h * 0.52, 0);
-    drawTree(w * 0.94, h * 0.88, h * 0.44, 1.4);
-    drawTree(w * 0.88, h * 0.92, h * 0.32, 0.7);
-
-    const grd = ctx.createLinearGradient(0, h * 0.84, 0, h);
-    grd.addColorStop(0, 'rgba(14,42,14,0.7)');
-    grd.addColorStop(1, 'rgba(8,24,8,0.9)');
-    ctx.fillStyle = grd;
-    ctx.fillRect(0, h * 0.84, w, h * 0.16);
-  }
-
-  function draw() {
-    // Self-terminate if canvas removed from DOM
-    if (!document.getElementById('gh-cats-bg-canvas')) {
-      cancelAnimationFrame(rafId); return;
-    }
-    if (canvas.offsetWidth !== w || canvas.offsetHeight !== h) resize();
-    ctx.clearRect(0, 0, w, h);
-
-    if (env === 'forest') drawForest();
-    else if (env === 'studio') drawStudio();
-    else if (env === 'estate') drawEstate();
-    else drawUrban();
-
-    particles.forEach(l => {
-      l.wobble   += l.wobbleSpd;
-      l.spin     += l.spinSpeed;
-      l.x        += l.vx + Math.sin(l.wobble) * l.wobbleAmp;
-      l.y        += l.vy;
-      if (l.y > h + 12 || l.x > w + 12 || l.x < -12) { Object.assign(l, mkParticle()); l.y = -12; l.x = Math.random() * w; }
-
-      ctx.save();
-      ctx.globalAlpha = l.alpha;
-      ctx.translate(l.x, l.y);
-      ctx.rotate(l.spin);
-      ctx.beginPath();
-      if (env === 'urban') ctx.arc(0, 0, l.size, 0, Math.PI * 2);
-      else ctx.ellipse(0, 0, l.size, l.size * 0.48, 0, 0, Math.PI * 2);
-      ctx.fillStyle = l.col;
-      ctx.fill();
-      ctx.restore();
-    });
-
-    frame++;
-    rafId = requestAnimationFrame(draw);
-  }
-  draw();
 }
 
 // ── Radar chart ───────────────────────────────────────────────────────────────
