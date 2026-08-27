@@ -310,6 +310,14 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .run-feed{width:100%;max-width:640px;display:flex;flex-direction:column;gap:8px}
 .run-event{display:flex;gap:10px;align-items:flex-start;background:var(--s1);border:1px solid var(--bd);border-radius:var(--r-lg);padding:10px 14px;animation:ev-slide-in .38s cubic-bezier(.34,1.2,.64,1)}
 @keyframes ev-slide-in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.btl-details{border:none;outline:none}
+.btl-details-summary{list-style:none;cursor:pointer;display:flex;flex-direction:column;gap:3px;padding:0;user-select:none}
+.btl-details-summary::-webkit-details-marker{display:none}
+.btl-summary-top{display:flex;align-items:center;gap:8px}
+.btl-summary-title{font-size:12.5px;font-weight:600;color:var(--t1);flex:1;min-width:0}
+.btl-summary-chev{font-size:12px;color:var(--t3);transition:transform .2s}
+.btl-details[open] .btl-summary-chev{transform:rotate(90deg)}
+.btl-summary-line{font-family:var(--fb);font-size:10.5px;color:var(--t3);line-height:1.45}
 .loot-cards-section{width:100%;max-width:640px;flex-shrink:0}
 .loot-cards-lbl{font-family:var(--fm);font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--t3);text-align:center;margin-bottom:14px}
 .loot-cards-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
@@ -1230,11 +1238,11 @@ function baseLibrary() {
 
 function effectiveCard(card) {
   const edit = CARD_EDITS[card.id];
-  if (!edit) return card;
+  if (!edit) return normalizeAbilityCard(card);
   // A local edit stamped against an older version of this card (server-side
   // change since) is dropped rather than merged against a shape it no longer matches.
   if (edit._baseUpdatedAt !== undefined && edit._baseUpdatedAt !== (card.updated_at || null)) {
-    return card;
+    return normalizeAbilityCard(card);
   }
   const merged = {...card};
   if (edit.name !== undefined) merged.name = edit.name;
@@ -1245,11 +1253,12 @@ function effectiveCard(card) {
     merged.data = {...card.data, ...edit.data};
     if (edit.data.stats) merged.data.stats = {...card.data.stats, ...edit.data.stats};
     if (edit.data.effects) merged.data.effects = edit.data.effects;
+    if (edit.data.ability_effects) merged.data.ability_effects = edit.data.ability_effects;
   }
-  return merged;
+  return normalizeAbilityCard(merged);
 }
 
-function getLibrary() { return [...baseLibrary().map(effectiveCard), ...CONSUMABLE_CARDS.map(effectiveCard), ...CUSTOM_CARDS]; }
+function getLibrary() { return [...baseLibrary().map(effectiveCard), ...CONSUMABLE_CARDS.map(effectiveCard), ...CUSTOM_CARDS.map(normalizeAbilityCard)]; }
 
 function getCard(id) { return getLibrary().find(c => c.id === id) || null; }
 
@@ -1328,6 +1337,105 @@ function getEffects(card) {
   if (card.type === 'battle_gear') return d.effects || [];
   if (card.type === 'special_ability') return [...(d.stat_buffs||[]), ...(d.penalties||[])];
   return [];
+}
+
+const ABILITY_EFFECT_DEFS = {
+  crit_chance: { label:'Crit Chance', short:'CRIT', trigger:'fight_start', valueLabel:'crit' },
+  opening_hit: { label:'Opening Hit', short:'OPENING HIT', trigger:'fight_start', valueLabel:'damage' },
+  first_dodge: { label:'First Dodge', short:'FIRST DODGE', trigger:'fight_start', valueLabel:'dodge' },
+  damage_boost: { label:'Damage Boost', short:'DMG+', trigger:'fight_start', valueLabel:'damage' },
+  damage_reduce: { label:'Damage Reduce', short:'DMG-', trigger:'fight_start', valueLabel:'reduction' },
+  confuse: { label:'Confuse', short:'CONFUSE', trigger:'fight_start', valueLabel:'weaken' },
+  bonus_loot: { label:'Bonus Loot', short:'BONUS LOOT', trigger:'loot_roll', valueLabel:'extra card' },
+  loot_rarity_up: { label:'Loot Rarity Up', short:'LOOT UP', trigger:'loot_roll', valueLabel:'upgrade' },
+  befriend_chance: { label:'Befriend Chance', short:'ALLY+', trigger:'social', valueLabel:'ally' },
+  escape: { label:'Escape', short:'ESCAPE', trigger:'fight_loss', valueLabel:'escape' },
+  post_fight_heal: { label:'Post-Fight Heal', short:'HEAL', trigger:'after_fight', valueLabel:'stamina' },
+  energy_cost_reduce: { label:'Energy Cost Reduce', short:'ENERGY SAVE', trigger:'run_start', valueLabel:'energy' },
+  hunger_drain_reduce: { label:'Hunger Drain Reduce', short:'HUNGER SAVE', trigger:'run_end', valueLabel:'hunger' },
+};
+const ABILITY_TRIGGER_LABELS = {
+  fight_start:'fight', on_hit:'hit', after_win:'win', loot_roll:'loot', social:'social',
+  fight_loss:'loss', after_fight:'fight end', run_start:'run start', run_end:'return'
+};
+const ABILITY_LIMIT_LABELS = { always:'always', per_fight:'fight', once_per_run:'1x/run' };
+
+function abilityShortText(effect) {
+  if (!effect) return '';
+  if (effect.short_text) return effect.short_text;
+  const def = ABILITY_EFFECT_DEFS[effect.effect_type] || { short: (effect.effect_type || 'effect').replace(/_/g,' ').toUpperCase() };
+  const chance = parseInt(effect.chance_percent) || 0;
+  const limit = ABILITY_LIMIT_LABELS[effect.limit] || ABILITY_TRIGGER_LABELS[effect.trigger] || '';
+  return `${chance ? chance + '% ' : ''}${def.short}${limit ? ' / ' + limit : ''}`;
+}
+
+function abilityFullText(effect) {
+  if (!effect) return '';
+  if (effect.full_text) return effect.full_text;
+  const chance = parseInt(effect.chance_percent) || 0;
+  const value = parseInt(effect.value) || 0;
+  const c = chance ? `${chance}% chance to ` : '';
+  switch (effect.effect_type) {
+    case 'crit_chance': return `${c}make the first successful hit a critical hit.`;
+    case 'opening_hit': return `${c}land a free opening hit${value ? ` for ${value} damage` : ''}.`;
+    case 'first_dodge': return `${c}dodge the first incoming hit.`;
+    case 'damage_boost': return `${c}increase outgoing fight damage by ${value || 20}%.`;
+    case 'damage_reduce': return `${c}reduce incoming fight damage by ${value || 20}%.`;
+    case 'confuse': return `${c}confuse the opponent and reduce their attack power.`;
+    case 'bonus_loot': return `${c}find one extra loot card.`;
+    case 'loot_rarity_up': return `${c}upgrade found loot by one rarity tier.`;
+    case 'befriend_chance': return `${c}increase the chance to make a new ally.`;
+    case 'escape': return `${c}escape a losing fight without extra penalties.`;
+    case 'post_fight_heal': return `${c}recover ${value || 12} stamina after a fight.`;
+    case 'energy_cost_reduce': return `Reduce outside energy cost by ${value || 15}%.`;
+    case 'hunger_drain_reduce': return `Reduce hunger drain after returning by ${value || 15}%.`;
+    default: return `${c}${(effect.effect_type || 'trigger an effect').replace(/_/g,' ')}.`;
+  }
+}
+
+function inferAbilityEffects(card) {
+  if (!card || card.type !== 'special_ability') return [];
+  const data = card.data || {};
+  if (Array.isArray(data.ability_effects) && data.ability_effects.length) return data.ability_effects;
+  const text = `${card.name || ''} ${card.description || ''} ${data.positive_description || ''} ${data.negative_description || ''}`.toLowerCase();
+  const mk = (effect_type, chance_percent, value, trigger, limit, short_text, full_text) => ({
+    effect_type, chance_percent, value, trigger: trigger || (ABILITY_EFFECT_DEFS[effect_type] || {}).trigger || 'fight_start',
+    limit: limit || 'per_fight', short_text, full_text
+  });
+  if (text.includes('smoke') || text.includes('escape')) return [mk('escape', 35, 0, 'fight_loss', 'once_per_run', '35% ESCAPE / loss')];
+  if (text.includes('heal') || text.includes('rally') || text.includes('recover')) return [mk('post_fight_heal', 30, 14, 'after_fight', 'per_fight', '30% HEAL / fight')];
+  if (text.includes('loot') || text.includes('treasure')) return [mk('loot_rarity_up', 15, 1, 'loot_roll', 'always', '15% LOOT UP')];
+  if (text.includes('friend') || text.includes('ally') || text.includes('charm')) return [mk('befriend_chance', 25, 25, 'social', 'always', '+25% ALLY CHANCE')];
+  if (text.includes('dodge')) return [mk('first_dodge', 25, 0, 'fight_start', 'per_fight', '25% FIRST DODGE')];
+  if (text.includes('stun') || text.includes('catnip') || text.includes('confus') || text.includes('aoe')) return [mk('confuse', 22, 20, 'fight_start', 'per_fight', '22% CONFUSE')];
+  if (text.includes('range') || text.includes('pounce') || text.includes('opening')) return [mk('opening_hit', 25, 10, 'fight_start', 'per_fight', '25% OPENING HIT')];
+  if (text.includes('crit')) return [mk('crit_chance', 20, 20, 'fight_start', 'per_fight', '20% CRIT / fight')];
+  if ((data.stat_buffs || []).length) return [mk('damage_boost', 20, 15, 'fight_start', 'per_fight', '20% DMG+ / fight')];
+  return [];
+}
+
+function getAbilityEffects(card) {
+  return inferAbilityEffects(card);
+}
+
+function normalizeAbilityCard(card) {
+  if (!card || card.type !== 'special_ability') return card;
+  const data = card.data || {};
+  const ability_effects = getAbilityEffects({ ...card, data });
+  return {
+    ...card,
+    data: {
+      ...data,
+      ability_effects,
+      expiry: { type:'none' }
+    }
+  };
+}
+
+function abilityDisplayText(card) {
+  const effects = getAbilityEffects(card);
+  if (effects.length) return effects.map(abilityShortText).join(' · ');
+  return card?.data?.positive_description || card?.description || '';
 }
 
 // Format development rates as readable chips, e.g. "+0.25 INT/24h"
@@ -1487,7 +1595,12 @@ function buildCardBodyHtml(card, showDesc=true) {
       }
     } else if (card.type === 'special_ability') {
       body += `<div class="cv-subtext" style="color:var(--t3)">${card.data.memory_slots_required} memory slot${card.data.memory_slots_required>1?'s':''} · min INT+LOY ${card.data.min_intelligence_plus_loyalty}</div>`;
-      if (card.data.positive_description) body += `<div class="cv-subtext" style="color:#34D399;font-size:10px">${card.data.positive_description}</div>`;
+      const abilityEffects = getAbilityEffects(card);
+      if (abilityEffects.length) {
+        body += `<div class="cv-effs">${abilityEffects.map(e => `<span class="cv-eff pos" title="${escapeAttr(abilityFullText(e))}">${abilityShortText(e)}</span>`).join('')}</div>`;
+      } else if (card.data.positive_description) {
+        body += `<div class="cv-subtext" style="color:#34D399;font-size:10px">${card.data.positive_description}</div>`;
+      }
       if (card.data.negative_description) body += `<div class="cv-subtext" style="color:#F87171;font-size:10px">${card.data.negative_description}</div>`;
     }
   }
@@ -1687,26 +1800,21 @@ function openEditPanel(cardId) {
     _ncmEffectCount = existing.length;
   } else if (card.type === 'special_ability') {
     const existing = card.data.stat_buffs || [];
-    const expiry = card.data.expiry?.type || 'none';
+    const abilityEffects = getAbilityEffects(card);
     typeFields = `
       <div class="eful-section">
-        <div class="eful-sec-hdr">Stat Buffs</div>
+        <div class="eful-sec-hdr">Ability Effects</div>
+        <div id="ncm-ability-effects-list" style="display:flex;flex-direction:column;gap:7px">
+          ${abilityEffects.map(ncmAbilityEffectRowHtml).join('')}
+        </div>
+        <button onclick="ncmAddAbilityEffect()" class="eful-add-btn">+ Add Ability Effect</button>
+      </div>
+      <div class="eful-section">
+        <div class="eful-sec-hdr">Passive Stat Buffs</div>
         <div id="ncm-effects-list" style="display:flex;flex-direction:column;gap:7px">
           ${existing.map((e, i) => efulEffectRowHtml(e, i)).join('')}
         </div>
         <button onclick="ncmAddEffect()" class="eful-add-btn">+ Add Buff</button>
-      </div>
-      <div class="eful-section">
-        <div class="eful-sec-hdr">Expiry</div>
-        <div class="ncm-2col">
-          <div class="ncm-row"><div class="ncm-lbl">Type</div>
-            <select class="ncm-input" id="ncm-expiry">
-              <option value="none"${expiry==='none'?' selected':''}>Permanent</option>
-              <option value="rounds"${expiry==='rounds'?' selected':''}>Rounds</option>
-              <option value="run"${expiry==='run'?' selected':''}>Per Run</option>
-            </select>
-          </div>
-        </div>
       </div>`;
     _ncmEffectCount = existing.length;
   }
@@ -1806,6 +1914,75 @@ function efulStatChange(inp, base) {
   inp.classList.toggle('changed', v !== base);
 }
 
+function ncmAbilityEffectOptionsHtml(selected) {
+  return Object.entries(ABILITY_EFFECT_DEFS).map(([value, def]) =>
+    `<option value="${value}"${value===selected?' selected':''}>${def.label}</option>`
+  ).join('');
+}
+
+function ncmAbilityTriggerOptionsHtml(selected) {
+  return Object.entries(ABILITY_TRIGGER_LABELS).map(([value, label]) =>
+    `<option value="${value}"${value===selected?' selected':''}>${label}</option>`
+  ).join('');
+}
+
+function ncmAbilityLimitOptionsHtml(selected) {
+  return Object.entries(ABILITY_LIMIT_LABELS).map(([value, label]) =>
+    `<option value="${value}"${value===selected?' selected':''}>${label}</option>`
+  ).join('');
+}
+
+function ncmAbilityEffectRowHtml(effect) {
+  const e = effect || {};
+  const type = e.effect_type || 'crit_chance';
+  const def = ABILITY_EFFECT_DEFS[type] || ABILITY_EFFECT_DEFS.crit_chance;
+  return `<div class="ncm-ability-effect-row" style="display:grid;grid-template-columns:1fr 1fr 68px 68px 92px auto;gap:7px;align-items:center">
+    <select class="ncm-input ae-trigger" onchange="ncmRefreshAbilityEffectRow(this)">${ncmAbilityTriggerOptionsHtml(e.trigger || def.trigger)}</select>
+    <select class="ncm-input ae-type" onchange="ncmRefreshAbilityEffectRow(this,true)">${ncmAbilityEffectOptionsHtml(type)}</select>
+    <input class="ncm-input ae-chance" type="number" min="0" max="100" value="${e.chance_percent != null ? e.chance_percent : 20}" title="Chance %" oninput="ncmRefreshAbilityEffectRow(this)">
+    <input class="ncm-input ae-value" type="number" value="${e.value != null ? e.value : 0}" title="Value" oninput="ncmRefreshAbilityEffectRow(this)">
+    <select class="ncm-input ae-limit" onchange="ncmRefreshAbilityEffectRow(this)">${ncmAbilityLimitOptionsHtml(e.limit || 'per_fight')}</select>
+    <button onclick="this.closest('.ncm-ability-effect-row').remove()" style="font-family:var(--fm);font-size:11px;color:var(--t3);background:none;border:none;cursor:pointer;padding:0 4px">✕</button>
+    <input class="ncm-input ae-short" style="grid-column:1/-1" placeholder="Short text, e.g. 20% CRIT / fight" value="${escapeAttr(e.short_text || abilityShortText(e))}">
+    <textarea class="ncm-input ae-full" rows="2" style="grid-column:1/-1;resize:vertical" placeholder="Full rules text">${e.full_text || abilityFullText(e)}</textarea>
+  </div>`;
+}
+
+function ncmAddAbilityEffect() {
+  const list = document.getElementById('ncm-ability-effects-list');
+  if (!list) return;
+  list.insertAdjacentHTML('beforeend', ncmAbilityEffectRowHtml());
+}
+
+function ncmCollectAbilityEffectFromRow(row) {
+  return {
+    trigger: row.querySelector('.ae-trigger').value,
+    effect_type: row.querySelector('.ae-type').value,
+    chance_percent: parseInt(row.querySelector('.ae-chance').value) || 0,
+    value: parseInt(row.querySelector('.ae-value').value) || 0,
+    limit: row.querySelector('.ae-limit').value,
+    short_text: row.querySelector('.ae-short').value.trim(),
+    full_text: row.querySelector('.ae-full').value.trim(),
+  };
+}
+
+function ncmRefreshAbilityEffectRow(input, resetForType = false) {
+  const row = input.closest('.ncm-ability-effect-row');
+  if (!row) return;
+  const type = row.querySelector('.ae-type').value;
+  const def = ABILITY_EFFECT_DEFS[type] || ABILITY_EFFECT_DEFS.crit_chance;
+  if (resetForType) row.querySelector('.ae-trigger').value = def.trigger;
+  const draft = ncmCollectAbilityEffectFromRow(row);
+  if (resetForType || !row.querySelector('.ae-short').value.trim()) row.querySelector('.ae-short').value = abilityShortText(draft);
+  if (resetForType || !row.querySelector('.ae-full').value.trim()) row.querySelector('.ae-full').value = abilityFullText(draft);
+}
+
+function ncmCollectAbilityEffects() {
+  return Array.from(document.querySelectorAll('#ncm-ability-effects-list .ncm-ability-effect-row'))
+    .map(ncmCollectAbilityEffectFromRow)
+    .filter(e => e.effect_type);
+}
+
 function commitCardEdit(cardId) {
   const name = (document.getElementById('eful-name')?.value || document.getElementById('cep-name')?.value || '').trim();
   const description = document.getElementById('eful-desc')?.value || document.getElementById('cep-desc')?.value || '';
@@ -1847,8 +2024,10 @@ function commitCardEdit(cardId) {
     patch.data = patch.data || {};
     if (card.type === 'special_ability') {
       patch.data.stat_buffs = effects;
-      const expiry = document.getElementById('ncm-expiry')?.value || 'none';
-      patch.data.expiry = { type: expiry, value: expiry === 'rounds' ? 3 : null };
+      const draftCard = { ...card, name, description, data: { ...card.data, stat_buffs: effects } };
+      const abilityEffects = ncmCollectAbilityEffects();
+      patch.data.ability_effects = abilityEffects.length ? abilityEffects : inferAbilityEffects(draftCard);
+      patch.data.expiry = { type:'none' };
     } else {
       if (card.type === 'home_item') patch.data.item_type = 'passive';
       if (card.type === 'battle_gear') patch.data.gear_slot = card.data.gear_slot || 1;
@@ -2010,17 +2189,16 @@ function ncmTypeFieldsHtml() {
   }
   if (_ncmType === 'special_ability') {
     return `<div class="ncm-row">
-      <div class="ncm-section-title">Stat Buffs</div>
-      <div id="ncm-effects-list" style="display:flex;flex-direction:column;gap:7px"></div>
-      <button onclick="ncmAddEffect()" style="margin-top:6px;font-family:var(--fm);font-size:9.5px;padding:5px 12px;background:var(--s2);border:1px solid var(--bd);border-radius:var(--r-md);color:var(--t2);cursor:pointer;transition:all .12s;text-transform:uppercase;letter-spacing:.06em">+ Add Buff</button>
+      <div class="ncm-section-title">Ability Effects</div>
+      <div id="ncm-ability-effects-list" style="display:flex;flex-direction:column;gap:7px">
+        ${ncmAbilityEffectRowHtml()}
+      </div>
+      <button onclick="ncmAddAbilityEffect()" style="margin-top:6px;font-family:var(--fm);font-size:9.5px;padding:5px 12px;background:var(--s2);border:1px solid var(--bd);border-radius:var(--r-md);color:var(--t2);cursor:pointer;transition:all .12s;text-transform:uppercase;letter-spacing:.06em">+ Add Ability Effect</button>
     </div>
     <div class="ncm-row">
-      <div class="ncm-lbl">Expiry Type</div>
-      <select class="ncm-input" id="ncm-expiry">
-        <option value="none">Permanent</option>
-        <option value="rounds">Rounds</option>
-        <option value="run">Per Run</option>
-      </select>
+      <div class="ncm-section-title">Passive Stat Buffs</div>
+      <div id="ncm-effects-list" style="display:flex;flex-direction:column;gap:7px"></div>
+      <button onclick="ncmAddEffect()" style="margin-top:6px;font-family:var(--fm);font-size:9.5px;padding:5px 12px;background:var(--s2);border:1px solid var(--bd);border-radius:var(--r-md);color:var(--t2);cursor:pointer;transition:all .12s;text-transform:uppercase;letter-spacing:.06em">+ Add Buff</button>
     </div>`;
   }
   return '';
@@ -2081,8 +2259,10 @@ function commitNewCard() {
     data = { item_type: 'passive', effects: ncmCollectEffects() };
     if (_ncmType === 'battle_gear') { data.gear_slot = 1; delete data.item_type; }
   } else if (_ncmType === 'special_ability') {
-    const expiry = document.getElementById('ncm-expiry')?.value || 'none';
-    data = { stat_buffs: ncmCollectEffects(), expiry: { type: expiry, value: expiry === 'rounds' ? 3 : null } };
+    const stat_buffs = ncmCollectEffects();
+    const draftCard = { type:'special_ability', name, description, data:{ stat_buffs } };
+    const ability_effects = ncmCollectAbilityEffects();
+    data = { stat_buffs, ability_effects: ability_effects.length ? ability_effects : inferAbilityEffects(draftCard), expiry: { type:'none' } };
   }
   const card = { id, type: _ncmType, name, description, rarity, coin_cost, series, is_starter: false, data };
   saveCustomCard(card);
@@ -2903,10 +3083,10 @@ function getEffectiveStats(catSetup, homeItems, catIdx) {
     });
   });
   (catSetup.abilities||[]).filter(a => {
-    const aobj = typeof a === 'string' ? getCard(a) : a;
+    const aobj = typeof a === 'string' ? getCard(a) : normalizeAbilityCard(a);
     return aobj && aobj.data && aobj.data.expiry?.type === 'none';
   }).forEach(a => {
-    const aobj = typeof a === 'string' ? getCard(a) : a;
+    const aobj = typeof a === 'string' ? getCard(a) : normalizeAbilityCard(a);
     if (!aobj) return;
     (aobj.data.stat_buffs||[]).forEach(e => {
       const v = parseModifier(e.modifier);
@@ -3041,9 +3221,10 @@ function rollRarity(intelligence) {
 }
 
 function pickLoot(rarity) {
-  const pool = getLibrary().filter(c => (c.type==='home_item'||c.type==='battle_gear') && c.rarity===rarity);
+  const lootTypes = new Set(['home_item','battle_gear','consumable']);
+  const pool = getLibrary().filter(c => lootTypes.has(c.type) && c.rarity===rarity);
   if (pool.length) return pick(pool);
-  return pick(getLibrary().filter(c => c.type==='home_item'||c.type==='battle_gear'));
+  return pick(getLibrary().filter(c => lootTypes.has(c.type)));
 }
 
 /* ── Limited-edition drops ──
@@ -3103,6 +3284,49 @@ function getGearSpecials(gearCards) {
     }
   });
   return { specials, postFightRecovery, smokeUses };
+}
+
+function getEquippedAbilityCards(abilityRefs) {
+  return (abilityRefs || []).map(a => typeof a === 'string' ? getCard(a) : normalizeAbilityCard(a)).filter(Boolean);
+}
+
+function rollAbilityProc(abilityCards, effectType, state, scope = 'default') {
+  const effects = abilityCards.flatMap(card => getAbilityEffects(card).map(effect => ({ card, effect })))
+    .filter(({ effect }) => effect.effect_type === effectType);
+  for (const { card, effect } of effects) {
+    const key = `${card.id}:${effectType}:${scope}`;
+    if (effect.limit === 'once_per_run' && state[key]) continue;
+    const chance = Math.max(0, Math.min(100, parseInt(effect.chance_percent) || 0));
+    if (Math.random() * 100 < chance) {
+      if (effect.limit === 'once_per_run') state[key] = true;
+      return { card, effect, value: parseInt(effect.value) || 0 };
+    }
+  }
+  return null;
+}
+
+function upgradeRarity(rarity) {
+  const order = ['common','uncommon','rare','epic','legendary'];
+  const idx = order.indexOf(rarity);
+  return idx >= 0 && idx < order.length - 1 ? order[idx + 1] : rarity;
+}
+
+function pickLootWithAbilities(rarity, abilityCards, abilityState, scope) {
+  let rolledRarity = rarity;
+  const notes = [];
+  const rarityProc = rollAbilityProc(abilityCards, 'loot_rarity_up', abilityState, scope);
+  if (rarityProc) {
+    rolledRarity = upgradeRarity(rolledRarity);
+    notes.push(`${rarityProc.card.name}: loot upgraded`);
+  }
+  const loot = pickLoot(rolledRarity);
+  const extraLoot = [];
+  const bonusProc = rollAbilityProc(abilityCards, 'bonus_loot', abilityState, scope);
+  if (bonusProc) {
+    extraLoot.push(pickLoot(rolledRarity));
+    notes.push(`${bonusProc.card.name}: bonus loot`);
+  }
+  return { loot, extraLoot, notes };
 }
 
 function hasPersistenceBoost(homeItems) {
@@ -3329,7 +3553,7 @@ function calcCoinsFromPvP(won, myRep, oppRep) {
   return Math.round(5 + Math.max(0, (oppRep - myRep) / 10));
 }
 
-function resolveBattle(catName, stats, catHp, maxHp, gearCards, fightCount, homeBoost) {
+function resolveBattle(catName, stats, catHp, maxHp, gearCards, fightCount, homeBoost, abilityCards = [], abilityState = {}) {
   const enemyName = pick(ENEMY_NAMES);
   const enemy = {
     name: enemyName,
@@ -3346,10 +3570,11 @@ function resolveBattle(catName, stats, catHp, maxHp, gearCards, fightCount, home
     if (gs.specials.has('charm_disarm')) chance = Math.min(0.82, chance + 0.28);
     if (Math.random() < chance) {
       log.push({cls:'charm', text: pick(BTL_CHARM_TEXTS)(catName, enemyName)});
-      const loot = pickLoot(rollRarity(stats.amicability || 0));
+      const lootRoll = pickLootWithAbilities(rollRarity(stats.amicability || 0), abilityCards, abilityState, `charm-${fightCount}`);
+      lootRoll.notes.forEach(note => log.push({cls:'charm', text:note}));
       const ps   = calcPersistence(stats, catHp, maxHp, gs, homeBoost, fightCount);
       return {
-        won:true, charmed:true, avoided:false, enemy:enemyName, log, loot,
+        won:true, charmed:true, avoided:false, enemy:enemyName, log, loot:lootRoll.loot, extraLoot:lootRoll.extraLoot,
         remainingHp:catHp, persistAfter:ps > 52,
         persistText: ps > 52 ? pick(BTL_PERSIST_YES)(catName) : pick(BTL_PERSIST_NO)(catName)
       };
@@ -3376,9 +3601,41 @@ function resolveBattle(catName, stats, catHp, maxHp, gearCards, fightCount, home
   log.push({cls:'open', text: pick(BTL_OPEN)(catName, enemyName)});
 
   let enemyAgi = enemy.agi;
+  let enemyStr = enemy.str;
+  let damageBoost = 1;
+  let damageReduce = 1;
+  let firstDodge = false;
+  let forceCrit = false;
   if (gs.specials.has('aoe_confusion')) {
     enemyAgi = Math.max(1, enemy.agi - 10);
     log.push({cls:'charm', text:`${catName} deploys the catnip grenade. The ${enemyName} is philosophically confused (−10 AGI).`});
+  }
+  const confuseProc = rollAbilityProc(abilityCards, 'confuse', abilityState, `fight-${fightCount}`);
+  if (confuseProc) {
+    const pct = confuseProc.value || 20;
+    enemyAgi = Math.max(1, Math.round(enemyAgi * (1 - pct / 100)));
+    enemyStr = Math.max(1, Math.round(enemyStr * (1 - pct / 100)));
+    log.push({cls:'charm', text:`${confuseProc.card.name} triggers: ${enemyName} is confused (${pct}% weaker).`});
+  }
+  const boostProc = rollAbilityProc(abilityCards, 'damage_boost', abilityState, `fight-${fightCount}`);
+  if (boostProc) {
+    damageBoost += (boostProc.value || 20) / 100;
+    log.push({cls:'hit', text:`${boostProc.card.name} triggers: outgoing damage is boosted.`});
+  }
+  const reduceProc = rollAbilityProc(abilityCards, 'damage_reduce', abilityState, `fight-${fightCount}`);
+  if (reduceProc) {
+    damageReduce -= Math.min(80, reduceProc.value || 20) / 100;
+    log.push({cls:'heal', text:`${reduceProc.card.name} triggers: incoming damage is reduced.`});
+  }
+  const dodgeProc = rollAbilityProc(abilityCards, 'first_dodge', abilityState, `fight-${fightCount}`);
+  if (dodgeProc) {
+    firstDodge = true;
+    log.push({cls:'dodge', text:`${dodgeProc.card.name} triggers: ${catName} is ready to dodge the first hit.`});
+  }
+  const critProc = rollAbilityProc(abilityCards, 'crit_chance', abilityState, `fight-${fightCount}`);
+  if (critProc) {
+    forceCrit = true;
+    log.push({cls:'hit', text:`${critProc.card.name} triggers: the first clean strike will crit.`});
   }
   let catFirst  = (stats.agility||0) + (stats.speed||0)*0.4 >= enemy.agi * 1.2 + 5;
   if (gs.specials.has('first_strike')) catFirst = true;
@@ -3388,6 +3645,12 @@ function resolveBattle(catName, stats, catHp, maxHp, gearCards, fightCount, home
   let catHpCurr   = catHp;
   let enemyHpCurr = enemy.hp;
   let shown = 0;
+  const openingProc = rollAbilityProc(abilityCards, 'opening_hit', abilityState, `fight-${fightCount}`);
+  if (openingProc) {
+    const openingDmg = Math.max(4, openingProc.value || Math.round((stats.agility || stats.strength || 10) * 0.7));
+    enemyHpCurr = Math.max(0, enemyHpCurr - openingDmg);
+    log.push({cls:'hit', text:`${openingProc.card.name} triggers: ${catName} lands an opening hit for ${openingDmg}.`});
+  }
 
   for (let r = 0; r < 5 && catHpCurr > 0 && enemyHpCurr > 0; r++) {
     /* cat attacks */
@@ -3395,13 +3658,20 @@ function resolveBattle(catName, stats, catHp, maxHp, gearCards, fightCount, home
     const eDodge  = (ranged && r===0) ? 0 : Math.floor(enemyAgi*0.5 + Math.random()*5);
     ranged = false;
     const effDodge = pierce ? Math.floor(eDodge*0.45) : eDodge;
-    const dmgE     = Math.max(1, catAtk - effDodge);
+    let dmgE       = Math.max(1, catAtk - effDodge);
+    if (forceCrit) {
+      dmgE = Math.round(dmgE * 1.75);
+      forceCrit = false;
+    }
+    dmgE = Math.max(1, Math.round(dmgE * damageBoost));
     enemyHpCurr   -= dmgE;
 
     /* enemy attacks */
-    const eAtk   = Math.floor(enemy.str*0.72 + Math.random()*9 + 2);
+    const eAtk   = Math.floor(enemyStr*0.72 + Math.random()*9 + 2);
     const cDodge = Math.floor((stats.agility||0)*0.55 + (stats.stealth||0)*0.15 + Math.random()*6);
-    const dmgC   = Math.max(0, eAtk - cDodge);
+    let dmgC     = firstDodge ? 0 : Math.max(0, eAtk - cDodge);
+    firstDodge = false;
+    dmgC = Math.max(0, Math.round(dmgC * damageReduce));
     if (dmgC > 0) catHpCurr = Math.max(0, catHpCurr - dmgC);
 
     if (shown < 4) {
@@ -3428,8 +3698,21 @@ function resolveBattle(catName, stats, catHp, maxHp, gearCards, fightCount, home
     }
   }
 
-  const won = enemyHpCurr <= 0;
+  let won = enemyHpCurr <= 0;
   let finalHp = Math.max(0, catHpCurr);
+  if (!won) {
+    const escapeProc = rollAbilityProc(abilityCards, 'escape', abilityState, `fight-${fightCount}`);
+    if (escapeProc) {
+      finalHp = Math.max(1, finalHp);
+      log.push({cls:'flee', text:`${escapeProc.card.name} triggers: ${catName} escapes the losing fight.`});
+      const ps = calcPersistence(stats, finalHp, maxHp, gs, homeBoost, fightCount);
+      return {
+        won:false, charmed:false, avoided:true, enemy:enemyName, log, loot:null, extraLoot:[],
+        remainingHp: finalHp, persistAfter: ps > 52,
+        persistText: ps > 52 ? pick(BTL_PERSIST_YES)(catName) : pick(BTL_PERSIST_NO)(catName)
+      };
+    }
+  }
 
   if (won && gs.specials.has('post_win_rally')) {
     finalHp = Math.min(maxHp, finalHp + 22);
@@ -3439,17 +3722,24 @@ function resolveBattle(catName, stats, catHp, maxHp, gearCards, fightCount, home
     finalHp = Math.min(maxHp, finalHp + gs.postFightRecovery);
     log.push({cls:'heal', text:`Patchwork Bandage does its thing. +${gs.postFightRecovery} STA patched back up.`});
   }
+  const healProc = rollAbilityProc(abilityCards, 'post_fight_heal', abilityState, `fight-${fightCount}`);
+  if (healProc) {
+    const heal = healProc.value || 12;
+    finalHp = Math.min(maxHp, finalHp + heal);
+    log.push({cls:'heal', text:`${healProc.card.name} triggers: +${heal} STA recovered.`});
+  }
 
   log.push({
     cls: won ? 'win' : 'lose',
     text: won ? pick(BTL_WIN_OUTRO)(catName, enemyName) : pick(BTL_LOSE_OUTRO)(catName, enemyName)
   });
 
-  const loot = won ? pickLoot(rollRarity(stats.intelligence || 0)) : null;
+  const lootRoll = won ? pickLootWithAbilities(rollRarity(stats.intelligence || 0), abilityCards, abilityState, `battle-${fightCount}`) : { loot:null, extraLoot:[], notes:[] };
+  lootRoll.notes.forEach(note => log.push({cls:'charm', text:note}));
   const ps   = calcPersistence(stats, finalHp, maxHp, gs, homeBoost, fightCount);
 
   return {
-    won, charmed:false, avoided:false, enemy:enemyName, log, loot,
+    won, charmed:false, avoided:false, enemy:enemyName, log, loot:lootRoll.loot, extraLoot:lootRoll.extraLoot,
     remainingHp: finalHp, persistAfter: ps > 52,
     persistText: ps > 52 ? pick(BTL_PERSIST_YES)(catName) : pick(BTL_PERSIST_NO)(catName)
   };
@@ -3465,7 +3755,7 @@ function getAllySlots(ami, aff) {
   return Math.min(5, Math.max(1, 1 + Math.floor((ami + aff) / 40)));
 }
 
-function generateEncounters(catName, stats, numEnc, gearCards, homeItems, catRep, catAllies) {
+function generateEncounters(catName, stats, numEnc, gearCards, homeItems, catRep, catAllies, abilityRefs) {
   const encounters = [];
   let fightCount = 0;
   const maxHp  = 20 + (stats.stamina || 0);
@@ -3473,6 +3763,8 @@ function generateEncounters(catName, stats, numEnc, gearCards, homeItems, catRep
   let liveCatRep = catRep || 100; // track rep changes across encounters this trip
   const homeBoost = hasPersistenceBoost(homeItems || []);
   const allies = catAllies || [];
+  const abilityCards = getEquippedAbilityCards(abilityRefs);
+  const abilityState = {};
 
   for (let i = 0; i < numEnc; i++) {
     const fightW  = (stats.strength  || 0) + (stats.agility     || 0);
@@ -3508,26 +3800,32 @@ function generateEncounters(catName, stats, numEnc, gearCards, homeItems, catRep
         // Translate HP loss back to the catHp scale
         const hpLossFrac = Math.max(0, 1 - pvp.hpA / ((stats.stamina||10) * 10));
         if (!friendly && !allyAssist) catHp = Math.max(0, catHp - Math.round(hpLossFrac * maxHp * 0.7));
-        const loot = (won && !friendly) ? pickLoot(rollRarity(stats.intelligence || 0)) : null;
+        const lootRoll = (won && !friendly)
+          ? pickLootWithAbilities(rollRarity(stats.intelligence || 0), abilityCards, abilityState, `pvp-${i}`)
+          : { loot:null, extraLoot:[], notes:[] };
 
         // ── Befriending: friendly encounter OR submission outcome triggers alliance ──
         // amicFactor: 0.0–1.0 linear across the 0–100 stat range.
         // Friendly:   15% floor → 85% ceiling  (at AMI 20 → ~29%, at AMI 50 → ~50%, at 100 → ~85%)
         // Submission: 10% floor → 65% ceiling  (lower — submission is a tenser reconciliation)
         const amicFactor = (stats.amicability || 0) / 100;
-        const befriendable = (friendly && Math.random() < Math.min(0.85, 0.15 + amicFactor * 0.70))
-          || (pvp.outcome === 'submission' && Math.random() < Math.min(0.65, 0.10 + amicFactor * 0.55));
+        const allyProc = rollAbilityProc(abilityCards, 'befriend_chance', abilityState, `social-${i}`);
+        const allyBonus = allyProc ? (allyProc.value || 25) / 100 : 0;
+        const befriendable = (friendly && Math.random() < Math.min(0.95, 0.15 + amicFactor * 0.70 + allyBonus))
+          || (pvp.outcome === 'submission' && Math.random() < Math.min(0.8, 0.10 + amicFactor * 0.55 + allyBonus));
+        if (allyProc) pvp.log.push({ cls:'charm', text:`${allyProc.card.name} triggers: ally chance increased.` });
+        lootRoll.notes.forEach(note => pvp.log.push({ cls:'charm', text:note }));
 
         encounters.push({
           type:'pvp-battle', icon: friendly?'🤜': allyAssist?'🤝': won?'🏆': draw?'🤝':'💨',
           opponent:opp, won, draw: draw || !!allyAssist, friendly, pvpResult:pvp,
-          repDelta, coins, loot, befriendable, allyAssist
+          repDelta, coins, loot:lootRoll.loot, extraLoot:lootRoll.extraLoot, befriendable, allyAssist
         });
         continue;
       }
 
       /* ── NPC battle (existing logic) ── */
-      const result = resolveBattle(catName, stats, catHp, maxHp, gearCards || [], fightCount, homeBoost);
+      const result = resolveBattle(catName, stats, catHp, maxHp, gearCards || [], fightCount, homeBoost, abilityCards, abilityState);
       fightCount++;
       catHp = result.remainingHp;
       encounters.push({
@@ -3537,13 +3835,14 @@ function generateEncounters(catName, stats, numEnc, gearCards, homeItems, catRep
         won: result.won, charmed: result.charmed, avoided: result.avoided,
         battleLog: result.log,
         loot: result.loot,
+        extraLoot: result.extraLoot || [],
         persistAfter: result.persistAfter,
         persistText: result.persistText
       });
       /* bonus forage if cat stays on the street */
       if (result.persistAfter) {
-        const bonusLoot = Math.random() < 0.55 ? pickLoot(rollRarity(stats.intelligence || 0)) : null;
-        encounters.push({type:'persist-bonus', icon:'🌆', catName, loot: bonusLoot});
+        const bonusLootRoll = Math.random() < 0.55 ? pickLootWithAbilities(rollRarity(stats.intelligence || 0), abilityCards, abilityState, `persist-${i}`) : { loot:null, extraLoot:[], notes:[] };
+        encounters.push({type:'persist-bonus', icon:'🌆', catName, loot: bonusLootRoll.loot, extraLoot: bonusLootRoll.extraLoot, abilityNotes: bonusLootRoll.notes});
       }
     } else if (roll < fightW + friendW || catHp <= 8) {
       /* ── social ── */
@@ -3551,16 +3850,16 @@ function generateEncounters(catName, stats, numEnc, gearCards, homeItems, catRep
       const success   = Math.random() < Math.min(0.92, friendPow / 30);
       const intro     = pick(FRIEND_INTROS)(catName);
       if (success) {
-        const loot = pickLoot((stats.affection || 0) >= 20 ? 'uncommon' : 'common');
-        encounters.push({type:'friend-win', icon:'🤝', intro, outcome: pick(FRIEND_WIN_TEXTS), loot});
+        const lootRoll = pickLootWithAbilities((stats.affection || 0) >= 20 ? 'uncommon' : 'common', abilityCards, abilityState, `friend-${i}`);
+        encounters.push({type:'friend-win', icon:'🤝', intro, outcome: pick(FRIEND_WIN_TEXTS), loot: lootRoll.loot, extraLoot: lootRoll.extraLoot, abilityNotes: lootRoll.notes});
       } else {
         encounters.push({type:'friend-lose', icon:'🙂', intro, outcome: pick(FRIEND_LOSE_TEXTS), loot: null});
       }
     } else {
       /* ── find ── */
-      const loot  = pickLoot(rollRarity(stats.intelligence || 0));
+      const lootRoll = pickLootWithAbilities(rollRarity(stats.intelligence || 0), abilityCards, abilityState, `find-${i}`);
       const intro = pick(FIND_INTROS)(catName);
-      encounters.push({type:'find', icon:'✨', intro, outcome:'', loot});
+      encounters.push({type:'find', icon:'✨', intro, outcome:'', loot: lootRoll.loot, extraLoot: lootRoll.extraLoot, abilityNotes: lootRoll.notes});
     }
   }
   return encounters;
@@ -3585,6 +3884,8 @@ function startRun(selectedCatIndices) {
   const runs = readyIndices.map(ci => {
     const catSetup = sbx.cats[ci];
     const stats    = getEffectiveStats(catSetup, sbx.homeItems);
+    const abilityCards = getEquippedAbilityCards(catSetup.abilities || []);
+    const runAbilityState = {};
 
     // Low-energy penalty: if energy < 60, stamina is reduced proportionally
     const state = getLiveCatState(ci, catSetup);
@@ -3596,17 +3897,19 @@ function startRun(selectedCatIndices) {
     const dur_min  = 3 + (stats.stamina/100)*12 + (stats.speed/100)*5;
     const numEnc   = Math.floor(2 + (stats.agility/100)*3 + (stats.speed/100)*2);
     const dur_wall = dur_min * 60 * 1000 / SBX_SPEED;
-    const encounters = generateEncounters(catSetup.breed.name, stats, numEnc, catSetup.gear || [], sbx.homeItems || [], catSetup.rep || 100, catSetup.allies || []);
+    const encounters = generateEncounters(catSetup.breed.name, stats, numEnc, catSetup.gear || [], sbx.homeItems || [], catSetup.rep || 100, catSetup.allies || [], catSetup.abilities || []);
     encounters.forEach((enc, i) => {
       enc.revealAtWall = startTime + ((i+1)/(encounters.length+1)) * dur_wall;
       enc.revealed = false;
     });
 
     // Deduct energy on departure — harder runs cost more
-    const energyCost = Math.min(state.energy - 2, 20 + numEnc * 7);
+    const energyProc = rollAbilityProc(abilityCards, 'energy_cost_reduce', runAbilityState, `run-${ci}`);
+    const energySave = energyProc ? Math.min(80, energyProc.value || 15) / 100 : 0;
+    const energyCost = Math.min(state.energy - 2, Math.round((20 + numEnc * 7) * (1 - energySave)));
     setCatCare(ci, catSetup, { energy: Math.max(0, state.energy - energyCost), isResting: false });
 
-    return { catIdx: ci, name: catSetup.breed.name, stats, dur_min, endWall: startTime + dur_wall, encounters, done: false, energyCost };
+    return { catIdx: ci, name: catSetup.breed.name, stats, dur_min, endWall: startTime + dur_wall, encounters, done: false, energyCost, energySaveNote: energyProc ? `${energyProc.card.name}: -${Math.round(energySave * 100)}% energy cost` : '' };
   });
 
   sbx.activeRun = { runs, readyIndices, allDone: false, timer: null };
@@ -3701,10 +4004,26 @@ function skipRun() {
   finishRun();
 }
 
-function lootPillHtml(loot) {
-  if (!loot) return '';
-  const rc = RAR_COLOR[loot.rarity];
-  return `<div class="ev-loot" style="margin-top:6px"><span class="loot-pill" style="color:${rc};border-color:color-mix(in srgb,${rc} 40%,transparent);background:color-mix(in srgb,${rc} 8%,transparent)">${TYPE_META[loot.type]?TYPE_META[loot.type].emoji:'📦'} ${loot.name} <span style="opacity:.6;font-size:8px">${loot.rarity}</span></span></div>`;
+function lootPillHtml(loot, extraLoot = []) {
+  const cards = [loot, ...(extraLoot || [])].filter(Boolean);
+  if (!cards.length) return '';
+  return `<div class="ev-loot" style="margin-top:6px">${cards.map(card => {
+    const rc = RAR_COLOR[card.rarity];
+    return `<span class="loot-pill" style="color:${rc};border-color:color-mix(in srgb,${rc} 40%,transparent);background:color-mix(in srgb,${rc} 8%,transparent)">${TYPE_META[card.type]?TYPE_META[card.type].emoji:'📦'} ${card.name} <span style="opacity:.6;font-size:8px">${card.rarity}</span></span>`;
+  }).join('')}</div>`;
+}
+
+function battleSummaryDetailsHtml(title, summary, logHtml, footerHtml = '', loot = null, extraLoot = []) {
+  return `<details class="btl-details">
+    <summary class="btl-details-summary">
+      <span class="btl-summary-top">
+        <span class="btl-summary-title">${title}</span>
+        <span class="btl-summary-chev">›</span>
+      </span>
+      <span class="btl-summary-line">${summary}</span>
+    </summary>
+    ${logHtml}${footerHtml}
+  </details>${lootPillHtml(loot, extraLoot)}`;
 }
 
 function buildBattleEventHtml(enc) {
@@ -3720,11 +4039,13 @@ function buildBattleEventHtml(enc) {
     `<div class="btl-r ${l.cls}">${l.text}</div>`).join('')}</div>`;
 
   const persistHtml = `<div class="btl-persist-note ${enc.persistAfter?'yes':'no'}">${enc.persistAfter?'🌆':'🏡'} ${enc.persistText}</div>`;
+  const outcome = enc.charmed ? 'Charm worked' : enc.avoided ? 'Clean escape' : realWin ? 'Won the fight' : 'Retreated';
+  const lootCount = [enc.loot, ...(enc.extraLoot || [])].filter(Boolean).length;
+  const summary = `${outcome} · ${(enc.battleLog || []).length} beat${(enc.battleLog || []).length === 1 ? '' : 's'}${lootCount ? ` · found ${lootCount} card${lootCount === 1 ? '' : 's'}` : ''}`;
 
   return `<div class="ev-ico ${icoClass}">${enc.icon}</div>
     <div class="ev-body">
-      <div class="ev-title">${title}</div>
-      ${logHtml}${persistHtml}${lootPillHtml(enc.loot)}
+      ${battleSummaryDetailsHtml(title, summary, logHtml, persistHtml, enc.loot, enc.extraLoot)}
     </div>`;
 }
 
@@ -3739,7 +4060,8 @@ function buildPersistBonusHtml(enc) {
   return `<div class="ev-ico ev-persist">🌆</div>
     <div class="ev-body">
       <div class="ev-detail">${intro}</div>
-      ${enc.loot ? lootPillHtml(enc.loot) : noFind}
+      ${enc.abilityNotes && enc.abilityNotes.length ? `<div class="ev-detail" style="color:#a78bfa;font-size:10px;margin-top:3px">${enc.abilityNotes.join(' · ')}</div>` : ''}
+      ${enc.loot ? lootPillHtml(enc.loot, enc.extraLoot) : noFind}
     </div>`;
 }
 
@@ -3769,10 +4091,15 @@ function buildPvPBattleHtml(enc) {
     ${enc.befriendable ? `<span class="pvp-befriended">🐾 New ally: ${enc.opponent.catName}</span>` : enc.pvpResult.outcome === 'submission' && won ? `<span class="pvp-ally">🤝 Possible ally</span>` : ''}
     ${enc.allyAssist ? `<span class="pvp-assist">🛡 ${enc.allyAssist.catName} had your back</span>` : ''}
   </div>`;
+  const outcome = friendly ? 'Peaceful pass' : draw ? 'No clear winner' : won ? 'Victory' : 'Retreated';
+  const rewardBits = [`${repSign}${repDelta} REP`];
+  if (coins > 0) rewardBits.push(`+${coins} coins`);
+  const lootCount = [enc.loot, ...(enc.extraLoot || [])].filter(Boolean).length;
+  if (lootCount) rewardBits.push(`found ${lootCount} card${lootCount === 1 ? '' : 's'}`);
+  const summary = `${outcome} · ${rewardBits.join(' · ')}`;
   return `<div class="ev-ico ${icoClass}">${enc.icon}</div>
     <div class="ev-body">
-      <div class="ev-title">${title}</div>
-      ${logHtml}${footerHtml}${lootPillHtml(enc.loot)}
+      ${battleSummaryDetailsHtml(title, summary, logHtml, footerHtml, enc.loot, enc.extraLoot)}
     </div>`;
 }
 
@@ -3787,7 +4114,8 @@ function buildEventHtml(enc) {
   return `<div class="ev-ico ${icoClass}">${enc.icon}</div>
     <div class="ev-body">
       <div class="ev-detail">${enc.intro}${enc.outcome ? ' ' + enc.outcome : ''}</div>
-      ${lootPillHtml(enc.loot)}
+      ${enc.abilityNotes && enc.abilityNotes.length ? `<div class="ev-detail" style="color:#a78bfa;font-size:10px;margin-top:3px">${enc.abilityNotes.join(' · ')}</div>` : ''}
+      ${lootPillHtml(enc.loot, enc.extraLoot)}
     </div>`;
 }
 
@@ -3820,7 +4148,12 @@ function finishRun() {
 
       // Hunger drain from exertion — proportional to run length, halved if premium food active
       const baseHungerDrain = Math.round(10 + (run ? run.dur_min * 0.7 : 10));
-      const hungerDrain = hasProtectedFood ? Math.round(baseHungerDrain * 0.4) : baseHungerDrain;
+      const abilityCards = getEquippedAbilityCards(cs.abilities || []);
+      const hungerProc = rollAbilityProc(abilityCards, 'hunger_drain_reduce', {}, `return-${ci}`);
+      const hungerSave = hungerProc ? Math.min(80, hungerProc.value || 15) / 100 : 0;
+      const protectedDrain = hasProtectedFood ? Math.round(baseHungerDrain * 0.4) : baseHungerDrain;
+      const hungerDrain = Math.round(protectedDrain * (1 - hungerSave));
+      if (run && hungerProc) run.hungerSaveNote = `${hungerProc.card.name}: -${Math.round(hungerSave * 100)}% hunger drain`;
       const postMood = getLiveCatState(ci, cs);
       setCatCare(ci, cs, { hunger: Math.max(0, postMood.hunger - hungerDrain) });
 
@@ -3896,7 +4229,12 @@ function finishRun() {
   const skipBtn = document.getElementById('run-skip-btn');
   if (skipBtn) skipBtn.style.display = 'none';
 
-  const allLoot = runs.flatMap(r => r.encounters.filter(e => e.loot).map(e => e.loot));
+  const allLoot = runs.flatMap(r => r.encounters.flatMap(e => [e.loot, ...(e.extraLoot || [])].filter(Boolean)));
+  if (!sbx.activeRun.lootAwarded && allLoot.length) {
+    allLoot.forEach(card => awardOwnedCard(card.id));
+    sbx.activeRun.lootAwarded = true;
+    savePlayer();
+  }
   // ── Build loot footer — compact rows in a collapsible section ──
   const sbxpResults = document.getElementById('sbxp-results');
   const oldFoot = document.getElementById('run-loot-footer');
@@ -3922,8 +4260,10 @@ function finishRun() {
     const rows = allLoot.map(card => {
       const tm = TYPE_META[card.type] || { color:'var(--t3)', label:card.type };
       const rc = RAR_COLOR[card.rarity] || 'var(--t3)';
-      const effs = getEffects(card);
-      const effStr = effs.map(e => { const v=parseModifier(e.modifier); return `${e.stat} ${v>=0?'+':''}${v}`; }).join(' · ');
+      const effs = card.type === 'consumable' ? [] : getEffects(card);
+      const effStr = card.type === 'consumable'
+        ? formatConsumableEffects(card).slice(0, 3).join(' · ')
+        : effs.map(e => { const v=parseModifier(e.modifier); return `${e.stat} ${v>=0?'+':''}${v}`; }).join(' · ');
       return `<div class="loot-row" onclick="openCardModal('${card.id}')">
         <span class="loot-row-dot" style="background:${tm.color}"></span>
         <div class="loot-row-info">
@@ -4258,8 +4598,8 @@ const DRAFT_INFO = {
     stats: [
       { key:'Memory Slots', label:'Memory Slots Required', desc:'How much of your cat\'s intelligence capacity this ability uses.' },
       { key:'Min INT+LOY', label:'Min Intelligence + Loyalty', desc:'The combined stat threshold your cat needs to unlock this ability.' },
-      { key:'Stat Buffs', label:'Stat Buffs', desc:'Passive bonuses this ability permanently adds to your cat\'s stats.' },
-      { key:'Expiry', label:'Expiry', desc:'Whether the ability is permanent or fades after a number of combat rounds.' },
+      { key:'Effects', label:'Triggered Effects', desc:'Chance-based effects such as crits, dodges, escapes, bonus loot, or recovery.' },
+      { key:'Passive Buffs', label:'Passive Buffs', desc:'Always-on stat bonuses this ability adds while assigned to your cat.' },
     ]
   }
 };
@@ -4626,6 +4966,18 @@ function syncConsumableDeckCopies(player = PLAYER) {
   });
 }
 
+function awardOwnedCard(cardId) {
+  const card = cardId ? getCard(cardId) : null;
+  if (!card) return false;
+  if (PLAYER && card.type === 'consumable') {
+    PLAYER.inventory = PLAYER.inventory || {};
+    PLAYER.inventory[cardId] = (PLAYER.inventory[cardId] || 0) + ((card.data && card.data.max_uses) || 1);
+  }
+  if (PLAYER) PLAYER.deckIds = [...(PLAYER.deckIds || []), cardId];
+  sbx.deck = [...(sbx.deck || []), cardId];
+  return true;
+}
+
 function getCurrentHomeId() {
   return cardIdOf(sbx.home);
 }
@@ -4946,7 +5298,7 @@ function renderGameHome() {
       let abilityBodyHtml = abilityEquippedCards.length
         ? abilityEquippedCards.map(c => {
             const slots = c.data?.memory_slots_required || 1;
-            const desc  = c.data?.positive_description || c.description || '';
+            const desc  = abilityDisplayText(c);
             return `<div class="gh-ability-chip equipped" data-peek-card="${c.id}" onclick="ghEquipAbility(${ci},'${c.id}',event)">
               <div class="gh-ability-chip-main"><span class="gh-ability-name">✦ ${c.name}</span><span class="gh-ability-slots">${slots} slot${slots>1?'s':''}</span></div>
               ${desc ? `<div class="gh-ability-desc">${desc}</div>` : ''}
@@ -4958,7 +5310,7 @@ function renderGameHome() {
         abilityBodyHtml += `<div class="gh-drop-divider">Available to assign</div>`
           + compatibleAbilities.map(c => {
               const slots = c.data?.memory_slots_required || 1;
-              const desc  = c.data?.positive_description || c.description || '';
+              const desc  = abilityDisplayText(c);
               return `<div class="gh-ability-chip" data-peek-card="${c.id}" onclick="ghEquipAbility(${ci},'${c.id}',event)">
                 <div class="gh-ability-chip-main"><span class="gh-ability-name">+ ${c.name}</span><span class="gh-ability-slots">${slots} slot${slots>1?'s':''}</span></div>
                 ${desc ? `<div class="gh-ability-desc">${desc}</div>` : ''}

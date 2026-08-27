@@ -227,6 +227,9 @@
   .stat-lbl{font-size:10px;color:var(--t3);text-transform:capitalize}
   .stat-input{padding:6px 8px;background:var(--s2);border:1px solid var(--bd);border-radius:var(--r-sm);color:var(--t1);font-size:13px;outline:none;text-align:center;width:100%}
   .stat-input:focus{border-color:var(--acc)}
+  .ability-effect-row{display:grid;grid-template-columns:1fr 1fr 80px 80px 110px auto;gap:6px;margin-bottom:6px;align-items:center}
+  .ability-effect-text{grid-column:1/-1}
+  @media(max-width:900px){.ability-effect-row{grid-template-columns:1fr 1fr}.ability-effect-text{grid-column:1/-1}}
 
   a.game-link{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--acc);text-decoration:none}
   a.game-link:hover{text-decoration:underline}
@@ -535,11 +538,13 @@
           <input class="form-input" id="f-ability-gate" type="number" min="0" placeholder="0">
         </div>
       </div>
-      <div id="ability-expiry-block"></div>
-      <div class="form-section">Stat Buffs</div>
+      <div class="form-section">Ability Effects</div>
+      <div id="ability-effects-rows"></div>
+      <button type="button" class="btn btn-ghost btn-sm" onclick="addAbilityEffectRow('ability-effects-rows')">+ Add ability effect</button>
+      <div class="form-section">Passive Stat Buffs</div>
       <div id="ability-buffs-rows"></div>
       <button type="button" class="btn btn-ghost btn-sm" onclick="addStatModRow('ability-buffs-rows')">+ Add buff</button>
-      <div class="form-section">Penalties</div>
+      <div class="form-section">Passive Penalties</div>
       <div id="ability-penalties-rows"></div>
       <button type="button" class="btn btn-ghost btn-sm" onclick="addStatModRow('ability-penalties-rows')">+ Add penalty</button>
     </div>
@@ -747,6 +752,115 @@ function getEffects(card) {
   return [];
 }
 
+const ABILITY_EFFECT_DEFS = {
+  crit_chance: { label:'Crit Chance', short:'CRIT', trigger:'fight_start' },
+  opening_hit: { label:'Opening Hit', short:'OPENING HIT', trigger:'fight_start' },
+  first_dodge: { label:'First Dodge', short:'FIRST DODGE', trigger:'fight_start' },
+  damage_boost: { label:'Damage Boost', short:'DMG+', trigger:'fight_start' },
+  damage_reduce: { label:'Damage Reduce', short:'DMG-', trigger:'fight_start' },
+  confuse: { label:'Confuse', short:'CONFUSE', trigger:'fight_start' },
+  bonus_loot: { label:'Bonus Loot', short:'BONUS LOOT', trigger:'loot_roll' },
+  loot_rarity_up: { label:'Loot Rarity Up', short:'LOOT UP', trigger:'loot_roll' },
+  befriend_chance: { label:'Befriend Chance', short:'ALLY+', trigger:'social' },
+  escape: { label:'Escape', short:'ESCAPE', trigger:'fight_loss' },
+  post_fight_heal: { label:'Post-Fight Heal', short:'HEAL', trigger:'after_fight' },
+  energy_cost_reduce: { label:'Energy Cost Reduce', short:'ENERGY SAVE', trigger:'run_start' },
+  hunger_drain_reduce: { label:'Hunger Drain Reduce', short:'HUNGER SAVE', trigger:'run_end' },
+};
+const ABILITY_TRIGGER_LABELS = {
+  fight_start:'fight', on_hit:'hit', after_win:'win', loot_roll:'loot', social:'social',
+  fight_loss:'loss', after_fight:'fight end', run_start:'run start', run_end:'return'
+};
+const ABILITY_LIMIT_LABELS = { always:'always', per_fight:'fight', once_per_run:'1x/run' };
+
+function abilityShortText(effect) {
+  if (!effect) return '';
+  if (effect.short_text) return effect.short_text;
+  const def = ABILITY_EFFECT_DEFS[effect.effect_type] || { short: (effect.effect_type || 'effect').replace(/_/g,' ').toUpperCase() };
+  const chance = parseInt(effect.chance_percent) || 0;
+  const limit = ABILITY_LIMIT_LABELS[effect.limit] || ABILITY_TRIGGER_LABELS[effect.trigger] || '';
+  return `${chance ? chance + '% ' : ''}${def.short}${limit ? ' / ' + limit : ''}`;
+}
+
+function abilityFullText(effect) {
+  if (!effect) return '';
+  if (effect.full_text) return effect.full_text;
+  const chance = parseInt(effect.chance_percent) || 0;
+  const value = parseInt(effect.value) || 0;
+  const c = chance ? `${chance}% chance to ` : '';
+  switch (effect.effect_type) {
+    case 'crit_chance': return `${c}make the first successful hit a critical hit.`;
+    case 'opening_hit': return `${c}land a free opening hit${value ? ` for ${value} damage` : ''}.`;
+    case 'first_dodge': return `${c}dodge the first incoming hit.`;
+    case 'damage_boost': return `${c}increase outgoing fight damage by ${value || 20}%.`;
+    case 'damage_reduce': return `${c}reduce incoming fight damage by ${value || 20}%.`;
+    case 'confuse': return `${c}confuse the opponent and reduce their attack power.`;
+    case 'bonus_loot': return `${c}find one extra loot card.`;
+    case 'loot_rarity_up': return `${c}upgrade found loot by one rarity tier.`;
+    case 'befriend_chance': return `${c}increase the chance to make a new ally.`;
+    case 'escape': return `${c}escape a losing fight without extra penalties.`;
+    case 'post_fight_heal': return `${c}recover ${value || 12} stamina after a fight.`;
+    case 'energy_cost_reduce': return `Reduce outside energy cost by ${value || 15}%.`;
+    case 'hunger_drain_reduce': return `Reduce hunger drain after returning by ${value || 15}%.`;
+    default: return `${c}${(effect.effect_type || 'trigger an effect').replace(/_/g,' ')}.`;
+  }
+}
+
+function inferAbilityEffects(card) {
+  if (!card || card.type !== 'special_ability') return [];
+  const data = card.data || {};
+  if (Array.isArray(data.ability_effects) && data.ability_effects.length) return data.ability_effects;
+  const text = `${card.name || ''} ${card.description || ''} ${data.positive_description || ''} ${data.negative_description || ''}`.toLowerCase();
+  const mk = (effect_type, chance_percent, value, trigger, limit, short_text) => ({
+    effect_type, chance_percent, value, trigger: trigger || (ABILITY_EFFECT_DEFS[effect_type] || {}).trigger || 'fight_start',
+    limit: limit || 'per_fight', short_text, full_text: abilityFullText({ effect_type, chance_percent, value })
+  });
+  if (text.includes('smoke') || text.includes('escape')) return [mk('escape', 35, 0, 'fight_loss', 'once_per_run', '35% ESCAPE / loss')];
+  if (text.includes('heal') || text.includes('rally') || text.includes('recover')) return [mk('post_fight_heal', 30, 14, 'after_fight', 'per_fight', '30% HEAL / fight')];
+  if (text.includes('loot') || text.includes('treasure')) return [mk('loot_rarity_up', 15, 1, 'loot_roll', 'always', '15% LOOT UP')];
+  if (text.includes('friend') || text.includes('ally') || text.includes('charm')) return [mk('befriend_chance', 25, 25, 'social', 'always', '+25% ALLY CHANCE')];
+  if (text.includes('dodge')) return [mk('first_dodge', 25, 0, 'fight_start', 'per_fight', '25% FIRST DODGE')];
+  if (text.includes('stun') || text.includes('catnip') || text.includes('confus') || text.includes('aoe')) return [mk('confuse', 22, 20, 'fight_start', 'per_fight', '22% CONFUSE')];
+  if (text.includes('range') || text.includes('pounce') || text.includes('opening')) return [mk('opening_hit', 25, 10, 'fight_start', 'per_fight', '25% OPENING HIT')];
+  if (text.includes('crit')) return [mk('crit_chance', 20, 20, 'fight_start', 'per_fight', '20% CRIT / fight')];
+  if ((data.stat_buffs || []).length) return [mk('damage_boost', 20, 15, 'fight_start', 'per_fight', '20% DMG+ / fight')];
+  return [];
+}
+
+function getAbilityEffects(card) {
+  return inferAbilityEffects(card);
+}
+
+function normalizeAbilityCard(card) {
+  if (!card || card.type !== 'special_ability') return card;
+  const data = card.data || {};
+  return {
+    ...card,
+    data: {
+      ...data,
+      ability_effects: getAbilityEffects({ ...card, data }),
+      expiry: { type:'none' }
+    }
+  };
+}
+
+function hasLegacyAbilityExpiry(card) {
+  return card && card.type === 'special_ability' && card.data && card.data.expiry && card.data.expiry.type !== 'none';
+}
+
+async function migrateLegacyAbilityCards(cards) {
+  const legacyCards = (cards || []).filter(hasLegacyAbilityExpiry);
+  if (!legacyCards.length) return;
+  for (const card of legacyCards) {
+    const normalized = normalizeAbilityCard(card);
+    const { error } = await db.from('cards').update({
+      data: normalized.data,
+      updated_at: new Date().toISOString()
+    }).eq('id', card.id);
+    if (error) console.warn('Ability migration skipped for', card.id, error.message);
+  }
+}
+
 function devRateChips(card) {
   if (!card || !card.data || !card.data.development_rates) return '';
   return card.data.development_rates.map(dr => {
@@ -811,7 +925,12 @@ function buildCardBodyHtml(card, showDesc = true) {
       }
     } else if (card.type === 'special_ability') {
       body += `<div class="cv-subtext" style="color:var(--t3)">${data.memory_slots_required||0} memory slot${data.memory_slots_required!==1?'s':''} · min INT+LOY ${data.min_intelligence_plus_loyalty||0}</div>`;
-      if (data.positive_description) body += `<div class="cv-subtext" style="color:#34D399;font-size:10px">${data.positive_description}</div>`;
+      const abilityEffects = getAbilityEffects(card);
+      if (abilityEffects.length) {
+        body += `<div class="cv-effs">${abilityEffects.map(e => `<span class="cv-eff pos" title="${abilityFullText(e).replace(/"/g,'&quot;')}">${abilityShortText(e)}</span>`).join('')}</div>`;
+      } else if (data.positive_description) {
+        body += `<div class="cv-subtext" style="color:#34D399;font-size:10px">${data.positive_description}</div>`;
+      }
       if (data.negative_description) body += `<div class="cv-subtext" style="color:#F87171;font-size:10px">${data.negative_description}</div>`;
     }
   }
@@ -964,7 +1083,8 @@ async function loadCards() {
     document.getElementById('card-grid').innerHTML = '<div style="grid-column:1/-1" class="empty">Could not load cards. Run the SQL setup first.</div>';
     return;
   }
-  ALL_CARDS = data || [];
+  await migrateLegacyAbilityCards(data || []);
+  ALL_CARDS = (data || []).map(normalizeAbilityCard);
   renderCards(ALL_CARDS);
 }
 
@@ -1023,6 +1143,70 @@ function collectStatModRows(containerId) {
     const val  = parseInt(row.querySelector('.stat-mod-val').value) || 0;
     return { stat, modifier: (val >= 0 ? '+' : '') + val };
   });
+}
+
+function abilityEffectOptionsHtml(selected) {
+  return Object.entries(ABILITY_EFFECT_DEFS).map(([value, def]) =>
+    `<option value="${value}"${value===selected?' selected':''}>${def.label}</option>`
+  ).join('');
+}
+function abilityTriggerOptionsHtml(selected) {
+  return Object.entries(ABILITY_TRIGGER_LABELS).map(([value, label]) =>
+    `<option value="${value}"${value===selected?' selected':''}>${label}</option>`
+  ).join('');
+}
+function abilityLimitOptionsHtml(selected) {
+  return Object.entries(ABILITY_LIMIT_LABELS).map(([value, label]) =>
+    `<option value="${value}"${value===selected?' selected':''}>${label}</option>`
+  ).join('');
+}
+function abilityEffectRowHtml(effect) {
+  const e = effect || {};
+  const type = e.effect_type || 'crit_chance';
+  const def = ABILITY_EFFECT_DEFS[type] || ABILITY_EFFECT_DEFS.crit_chance;
+  return `<div class="ability-effect-row">
+    <select class="form-select ae-trigger" onchange="refreshPreview()">${abilityTriggerOptionsHtml(e.trigger || def.trigger)}</select>
+    <select class="form-select ae-type" onchange="onAbilityEffectTypeChange(this)">${abilityEffectOptionsHtml(type)}</select>
+    <input class="form-input ae-chance" type="number" min="0" max="100" value="${e.chance_percent != null ? e.chance_percent : 20}" title="Chance %" oninput="refreshPreview()">
+    <input class="form-input ae-value" type="number" value="${e.value != null ? e.value : 0}" title="Value" oninput="refreshPreview()">
+    <select class="form-select ae-limit" onchange="refreshPreview()">${abilityLimitOptionsHtml(e.limit || 'per_fight')}</select>
+    <button type="button" class="btn btn-ghost btn-sm" onclick="this.closest('.ability-effect-row').remove();refreshPreview()">✕</button>
+    <input class="form-input ae-short ability-effect-text" placeholder="Short text, e.g. 20% CRIT / fight" value="${(e.short_text || abilityShortText(e)).replace(/"/g,'&quot;')}" oninput="refreshPreview()">
+    <textarea class="form-textarea ae-full ability-effect-text" placeholder="Full rules text" oninput="refreshPreview()">${e.full_text || abilityFullText(e)}</textarea>
+  </div>`;
+}
+function renderAbilityEffectRows(containerId, rows) {
+  document.getElementById(containerId).innerHTML = (rows || []).map(abilityEffectRowHtml).join('');
+}
+function addAbilityEffectRow(containerId) {
+  document.getElementById(containerId).insertAdjacentHTML('beforeend', abilityEffectRowHtml());
+  refreshPreview();
+}
+function onAbilityEffectTypeChange(sel) {
+  const row = sel.closest('.ability-effect-row');
+  const type = sel.value;
+  const def = ABILITY_EFFECT_DEFS[type] || ABILITY_EFFECT_DEFS.crit_chance;
+  row.querySelector('.ae-trigger').value = def.trigger;
+  const draft = collectAbilityEffectFromRow(row);
+  row.querySelector('.ae-short').value = abilityShortText(draft);
+  row.querySelector('.ae-full').value = abilityFullText(draft);
+  refreshPreview();
+}
+function collectAbilityEffectFromRow(row) {
+  return {
+    trigger: row.querySelector('.ae-trigger').value,
+    effect_type: row.querySelector('.ae-type').value,
+    chance_percent: parseInt(row.querySelector('.ae-chance').value) || 0,
+    value: parseInt(row.querySelector('.ae-value').value) || 0,
+    limit: row.querySelector('.ae-limit').value,
+    short_text: row.querySelector('.ae-short').value.trim(),
+    full_text: row.querySelector('.ae-full').value.trim(),
+  };
+}
+function collectAbilityEffectRows(containerId) {
+  return Array.from(document.querySelectorAll('#'+containerId+' .ability-effect-row'))
+    .map(collectAbilityEffectFromRow)
+    .filter(e => e.effect_type);
 }
 
 /* ── Shared: stat+rate+period rows (home_item.development_rates) ── */
@@ -1300,14 +1484,26 @@ function collectCardData(type) {
     const growth = collectGrowthBlock('gear-growth');
     if (growth) data.home_dev_effect = growth;
   } else if (type === 'special_ability') {
+    const currentCard = {
+      type:'special_ability',
+      name: document.getElementById('f-name').value.trim(),
+      description: document.getElementById('f-desc').value.trim(),
+      data: {
+        positive_description: document.getElementById('f-ability-pos-desc').value.trim() || null,
+        negative_description: document.getElementById('f-ability-neg-desc').value.trim() || null,
+        stat_buffs: collectStatModRows('ability-buffs-rows')
+      }
+    };
+    const abilityEffects = collectAbilityEffectRows('ability-effects-rows');
     data = {
       positive_description: document.getElementById('f-ability-pos-desc').value.trim() || null,
       negative_description: document.getElementById('f-ability-neg-desc').value.trim() || null,
       memory_slots_required: parseInt(document.getElementById('f-ability-memory').value) || 0,
       min_intelligence_plus_loyalty: parseInt(document.getElementById('f-ability-gate').value) || 0,
+      ability_effects: abilityEffects.length ? abilityEffects : inferAbilityEffects(currentCard),
       stat_buffs: collectStatModRows('ability-buffs-rows'),
       penalties: collectStatModRows('ability-penalties-rows'),
-      expiry: collectExpiry('ability-expiry')
+      expiry: { type:'none' }
     };
   } else if (type === 'home_item') {
     data = {
@@ -1479,8 +1675,7 @@ function onTypeChange(card) {
     document.getElementById('f-ability-neg-desc').value = data.negative_description || '';
     document.getElementById('f-ability-memory').value = data.memory_slots_required || 0;
     document.getElementById('f-ability-gate').value = data.min_intelligence_plus_loyalty || 0;
-    document.getElementById('ability-expiry-block').innerHTML = expiryBlockHtml('ability-expiry');
-    populateExpiry('ability-expiry', data.expiry);
+    renderAbilityEffectRows('ability-effects-rows', inferAbilityEffects(card || { type:'special_ability', data }));
     renderStatModRows('ability-buffs-rows', data.stat_buffs);
     renderStatModRows('ability-penalties-rows', data.penalties);
 
