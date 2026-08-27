@@ -98,6 +98,7 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .fchip[data-type="home_item"].on{color:var(--col-item)}
 .fchip[data-type="battle_gear"].on{color:var(--col-gear)}
 .fchip[data-type="special_ability"].on{color:var(--col-ability)}
+.fchip[data-type="consumable"].on{color:var(--acc2)}
 .fchip[data-rar="common"].on{color:var(--rar-common)}
 .fchip[data-rar="uncommon"].on{color:var(--rar-uncommon)}
 .fchip[data-rar="rare"].on{color:var(--rar-rare)}
@@ -374,8 +375,6 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .cmo-cv .cv-hchip{font-size:10.5px!important}
 .cmo-close{font-family:var(--fm);font-size:10px;text-transform:uppercase;letter-spacing:.08em;padding:6px 18px;background:var(--s2);border:1px solid var(--bd);border-radius:var(--r-f);color:var(--t2);cursor:pointer;transition:all .15s}
 .cmo-close:hover{border-color:#F43F5E;color:#F43F5E}
-.cmo-edit-btn{font-family:var(--fm);font-size:10px;text-transform:uppercase;letter-spacing:.08em;padding:6px 18px;background:var(--s2);border:1px solid var(--bd);border-radius:var(--r-f);color:var(--acc2);cursor:pointer;transition:all .15s}
-.cmo-edit-btn:hover{border-color:var(--acc2);background:rgba(99,102,241,.12)}
 .cmo-peek-close{position:absolute;top:16px;right:16px;z-index:2;width:36px;height:36px;border-radius:50%;border:1px solid var(--bd2);background:var(--s2);color:var(--t1);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
 .cmo-peek-close:hover{border-color:#F43F5E;color:#F43F5E}
 /* Card Edit Panel */
@@ -779,6 +778,8 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .gh-food-section{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r-lg);padding:16px 18px}
 .gh-food-title{font-family:var(--fm);font-size:9.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--t2);margin-bottom:12px;display:flex;align-items:center;gap:6px}
 .gh-food-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--bd)}
+.gh-food-row.clickable{cursor:pointer}
+.gh-food-row.clickable:hover .gh-food-name{color:var(--acc2)}
 .gh-food-row:last-child{border-bottom:none}
 .gh-food-icon{font-size:20px;width:28px;text-align:center}
 .gh-food-info{flex:1}
@@ -864,7 +865,7 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .gh-inbox-dot{position:absolute;top:-1px;right:-1px;width:8px;height:8px;border-radius:50%;background:#F0A030;border:1.5px solid var(--s1);animation:inbox-pulse 1.8s ease infinite;display:block}
 @keyframes inbox-pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.35);opacity:.55}}
 /* Cards tab */
-.gh-cards-tab{display:flex;flex-direction:column;gap:12px;width:100%;max-width:860px}
+.gh-cards-tab{--gh-card-w:210px;display:flex;flex-direction:column;gap:12px;width:100%;max-width:860px}
 .gh-cards-header{padding:2px 0 0;display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
 .gh-cards-title{font-family:var(--fd);font-size:17px;font-weight:700;color:var(--t1)}
 .gh-cards-sub{font-family:var(--fb);font-size:12px;color:var(--t3);margin-top:2px}
@@ -873,9 +874,9 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .gh-card-search{flex:1;min-width:180px;font-family:var(--fb);font-size:12px;padding:7px 10px;background:var(--s2);border:1px solid var(--bd);border-radius:var(--r-md);color:var(--t1);outline:none;transition:border-color .15s}
 .gh-card-search:focus{border-color:var(--acc)}
 .gh-card-filter{font-family:var(--fb);font-size:12px;padding:7px 10px;background:var(--s2);border:1px solid var(--bd);border-radius:var(--r-md);color:var(--t1);outline:none;cursor:pointer;min-width:118px}
-.gh-card-grid{display:grid;grid-template-columns:repeat(3,210px);gap:14px;align-items:start;justify-content:center}
-.gh-card-cell{position:relative;display:flex;flex-direction:column;gap:7px;width:210px}
-.gh-card-cell .cv{cursor:pointer;transition:transform .14s,box-shadow .14s;height:294px;display:flex;flex-direction:column}
+.gh-card-grid{display:grid;grid-template-columns:repeat(3,var(--gh-card-w));gap:14px;align-items:start;justify-content:center;width:100%}
+.gh-card-cell{position:relative;display:flex;flex-direction:column;gap:7px;width:var(--gh-card-w)}
+.gh-card-cell .cv{width:var(--gh-card-w);height:calc(var(--gh-card-w) * 1.4);cursor:pointer;transition:transform .14s,box-shadow .14s;display:flex;flex-direction:column}
 .gh-card-cell .cv:hover{transform:translateY(-3px);box-shadow:0 0 0 2px var(--cv-r,var(--cv-c)),0 16px 40px rgba(0,0,0,.55)}
 .gh-card-cell .cv .cv-art{height:70px!important;font-size:34px!important;flex-shrink:0!important}
 .gh-card-cell .cv .cv-art::after{display:none}
@@ -895,8 +896,8 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .gh-card-actions-row{display:flex;gap:5px;flex-shrink:0;margin-left:auto}
 .gh-card-act-btn{padding:4px 9px;font-family:var(--fm);font-size:8px;text-transform:uppercase;letter-spacing:.05em;background:none;border:1px solid var(--bd);border-radius:var(--r-md);color:var(--t3);cursor:pointer;transition:all .15s;white-space:nowrap}
 .gh-card-act-btn:hover{border-color:var(--acc);color:var(--acc2)}
-@media(max-width:720px){.gh-card-grid{grid-template-columns:repeat(2,210px)}}
-@media(max-width:480px){.gh-card-grid{grid-template-columns:210px}.gh-cards-header{align-items:flex-start;flex-direction:column}.gh-card-tools{align-items:stretch}.gh-card-search,.gh-card-filter{width:100%;min-width:0}}
+@media(max-width:720px){.gh-cards-tab{--gh-card-w:min(186px,calc((100vw - 66px)/2))}.gh-card-grid{grid-template-columns:repeat(2,var(--gh-card-w));gap:10px}}
+@media(max-width:480px){.gh-cards-tab{--gh-card-w:min(152px,calc((100vw - 54px)/2))}.gh-cards-header{align-items:flex-start;flex-direction:column}.gh-card-tools{align-items:stretch}.gh-card-search,.gh-card-filter{width:100%;min-width:0}.gh-card-cell .cv .cv-art{height:50px!important;font-size:26px!important}.gh-card-cell .cv .cv-hdr{padding:5px 7px 4px!important}.gh-card-cell .cv .cv-tlbl{font-size:6.5px!important}.gh-card-cell .cv .cv-rpill{font-size:6px!important;padding:1px 5px!important}.gh-card-cell .cv .cv-name{font-size:9.5px!important}.gh-card-cell .cv .cv-body{padding:5px 7px!important;gap:3px!important}.gh-card-cell .cv .cv-desc{font-size:7.5px!important;line-height:1.35!important}.gh-card-cell .cv .cv-stats-grid{gap:1px 4px!important}.gh-card-cell .cvs-n{font-size:5.5px!important;width:18px!important}.gh-card-cell .cvs-v{font-size:5.5px!important;min-width:13px!important}.gh-card-cell .cvs-bar{height:2px!important}.gh-card-cell .cv .cv-eff{font-size:6.5px!important;padding:1px 4px!important}.gh-card-cell .cv .cv-hchip{font-size:7px!important;padding:2px 5px!important}.gh-card-cell .cv .cv-subtext{font-size:6.8px!important}.gh-card-cell .cv .cv-foot{padding:4px 7px 5px!important}.gh-card-cell .cv .cv-cost{font-size:9px!important}.gh-card-meta{min-height:20px}.gh-card-badge{font-size:7px;padding:2px 6px}.gh-card-act-btn{font-size:7px;padding:3px 6px}}
 .gh-visits-tab{display:flex;flex-direction:column;gap:14px;width:100%;max-width:860px}
 .gh-visits-header{padding:2px 0 4px}
 .gh-visits-title{font-family:var(--fd);font-size:17px;font-weight:700;color:var(--t1)}
@@ -944,9 +945,21 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .gh-ability-locked-reason{color:#F43F5E!important;opacity:.8}
 .gh-ability-full-msg{font-family:var(--fm);font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--t3);text-align:center;padding:6px 0 2px;opacity:.7}
 .gh-ability-chip .gh-gear-rm{position:absolute;top:7px;right:10px}
+.gh-home-card-title.clickable,.gh-home-cat-row.clickable,.gh-item-row.clickable{cursor:pointer;transition:border-color .15s,background .15s,color .15s}
+.gh-home-card-title.clickable:hover{color:var(--acc2)}
+.gh-home-cat-row.clickable:hover{background:rgba(255,255,255,.035)}
+.gh-home-items-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
+.gh-home-slot-count{font-family:var(--fm);font-size:8.5px;color:var(--t3);white-space:nowrap}
 .gh-item-row{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:var(--r-md);background:var(--s2);border:1px solid var(--bd)}
+.gh-item-row.clickable:hover{border-color:var(--col-item);background:rgba(56,189,248,.08)}
 .gh-item-name{font-family:var(--fb);font-size:12px;color:var(--t1);flex:1}
 .gh-item-desc{font-family:var(--fb);font-size:10.5px;color:var(--t3);line-height:1.4;margin-top:1px}
+.gh-item-remove{margin-left:auto;border:none;background:transparent;color:var(--t3);cursor:pointer;font-size:12px;padding:2px 5px;border-radius:var(--r-sm)}
+.gh-item-remove:hover{color:#F43F5E;background:rgba(244,63,94,.1)}
+.gh-home-add-item{font-family:var(--fm);font-size:9px;text-transform:uppercase;letter-spacing:.06em;padding:5px 10px;border-radius:var(--r-md);border:1px solid var(--bd);background:var(--s2);color:var(--t2);cursor:pointer;transition:all .15s}
+.gh-home-add-item:hover{border-color:var(--col-item);color:var(--col-item)}
+.gh-home-add-item:disabled{opacity:.42;cursor:not-allowed;pointer-events:none}
+.gh-home-item-picker{display:none;flex-direction:column;gap:6px;margin-top:8px}
 /* ── DEVELOPMENT ── */
 .gh-dev-section{display:flex;flex-direction:column;gap:8px;padding:12px 14px;background:rgba(167,139,250,.05);border:1px solid rgba(167,139,250,.18);border-radius:var(--r-lg)}
 .gh-dev-title{font-family:var(--fm);font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:#c084fc;display:flex;align-items:center;gap:5px}
@@ -1102,6 +1115,7 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
             <button class="fchip" data-type="home_item" onclick="setFilter('type','home_item',this)">📦 Item</button>
             <button class="fchip" data-type="battle_gear" onclick="setFilter('type','battle_gear',this)">⚔ Gear</button>
             <button class="fchip" data-type="special_ability" onclick="setFilter('type','special_ability',this)">✦ Ability</button>
+            <button class="fchip" data-type="consumable" onclick="setFilter('type','consumable',this)">🥣 Consumable</button>
           </div>
           <div class="filter-grp">
             <span class="filter-lbl">Rarity</span>
@@ -1221,7 +1235,7 @@ function effectiveCard(card) {
   return merged;
 }
 
-function getLibrary() { return [...baseLibrary().map(effectiveCard), ...CUSTOM_CARDS]; }
+function getLibrary() { return [...baseLibrary().map(effectiveCard), ...CONSUMABLE_CARDS.map(effectiveCard), ...CUSTOM_CARDS]; }
 
 function getCard(id) { return getLibrary().find(c => c.id === id) || null; }
 
@@ -1249,7 +1263,8 @@ const TYPE_META = {
   home:           { label:'Home',           color:'var(--col-home)',    emoji:'🏠' },
   home_item:      { label:'Item',           color:'var(--col-item)',    emoji:'📦' },
   battle_gear:    { label:'Gear',           color:'var(--col-gear)',    emoji:'⚔' },
-  special_ability:{ label:'Ability',        color:'var(--col-ability)', emoji:'✦' }
+  special_ability:{ label:'Ability',        color:'var(--col-ability)', emoji:'✦' },
+  consumable:     { label:'Consumable',     color:'var(--acc2)',        emoji:'🥣' }
 };
 const RAR_COLOR = {
   common:'var(--rar-common)', uncommon:'var(--rar-uncommon)',
@@ -1257,6 +1272,19 @@ const RAR_COLOR = {
 };
 const RARITIES = ['common','uncommon','rare','epic','legendary'];
 const STATS_ORDER = ['strength','speed','agility','stamina','intelligence','stealth','loyalty'];
+
+const CONSUMABLE_CARDS = [
+  { id:'cons-001', name:'Bag of Kibble', icon:'🥣', type:'consumable', rarity:'common', coin_cost:15, description:'Basic dry food. Reliable nutrition for a few meals.', data:{ consumable_type:'food', max_uses:3, hunger:22, statBoosts:{stamina:1} } },
+  { id:'cons-002', name:'Gourmet Wet Food', icon:'🍱', type:'consumable', rarity:'uncommon', coin_cost:24, description:'Rich wet food most cats love. Good for recovery and a little resilience.', data:{ consumable_type:'food', max_uses:2, hunger:38, mood:4, statBoosts:{stamina:2} } },
+  { id:'cons-003', name:'Salmon Fillet', icon:'🐟', type:'consumable', rarity:'rare', coin_cost:18, description:'Premium protein for one excellent meal. Builds stamina and trust.', data:{ consumable_type:'food', max_uses:1, hunger:55, statBoosts:{stamina:4, affection:1} } },
+  { id:'cons-004', name:'Energy Treat', icon:'⚡', type:'consumable', rarity:'common', coin_cost:16, description:'A quick boost for a tired cat. Slightly sharpens reflexes.', data:{ consumable_type:'treat', max_uses:2, energy:20, statBoosts:{speed:1} } },
+  { id:'cons-005', name:'Catnip Bundle', icon:'🌿', type:'consumable', rarity:'uncommon', coin_cost:20, description:'Instant happiness in herb form. Loosens up movement and play.', data:{ consumable_type:'treat', max_uses:2, mood:28, statBoosts:{agility:1} } },
+  { id:'cons-006', name:'Vitamin Paste', icon:'💊', type:'consumable', rarity:'uncommon', coin_cost:30, description:'Balanced supplement that restores appetite and energy while improving endurance.', data:{ consumable_type:'treat', max_uses:2, hunger:15, energy:15, statBoosts:{stamina:2} } },
+  { id:'cons-007', name:'Soft Brush', icon:'🪮', type:'consumable', rarity:'common', coin_cost:24, description:'A gentle brush for regular grooming. Builds affection over repeated care.', data:{ consumable_type:'groom', max_uses:4, mood:18, statBoosts:{affection:1} } },
+  { id:'cons-008', name:'Detangling Comb', icon:'🪮', type:'consumable', rarity:'uncommon', coin_cost:30, description:'Works out knots without fuss. Cats move more freely after.', data:{ consumable_type:'groom', max_uses:3, mood:22, statBoosts:{affection:2, agility:1} } },
+  { id:'cons-009', name:'Aromatic Shampoo', icon:'🧴', type:'consumable', rarity:'rare', coin_cost:36, description:'Luxury bath formula. Leaves a gleam that makes rivals hesitate.', data:{ consumable_type:'groom', max_uses:2, mood:32, statBoosts:{affection:3, speed:1} } },
+  { id:'cons-010', name:'Conditioning Spray', icon:'✨', type:'consumable', rarity:'uncommon', coin_cost:36, description:'No-rinse coat conditioner. Hydrates and subtly boosts endurance.', data:{ consumable_type:'groom', max_uses:3, mood:25, statBoosts:{affection:2, stamina:2} } },
+];
 
 function escapeAttr(value) {
   return String(value ?? '').replace(/[&<>"']/g, ch => ({
@@ -1412,6 +1440,11 @@ function buildCardBodyHtml(card, showDesc=true) {
       body += `<div class="cv-effs">${devChips}</div>`;
     }
     body += `<div class="cv-subtext" style="color:var(--t3)">passive · permanent stat growth</div>`;
+  } else if (card.type === 'consumable') {
+    const effects = formatConsumableEffects(card).map(e => `<span class="cv-eff pos">${e}</span>`).join('');
+    const uses = getConsumableUses(card);
+    body += `<div class="cv-effs">${effects}</div>`;
+    body += `<div class="cv-subtext" style="color:var(--t3)">${card.data.consumable_type} · expires after ${card.data.max_uses || 1} use${(card.data.max_uses || 1) === 1 ? '' : 's'}${uses ? ` · ${uses} left` : ''}</div>`;
   } else {
     const effs = getEffects(card);
     if (effs.length) {
@@ -1546,7 +1579,6 @@ function buildModalCardHtml(card, opts = {}) {
   return `
     ${buildCardFaceHtml(card, { cssClass: 'cv cmo-cv' })}
     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center">
-      <button class="cmo-edit-btn" onclick="openEditPanel('${card.id}')">✎ Edit Card</button>
       <button class="cmo-close" onclick="closeCardModal()">✕ Close</button>
     </div>`;
 }
@@ -2375,6 +2407,7 @@ function renderDashboard() {
     home_item: lib.filter(c => c.type === 'home_item').length,
     battle_gear: lib.filter(c => c.type === 'battle_gear').length,
     special_ability: lib.filter(c => c.type === 'special_ability').length,
+    consumable: lib.filter(c => c.type === 'consumable').length,
   };
   const total = lib.length;
   // Stats pills
@@ -2387,6 +2420,7 @@ function renderDashboard() {
       { n: byType.home_item, l: 'Items', color: 'var(--col-item)' },
       { n: byType.battle_gear, l: 'Gear', color: 'var(--col-gear)' },
       { n: byType.special_ability, l: 'Abilities', color: 'var(--col-ability)' },
+      { n: byType.consumable, l: 'Consumables', color: 'var(--acc2)' },
     ];
     statsEl.innerHTML = pills.map(p =>
       `<div class="dash-stat-pill">
@@ -4407,14 +4441,26 @@ function completeOnboarding() {
   sbx.deck  = kept.map(c => c.id);
   sbx.coins = player.coins;
   const keptBreeds    = kept.filter(c => c.type === 'cat_breed');
+  const keptHomes     = kept.filter(c => c.type === 'home');
   const keptHomeItems = kept.filter(c => c.type === 'home_item');
+  const firstHome = keptHomes[0] || null;
+  sbx.home = firstHome;
   if (keptBreeds.length) {
-    // Gear/abilities are each unique to one cat at a time (see globallyEquipped
+    // Gear/abilities are each unique to one cat at a time (see home usage
     // in renderGameHome) — start every cat unequipped and let the player
     // assign drafted gear/abilities from their deck via the Gear/Abilities
     // dropdowns, instead of attaching the same cards to every cat at once.
     sbx.cats = keptBreeds.map(b => ({ breed: b, gear: [], abilities: [], home_joined_at: Date.now(), home_dev_gains: {}, rep: 100, allies: [] }));
-    sbx.homeItems = keptHomeItems;
+    const maxSlots = firstHome && firstHome.data ? (firstHome.data.expansion_slots || 0) : 0;
+    sbx.homeItems = [];
+    let usedSlots = 0;
+    keptHomeItems.forEach(item => {
+      const slotCost = getHomeSlotCost(item);
+      if (usedSlots + slotCost <= maxSlots) {
+        sbx.homeItems.push(item);
+        usedSlots += slotCost;
+      }
+    });
   }
   // Save to localStorage
   try { localStorage.setItem('cz_player', JSON.stringify(player)); } catch(e) {}
@@ -4484,6 +4530,145 @@ const CAT_EMOJIS = {
 
 function getCatEmoji(card) { return CAT_EMOJIS[card && card.id] || '🐱'; }
 
+function cardIdOf(entry) {
+  return typeof entry === 'string' ? entry : (entry && entry.id);
+}
+
+function cardObjOf(entry) {
+  return typeof entry === 'string' ? getCard(entry) : entry;
+}
+
+function getOwnedCardCounts(deckEntries) {
+  return (deckEntries || []).reduce((counts, entry) => {
+    const id = cardIdOf(entry);
+    if (id) counts[id] = (counts[id] || 0) + 1;
+    return counts;
+  }, {});
+}
+
+function uniqueCards(cards) {
+  const seen = new Set();
+  return (cards || []).filter(card => {
+    if (!card || seen.has(card.id)) return false;
+    seen.add(card.id);
+    return true;
+  });
+}
+
+function getHomeSlotCost(card) {
+  return Math.max(1, (card && card.data && card.data.slot_requirement) || 1);
+}
+
+function getConsumableUses(card) {
+  if (!card || card.type !== 'consumable') return 0;
+  const inv = (PLAYER && PLAYER.inventory) || {};
+  return inv[card.id] || 0;
+}
+
+function formatConsumableEffects(card) {
+  if (!card || !card.data) return '';
+  const d = card.data;
+  return [
+    d.hunger ? `+${d.hunger} Hunger` : '',
+    d.energy ? `+${d.energy} Energy` : '',
+    d.mood ? `+${d.mood} Mood` : '',
+    ...(d.statBoosts ? Object.entries(d.statBoosts).map(([stat, val]) => `+${val} ${stat}`) : []),
+    `${d.max_uses || 1} use${(d.max_uses || 1) === 1 ? '' : 's'}`
+  ].filter(Boolean);
+}
+
+function consumeCardUse(cardId) {
+  if (!PLAYER || !PLAYER.inventory) return 0;
+  const card = getCard(cardId);
+  const maxUses = Math.max(1, (card && card.data && card.data.max_uses) || 1);
+  const remaining = (PLAYER.inventory[cardId] || 0) - 1;
+  if (remaining > 0) {
+    PLAYER.inventory[cardId] = remaining;
+  } else {
+    delete PLAYER.inventory[cardId];
+  }
+  if (remaining <= 0 || remaining % maxUses === 0) {
+    const idx = (PLAYER.deckIds || []).indexOf(cardId);
+    if (idx >= 0) PLAYER.deckIds.splice(idx, 1);
+    const sbxIdx = (sbx.deck || []).findIndex(entry => cardIdOf(entry) === cardId);
+    if (sbxIdx >= 0) sbx.deck.splice(sbxIdx, 1);
+  }
+  return Math.max(0, remaining);
+}
+
+function syncConsumableDeckCopies(player = PLAYER) {
+  if (!player || !player.inventory) return;
+  player.deckIds = player.deckIds || [];
+  CONSUMABLE_CARDS.forEach(card => {
+    const uses = player.inventory[card.id] || 0;
+    const maxUses = Math.max(1, (card.data && card.data.max_uses) || 1);
+    const neededCopies = Math.ceil(uses / maxUses);
+    const currentCopies = player.deckIds.filter(id => id === card.id).length;
+    for (let i = currentCopies; i < neededCopies; i++) player.deckIds.push(card.id);
+    if (currentCopies > neededCopies) {
+      let toRemove = currentCopies - neededCopies;
+      player.deckIds = player.deckIds.filter(id => id !== card.id || toRemove-- <= 0);
+    }
+  });
+}
+
+function getCurrentHomeId() {
+  return cardIdOf(sbx.home);
+}
+
+function getHomeEnvProfile(homeCard) {
+  const name = ((homeCard && homeCard.name) || '').toLowerCase();
+  const id = ((homeCard && homeCard.id) || '').toLowerCase();
+  const key = `${id} ${name}`;
+  if (key.includes('forest') || key.includes('cabin') || key.includes('garden')) {
+    return { kind:'forest', icon:'🌲', name:'Forest' };
+  }
+  if (key.includes('mansion') || key.includes('estate') || key.includes('villa')) {
+    return { kind:'estate', icon:'🏛️', name:'Estate' };
+  }
+  if (key.includes('loft') || key.includes('studio')) {
+    return { kind:'studio', icon:'🛋️', name:'Studio' };
+  }
+  return { kind:'urban', icon:'🏙️', name:'Urban' };
+}
+
+function getHomeUsageCounts() {
+  const counts = { cat_breed:{}, home_item:{}, battle_gear:{}, special_ability:{} };
+  const add = (type, id) => {
+    if (!id || !counts[type]) return;
+    counts[type][id] = (counts[type][id] || 0) + 1;
+  };
+  const addCatSetup = cs => {
+    add('cat_breed', cardIdOf(cs && cs.breed));
+    (cs && cs.gear || []).forEach(g => add('battle_gear', cardIdOf(g)));
+    (cs && cs.abilities || []).forEach(a => add('special_ability', cardIdOf(a)));
+  };
+  const currentHomeId = getCurrentHomeId();
+  Object.entries(sbx.savedHomes || {}).forEach(([homeId, saved]) => {
+    if (homeId === currentHomeId) return;
+    (saved.cats || []).forEach(addCatSetup);
+    (saved.homeItems || []).forEach(item => add('home_item', cardIdOf(item)));
+  });
+  (sbx.cats || []).forEach(addCatSetup);
+  (sbx.homeItems || []).forEach(item => add('home_item', cardIdOf(item)));
+  return counts;
+}
+
+function normalizeHomeItemsForSlots(maxSlots) {
+  const normalized = [];
+  let usedSlots = 0;
+  (sbx.homeItems || []).forEach(item => {
+    const card = cardObjOf(item);
+    if (!card || card.type !== 'home_item') return;
+    const slotCost = getHomeSlotCost(card);
+    if (usedSlots + slotCost > maxSlots) return;
+    normalized.push(card);
+    usedSlots += slotCost;
+  });
+  sbx.homeItems = normalized;
+  return { items: normalized, usedSlots };
+}
+
 function setGhCardFilter(key, value) {
   if (!(key in GH_CARD_FILTER)) return;
   GH_CARD_FILTER[key] = key === 'search' ? String(value || '').toLowerCase() : value;
@@ -4543,7 +4728,8 @@ function updateGameHomeBars() {
   });
 }
 
-// Drive all [data-w] bars to their target widths (triggers CSS transition)
+// Drive all [data-w] bars to their target widths when a render intentionally
+// starts them from a different value, such as the post-adventure diff view.
 function animateBars() {
   requestAnimationFrame(() => {
     document.querySelectorAll('.gh-need-fill[data-w]').forEach(el => {
@@ -4556,6 +4742,13 @@ function animateBars() {
 function renderGameHomeKeepScroll() {
   const scrollEl  = document.getElementById('gh-cats-scroll');
   const scrollLeft = scrollEl ? scrollEl.scrollLeft : 0;
+  const barSnapshots = Array.from(document.querySelectorAll('.gh-cats-scroll .gh-need-fill[data-w]')).map(el => {
+    const pctEl = el.closest('.gh-need-bar')?.previousElementSibling?.querySelector('.gh-need-pct');
+    return {
+      width: parseFloat(el.style.width || el.dataset.w || '0') || 0,
+      pct: pctEl ? (parseFloat(pctEl.textContent) || 0) : null,
+    };
+  });
   // Capture vertical scroll of the currently-visible cat card
   let cardScrollTop = 0;
   if (scrollEl) {
@@ -4577,22 +4770,70 @@ function renderGameHomeKeepScroll() {
       const activeIdx = Math.min(Math.round(scrollLeft / cardW), newCards.length - 1);
       if (newCards[activeIdx]) newCards[activeIdx].scrollTop = cardScrollTop;
     }
+    const newFills = Array.from(document.querySelectorAll('.gh-cats-scroll .gh-need-fill[data-w]'));
+    const pctEls = newFills.map(el => el.closest('.gh-need-bar')?.previousElementSibling?.querySelector('.gh-need-pct'));
+    const targets = newFills.map(el => parseFloat(el.dataset.w || '0') || 0);
+    newFills.forEach((el, i) => {
+      const snap = barSnapshots[i];
+      if (!snap) return;
+      el.style.transition = 'none';
+      el.style.width = snap.width + '%';
+      if (pctEls[i] && snap.pct !== null) pctEls[i].textContent = Math.round(snap.pct) + '%';
+    });
+    newFills.forEach(el => el.offsetWidth); // force style flush before restoring transitions
+    requestAnimationFrame(() => {
+      newFills.forEach((el, i) => {
+        const snap = barSnapshots[i];
+        if (!snap) return;
+        el.style.transition = '';
+        el.style.width = targets[i] + '%';
+        if (pctEls[i] && snap.pct !== null) animateNeedPct(pctEls[i], snap.pct, targets[i], 600);
+      });
+    });
   });
+}
+
+function animateNeedPct(el, from, to, duration) {
+  const start = performance.now();
+  const diff = to - from;
+  function step(now) {
+    const raw = Math.min((now - start) / duration, 1);
+    const t = raw < 0.5 ? 2 * raw * raw : -1 + (4 - 2 * raw) * raw;
+    el.textContent = Math.round(from + diff * t) + '%';
+    if (raw < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
 }
 
 function renderGameHome() {
   const gh = document.getElementById('game-home');
   if (!gh || gh.style.display === 'none') return;
   const player = PLAYER || {};
+  syncConsumableDeckCopies(player);
   const coins  = player.coins !== undefined ? player.coins : sbx.coins;
   const cats   = sbx.cats || [];
-  const homeCard = (player.deckIds || []).map(id => getCard(id)).find(c => c && c.type === 'home');
-  const homeName = homeCard ? homeCard.name : 'Your Home';
   const inv = player.inventory || {};
-  const foodCount = MARKET_CONSUMABLES.filter(c => c.type === 'food').reduce((s,c) => s + (inv[c.id]||0), 0);
   const deckIds      = (player.deckIds) || sbx.deck || [];
-  const allGearCards = deckIds.map(id => getCard(id)).filter(c => c && c.type === 'battle_gear');
-  const allItemCards = deckIds.map(id => getCard(id)).filter(c => c && c.type === 'home_item');
+  const ownedCounts  = getOwnedCardCounts(deckIds);
+  const deckCards    = deckIds.map(entry => cardObjOf(entry)).filter(Boolean);
+  const allHomeCards = deckCards.filter(c => c.type === 'home');
+  if (GH_ACTIVE_HOME_IDX >= allHomeCards.length) GH_ACTIVE_HOME_IDX = 0;
+  let homeCard = cardObjOf(sbx.home);
+  if (!homeCard || homeCard.type !== 'home') homeCard = allHomeCards[GH_ACTIVE_HOME_IDX] || null;
+  if (homeCard) {
+    const idx = allHomeCards.findIndex(c => c.id === homeCard.id);
+    if (idx >= 0) GH_ACTIVE_HOME_IDX = idx;
+    if (cardIdOf(sbx.home) !== homeCard.id) sbx.home = homeCard;
+  }
+  const homeEnv = getHomeEnvProfile(homeCard);
+  const homeName = homeCard ? homeCard.name : 'Your Home';
+  const allGearCards = deckCards.filter(c => c.type === 'battle_gear');
+  const allItemCards = deckCards.filter(c => c.type === 'home_item');
+  const allConsumableCards = uniqueCards(deckCards.filter(c => c.type === 'consumable' && (inv[c.id] || 0) > 0));
+  const foodCount = allConsumableCards
+    .filter(c => c.data && (c.data.consumable_type === 'food' || c.data.consumable_type === 'treat'))
+    .reduce((s,c) => s + (inv[c.id] || 0), 0);
+  const homeUsageCounts = getHomeUsageCounts();
 
   const gearEfStr = c => {
     if (!c || !c.data) return '';
@@ -4605,9 +4846,6 @@ function renderGameHome() {
   };
 
   // ── CATS TAB ──
-  // Build set of gear IDs already equipped to ANY cat (for uniqueness enforcement)
-  const globallyEquipped = new Set(cats.flatMap(cs => (cs.gear || []).map(g => typeof g === 'string' ? g : g?.id).filter(Boolean)));
-
   let catCardsHtml = '';
   if (!cats.length) {
     catCardsHtml = `<div class="gh-empty">No cats at home yet.</div>`;
@@ -4633,17 +4871,19 @@ function renderGameHome() {
       const mDiff = rd ? rd.moodDiff  : 0;
       const eDiff = rd ? rd.energyDiff : 0;
       const diffLabel = (d) => d === 0 ? '' : `<span class="gh-diff ${d>0?'pos':'neg'}">${d>0?'+':''}${Math.round(d)}</span>`;
-      // Always render at 0%; animateBars() drives to data-w after paint
+      // Ordinary renders mount bars at their real width. Special adventure
+      // diff renders can still animate from a previous value.
       const barFill = (pct, from, col) => rd
         ? `<div class="gh-need-fill gh-need-fill-anim" style="--gh-bar-from:${from}%;--gh-bar-to:${pct}%;background:${col}" data-w="${pct}"></div>`
-        : `<div class="gh-need-fill" style="width:0%;background:${col}" data-w="${pct}"></div>`;
+        : `<div class="gh-need-fill" style="width:${pct}%;background:${col}" data-w="${pct}"></div>`;
       const outside = canCatGoOutside(ci, cs);
 
       // ── GEAR ── (normalize: cs.gear may contain card objects OR string IDs)
       const equippedIds   = (cs.gear || []).map(g => typeof g === 'string' ? g : g?.id).filter(Boolean);
       const equippedCards = equippedIds.map(id => getCard(id)).filter(Boolean);
-      // Only show gear that isn't equipped to another cat (this cat's own gear is always shown)
-      const availableGear = allGearCards.filter(c => !equippedIds.includes(c.id) && !globallyEquipped.has(c.id));
+      const availableGear = uniqueCards(allGearCards.filter(c =>
+        !equippedIds.includes(c.id) && (homeUsageCounts.battle_gear[c.id] || 0) < (ownedCounts[c.id] || 0)
+      ));
       const gearLabel     = equippedIds.length ? `${equippedIds.length} equipped` : 'none';
       let gearBodyHtml    = equippedCards.length
         ? equippedCards.map(c => `<div class="gh-gear-chip equipped" data-peek-card="${c.id}" onclick="ghEquipGear(${ci},'${c.id}',event)"><span>⚔️ ${c.name}</span><div class="gh-gear-stats">${gearEfStr(c)}</div><span class="gh-gear-rm">✕</span></div>`).join('')
@@ -4674,17 +4914,11 @@ function renderGameHome() {
       const abilityLabel     = abilityEquippedIds.length
         ? `${abilityUsedSlots}/${ABILITY_SLOTS_TOTAL} slots`
         : `${ABILITY_SLOTS_TOTAL} slot${ABILITY_SLOTS_TOTAL !== 1 ? 's' : ''} free`;
-      // Globally equipped abilities (by other cats)
-      const globallyEquippedAbilities = new Set();
-      cats.forEach((oc, oi) => {
-        if (oi === ci) return;
-        (oc.abilities || []).forEach(a => { const id = typeof a === 'string' ? a : a?.id; if (id) globallyEquippedAbilities.add(id); });
-      });
       // All ability cards in deck, filtered to available
-      const allAbilityCards = deckIds.map(id => getCard(id)).filter(c => c && c.type === 'special_ability');
-      const availableAbilities = allAbilityCards.filter(c =>
-        !abilityEquippedIds.includes(c.id) && !globallyEquippedAbilities.has(c.id)
-      );
+      const allAbilityCards = deckCards.filter(c => c.type === 'special_ability');
+      const availableAbilities = uniqueCards(allAbilityCards.filter(c =>
+        !abilityEquippedIds.includes(c.id) && (homeUsageCounts.special_ability[c.id] || 0) < (ownedCounts[c.id] || 0)
+      ));
       // Split available into compatible (fits in slots & meets INT+LOY) vs locked
       const compatibleAbilities = availableAbilities.filter(c =>
         (c.data?.memory_slots_required || 1) <= abilitySlotsLeft &&
@@ -4755,8 +4989,8 @@ function renderGameHome() {
       let feedPickerHtml = '';
       if (GH_OPEN_FEED.has(ci)) {
         const _inv = (PLAYER && PLAYER.inventory) ? PLAYER.inventory : {};
-        const _foods = MARKET_CONSUMABLES.filter(c => c.type === 'food' && (_inv[c.id]||0) > 0);
-        const _foodOpts = _foods.map(f => `<button class="gh-care-option" onclick="ghFeedWith(${ci},'${f.id}')"><span class="gh-care-option-icon">${f.icon}</span><div class="gh-care-option-body"><div class="gh-care-option-name">${f.name} <span style="color:var(--t3);font-size:9px">×${_inv[f.id]}</span></div><div class="gh-care-option-desc">${f.desc||''}</div><div class="gh-care-option-effects"><span class="gh-care-option-eff">+${f.hunger} hunger</span></div></div></button>`).join('');
+        const _foods = allConsumableCards.filter(c => c.data && (c.data.consumable_type === 'food' || c.data.consumable_type === 'treat') && (_inv[c.id]||0) > 0);
+        const _foodOpts = _foods.map(f => `<button class="gh-care-option" data-peek-card="${f.id}" onclick="ghFeedWith(${ci},'${f.id}')"><span class="gh-care-option-icon">${f.icon || TYPE_META.consumable.emoji}</span><div class="gh-care-option-body"><div class="gh-care-option-name">${f.name} <span style="color:var(--t3);font-size:9px">${_inv[f.id]} use${_inv[f.id] === 1 ? '' : 's'} left</span></div><div class="gh-care-option-desc">${f.description||''}</div><div class="gh-care-option-effects">${formatConsumableEffects(f).slice(0,4).map(e => `<span class="gh-care-option-eff">${e}</span>`).join('')}</div></div></button>`).join('');
         feedPickerHtml = `<div class="gh-action-sheet"><div class="gh-action-sheet-title">🍽 Choose food</div>${_foodOpts}</div>`;
       }
 
@@ -4764,10 +4998,9 @@ function renderGameHome() {
       let groomPickerHtml = '';
       if (GH_OPEN_GROOM.has(ci)) {
         const _inv2 = (PLAYER && PLAYER.inventory) ? PLAYER.inventory : {};
-        const _gItems = MARKET_CONSUMABLES.filter(c => c.type === 'groom' && (_inv2[c.id]||0) > 0);
+        const _gItems = allConsumableCards.filter(c => c.data && c.data.consumable_type === 'groom' && (_inv2[c.id]||0) > 0);
         const _gOpts = _gItems.map(g => {
-          const _stags = g.statBoosts ? Object.entries(g.statBoosts).map(([s,v]) => `<span class="gh-care-option-eff stat">+${v} ${s}</span>`).join('') : '';
-          return `<button class="gh-care-option" onclick="ghGroomWith(${ci},'${g.id}')"><span class="gh-care-option-icon">${g.icon}</span><div class="gh-care-option-body"><div class="gh-care-option-name">${g.name} <span style="color:var(--t3);font-size:9px">×${_inv2[g.id]}</span></div><div class="gh-care-option-desc">${g.desc||''}</div><div class="gh-care-option-effects"><span class="gh-care-option-eff">+${g.mood} mood</span>${_stags}</div></div></button>`;
+          return `<button class="gh-care-option" data-peek-card="${g.id}" onclick="ghGroomWith(${ci},'${g.id}')"><span class="gh-care-option-icon">${g.icon || TYPE_META.consumable.emoji}</span><div class="gh-care-option-body"><div class="gh-care-option-name">${g.name} <span style="color:var(--t3);font-size:9px">${_inv2[g.id]} use${_inv2[g.id] === 1 ? '' : 's'} left</span></div><div class="gh-care-option-desc">${g.description||''}</div><div class="gh-care-option-effects">${formatConsumableEffects(g).slice(0,4).map(e => `<span class="gh-care-option-eff">${e}</span>`).join('')}</div></div></button>`;
         }).join('');
         const _basicOpt = `<button class="gh-care-option" onclick="ghGroomWith(${ci},'basic')"><span class="gh-care-option-icon">🖐</span><div class="gh-care-option-body"><div class="gh-care-option-name">Basic Groom</div><div class="gh-care-option-desc">Hand-groom. Smaller mood boost, no stat changes.</div><div class="gh-care-option-effects"><span class="gh-care-option-eff">~+14 mood</span></div></div></button>`;
         groomPickerHtml = `<div class="gh-action-sheet"><div class="gh-action-sheet-title">✨ Choose grooming</div>${_gOpts}${_basicOpt}</div>`;
@@ -4888,25 +5121,32 @@ function renderGameHome() {
     ? `<div class="gh-cat-dots" id="gh-cat-dots">${Array.from({length:catCount},(_,i)=>`<div class="gh-cat-dot${i===0?' active':''}" data-idx="${i}"></div>`).join('')}</div>`
     : '';
   const catsTabHtml = `<div class="gh-cats-tab">
-    <canvas id="gh-cats-bg-canvas" class="gh-cat-bg"></canvas>
+    <canvas id="gh-cats-bg-canvas" class="gh-cat-bg" data-home-env="${homeEnv.kind}"></canvas>
     <div class="gh-cats-scroll" id="gh-cats-scroll" onscroll="ghUpdateCatDots(this)">${catCardsHtml}</div>
     ${dotsHtml}
   </div>`;
 
   // ── HOME TAB ──
-  const allHomeCards = deckIds.map(id => getCard(id)).filter(c => c && c.type === 'home');
-  // Clamp index in case cards changed
-  if (GH_ACTIVE_HOME_IDX >= allHomeCards.length) GH_ACTIVE_HOME_IDX = 0;
-  const activeHomeCard = allHomeCards[GH_ACTIVE_HOME_IDX] || homeCard;
+  const activeHomeCard = homeCard;
+  if (activeHomeCard && cardIdOf(sbx.home) !== activeHomeCard.id) sbx.home = activeHomeCard;
   const hd = activeHomeCard && activeHomeCard.data ? activeHomeCard.data : {};
   const activeHomeName = activeHomeCard ? activeHomeCard.name : 'Your Home';
+  const activeHomeEnv = getHomeEnvProfile(activeHomeCard);
   const maxOccupants = hd.max_occupants || 0;
+  const maxItemSlots = activeHomeCard ? (hd.expansion_slots || 0) : 0;
+  const currentHomeLoad = normalizeHomeItemsForSlots(maxItemSlots);
+  const currentHomeItems = currentHomeLoad.items;
+  const homeItemUsage = getHomeUsageCounts().home_item;
 
-  const foodRows = MARKET_CONSUMABLES.filter(c => c.type === 'food' && (inv[c.id]||0) > 0)
-    .map(c => `<div class="gh-food-row"><span class="gh-food-icon">${c.icon}</span><div class="gh-food-info"><div class="gh-food-name">${c.name}</div></div><span class="gh-food-qty">×${inv[c.id]}</span></div>`).join('');
-  const treatRows = MARKET_CONSUMABLES.filter(c => c.type === 'treat' && (inv[c.id]||0) > 0)
-    .map(c => `<div class="gh-food-row"><span class="gh-food-icon">${c.icon}</span><div class="gh-food-info"><div class="gh-food-name">${c.name}</div></div><span class="gh-food-qty">×${inv[c.id]}</span></div>`).join('');
-  const itemRows2 = allItemCards.map(c => {
+  const careConsumableRows = allConsumableCards.map(c => {
+    const effects = formatConsumableEffects(c).slice(0, 4).map(e => `<span class="gh-gear-stat">${e}</span>`).join('');
+    return `<div class="gh-food-row clickable" onclick="openCardModal('${c.id}')">
+      <span class="gh-food-icon">${c.icon || TYPE_META.consumable.emoji}</span>
+      <div class="gh-food-info"><div class="gh-food-name">${c.name}</div>${effects ? `<div class="gh-gear-stats" style="margin-top:4px">${effects}</div>` : ''}</div>
+      <span class="gh-food-qty">${inv[c.id]} use${inv[c.id] === 1 ? '' : 's'}</span>
+    </div>`;
+  }).join('');
+  const itemRows2 = currentHomeItems.map((c, itemIdx) => {
     const rates = (c.data && c.data.development_rates) || [];
     const rateChips = rates.map(dr => {
       const lbl = (dr.stat||'').slice(0,3).toUpperCase();
@@ -4914,13 +5154,24 @@ function renderGameHome() {
       const cls = dr.rate >= 0 ? 'pos' : 'neg';
       return `<span class="gh-gear-stat ${cls}" style="${dr.rate<0?'background:rgba(248,113,113,.12);color:#f87171':'background:rgba(52,211,153,.12);color:#34d399'}">${sign}${dr.rate} ${lbl}/24h</span>`;
     }).join('');
-    return `<div class="gh-item-row"><span style="font-size:20px">📦</span><div style="flex:1"><div class="gh-item-name">${c.name}</div>${rateChips?`<div class="gh-gear-stats" style="margin-top:4px">${rateChips}</div>`:''}</div></div>`;
+    const slotCost = getHomeSlotCost(c);
+    return `<div class="gh-item-row clickable" onclick="openCardModal('${c.id}')">
+      <span style="font-size:20px">📦</span>
+      <div style="flex:1"><div class="gh-item-name">${c.name}</div>${rateChips?`<div class="gh-gear-stats" style="margin-top:4px">${rateChips}</div>`:''}</div>
+      <span class="gh-home-slot-count">${slotCost} slot${slotCost === 1 ? '' : 's'}</span>
+      <button class="gh-item-remove" onclick="ghRemoveHomeItem(${itemIdx});event.stopPropagation()" title="Remove item">✕</button>
+    </div>`;
   }).join('');
+  const remainingItemSlots = Math.max(0, maxItemSlots - currentHomeLoad.usedSlots);
+  const installableHomeItems = allItemCards.filter(c => {
+    const used = homeItemUsage[c.id] || 0;
+    return used < (ownedCounts[c.id] || 0) && getHomeSlotCost(c) <= remainingItemSlots;
+  });
 
   // Home selector dropdown (only shown if player has 2+ home cards)
   const homeSelectorHtml = allHomeCards.length > 1 ? `
     <div class="gh-home-selector">
-      <label class="gh-home-sel-lbl">🏠 Select Home</label>
+      <label class="gh-home-sel-lbl">${activeHomeEnv.icon} Select Home</label>
       <select class="gh-home-sel-drop" onchange="ghSwitchHome(this.value)">
         ${allHomeCards.map((hc, i) => `<option value="${i}" ${i===GH_ACTIVE_HOME_IDX?'selected':''}>${hc.name}</option>`).join('')}
       </select>
@@ -4937,7 +5188,7 @@ function renderGameHome() {
         const _emoji = (cs.breed && cs.breed.data && cs.breed.data.emoji) ? cs.breed.data.emoji : '🐱';
         const _breed = (cs.breed && cs.breed.name) ? cs.breed.name : 'Cat';
         const _catName = cs.name || _breed;
-        return `<div class="gh-home-cat-row">
+        return `<div class="gh-home-cat-row clickable" onclick="openCardModal('${cs.breed.id}')">
           <div class="gh-home-cat-emoji">${_emoji}</div>
           <div class="gh-home-cat-info">
             <div class="gh-home-cat-name">${_catName}</div>
@@ -4964,19 +5215,27 @@ function renderGameHome() {
   const homeTabHtml = `<div class="gh-home-tab">
     ${homeSelectorHtml}
     <div class="gh-home-card">
-      <div class="gh-home-card-title">🏠 ${activeHomeName}</div>
+      <div class="gh-home-card-title${activeHomeCard ? ' clickable' : ''}" ${activeHomeCard ? `onclick="openCardModal('${activeHomeCard.id}')"` : ''}>${activeHomeEnv.icon} ${activeHomeName}</div>
       ${activeHomeCard ? `<div class="gh-home-stats">
         <div class="gh-home-stat"><div class="gh-home-stat-lbl">Expansion Slots</div><div class="gh-home-stat-val">${hd.expansion_slots||'—'}</div></div>
         <div class="gh-home-stat"><div class="gh-home-stat-lbl">Max Occupants</div><div class="gh-home-stat-val">${hd.max_occupants||'—'}</div></div>
         <div class="gh-home-stat"><div class="gh-home-stat-lbl">Comfort</div><div class="gh-home-stat-val">${hd.comfort_multiplier||'—'}×</div></div>
         <div class="gh-home-stat"><div class="gh-home-stat-lbl">Training Tier</div><div class="gh-home-stat-val" style="font-size:11px;text-transform:capitalize">${hd.training_tier||'—'}</div></div>
       </div>` : '<div class="gh-drop-empty">No home card in deck.</div>'}
-      ${allItemCards.length ? `<div style="margin-top:4px"><div class="gh-food-title">📦 Active Home Items</div>${itemRows2}</div>` : ''}
+      ${activeHomeCard ? `<div style="margin-top:4px">
+        <div class="gh-home-items-head">
+          <div class="gh-food-title" style="margin-bottom:0">📦 Active Home Items</div>
+          <span class="gh-home-slot-count">${currentHomeLoad.usedSlots} / ${maxItemSlots} slots</span>
+        </div>
+        ${itemRows2 || '<div class="gh-food-empty">No items installed in this home.</div>'}
+        <button class="gh-home-add-item" onclick="ghShowAddHomeItem()" ${remainingItemSlots <= 0 || !installableHomeItems.length ? 'disabled' : ''}>+ Add Item</button>
+        <div id="gh-home-item-picker" class="gh-home-item-picker"></div>
+      </div>` : ''}
     </div>
     ${addCatHtml}
     ${(() => {
       // ── DEVELOPMENT SECTION ──
-      if (!sbx.cats.length || !allItemCards.length) return '';
+      if (!sbx.cats.length || !currentHomeItems.length) return '';
       const devRows = sbx.cats.map((cs, ci) => {
         const breedName = (cs.breed && cs.breed.name) ? cs.breed.name : 'Cat';
         const catName = cs.name ? cs.name : breedName;
@@ -4984,7 +5243,7 @@ function renderGameHome() {
         const traitLabel = breedTraits.label || '';
 
         // Compute effective rates
-        const rates = computeEffectiveDevRates(cs, allItemCards);
+        const rates = computeEffectiveDevRates(cs, currentHomeItems);
         if (!Object.keys(rates).length) return '';
 
         // Format rate chips
@@ -4996,7 +5255,7 @@ function renderGameHome() {
         }).join('');
 
         // Compute accumulated gains
-        const gains = computeHomeDev(cs, allItemCards);
+        const gains = computeHomeDev(cs, currentHomeItems);
         const gainChips = Object.entries(gains).filter(([,g]) => Math.abs(g) >= 0.01).map(([stat, g]) => {
           const rounded = +(g.toFixed(2));
           const whole = Math.floor(g);
@@ -5040,8 +5299,8 @@ function renderGameHome() {
       </div>`;
     })()}
     <div class="gh-food-section">
-      <div class="gh-food-title">🥣 Food & Treats</div>
-      ${foodRows || treatRows ? (foodRows + treatRows) : '<div class="gh-food-empty">No food in inventory. Visit the Market.</div>'}
+      <div class="gh-food-title">🥣 Consumables</div>
+      ${careConsumableRows || '<div class="gh-food-empty">No consumable cards in deck. Visit the Market.</div>'}
     </div>
   </div>`;
 
@@ -5094,11 +5353,15 @@ function renderGameHome() {
 
   // ── CARDS TAB ──
   const activeCardIds = new Set([
+    ...Object.keys(sbx.savedHomes || {}),
+    getCurrentHomeId(),
     ...cats.map(cs => cs.breed && cs.breed.id).filter(Boolean),
     ...cats.flatMap(cs => (cs.gear || []).map(g => typeof g === 'string' ? g : (g && g.id))).filter(Boolean),
     ...cats.flatMap(cs => (cs.abilities || []).map(a => typeof a === 'string' ? a : (a && a.id))).filter(Boolean),
-    ...(sbx.home ? [typeof sbx.home === 'string' ? sbx.home : sbx.home.id] : []),
-    ...(sbx.homeItems || []).map(hi => typeof hi === 'string' ? hi : (hi && hi.id)).filter(Boolean),
+    ...Object.keys(homeUsageCounts.cat_breed),
+    ...Object.keys(homeUsageCounts.home_item),
+    ...Object.keys(homeUsageCounts.battle_gear),
+    ...Object.keys(homeUsageCounts.special_ability),
   ]);
   const allDeckCards = deckIds.map(entry => typeof entry === 'string' ? getCard(entry) : entry).filter(Boolean);
   let cardsTabHtml;
@@ -5120,7 +5383,8 @@ function renderGameHome() {
       ['home', 'Homes'],
       ['home_item', 'Items'],
       ['battle_gear', 'Gear'],
-      ['special_ability', 'Abilities']
+      ['special_ability', 'Abilities'],
+      ['consumable', 'Consumables']
     ];
     const rarityOptions = ['all', ...RARITIES];
     const cardsGrid = filteredDeckCards.map(card => {
@@ -5168,7 +5432,7 @@ function renderGameHome() {
 
   gh.innerHTML = `
     <div class="gh-hdr">
-      <span class="gh-home-name">🏠 ${homeName}</span>
+      <span class="gh-home-name">${homeEnv.icon} ${homeName}</span>
       <div class="gh-hdr-right">
         ${foodCount > 0 ? `<span style="font-family:var(--fm);font-size:10px;color:var(--t2)">🥣 ×${foodCount}</span>` : ''}
         <span class="gh-coins">🪙 ${coins}</span>
@@ -5202,6 +5466,7 @@ function initCatsBgCanvas() {
   const canvas = document.getElementById('gh-cats-bg-canvas');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
+  const env = canvas.dataset.homeEnv || getHomeEnvProfile(cardObjOf(sbx.home)).kind;
   let w, h;
   function resize() {
     w = canvas.width  = canvas.offsetWidth;
@@ -5209,27 +5474,32 @@ function initCatsBgCanvas() {
   }
   resize();
 
-  // Leaf colours — greens + warm autumn tones
-  const LEAF_COLS = ['#4a7c3f','#5e9c52','#7ab567','#c8a43a','#d4703a','#b85c2a'];
+  const PARTICLE_COLS = {
+    forest:['#4a7c3f','#5e9c52','#7ab567','#c8a43a','#d4703a','#b85c2a'],
+    urban:['#fbbf24','#f59e0b','#60a5fa','#cbd5e1'],
+    studio:['#f9a8d4','#fbbf24','#93c5fd','#c4b5fd'],
+    estate:['#fde68a','#d8b4fe','#bfdbfe','#fef3c7'],
+  };
+  const cols = PARTICLE_COLS[env] || PARTICLE_COLS.urban;
 
   // Particle pool
-  function mkLeaf() {
+  function mkParticle() {
     return {
       x:    Math.random() * w,
       y:    Math.random() * h,
-      size: 3 + Math.random() * 6,
-      vy:   0.35 + Math.random() * 0.7,
-      vx:   0.2  + Math.random() * 0.55,   // wind direction (left→right)
+      size: env === 'urban' ? 1.2 + Math.random() * 2.4 : 3 + Math.random() * 6,
+      vy:   env === 'urban' ? 0.08 + Math.random() * 0.18 : 0.35 + Math.random() * 0.7,
+      vx:   env === 'urban' ? -0.05 + Math.random() * 0.1 : 0.2 + Math.random() * 0.55,
       spin: Math.random() * Math.PI * 2,
       spinSpeed: (Math.random() - 0.5) * 0.06,
       wobble: Math.random() * Math.PI * 2,
       wobbleAmp: 0.3 + Math.random() * 0.5,
       wobbleSpd: 0.02 + Math.random() * 0.03,
-      alpha: 0.5 + Math.random() * 0.45,
-      col: LEAF_COLS[Math.floor(Math.random() * LEAF_COLS.length)],
+      alpha: env === 'urban' ? 0.25 + Math.random() * 0.45 : 0.5 + Math.random() * 0.45,
+      col: cols[Math.floor(Math.random() * cols.length)],
     };
   }
-  const leaves = Array.from({ length: 22 }, mkLeaf);
+  const particles = Array.from({ length: env === 'urban' ? 34 : 22 }, mkParticle);
 
   let frame = 0;
   let rafId;
@@ -5262,15 +5532,70 @@ function initCatsBgCanvas() {
     });
   }
 
-  function draw() {
-    // Self-terminate if canvas removed from DOM
-    if (!document.getElementById('gh-cats-bg-canvas')) {
-      cancelAnimationFrame(rafId); return;
-    }
-    if (canvas.offsetWidth !== w || canvas.offsetHeight !== h) resize();
-    ctx.clearRect(0, 0, w, h);
+  function drawUrban() {
+    const sky = ctx.createLinearGradient(0, 0, 0, h);
+    sky.addColorStop(0, '#080d18');
+    sky.addColorStop(0.55, '#111827');
+    sky.addColorStop(1, '#1f2937');
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, w, h);
 
-    // ── sky gradient (morning/afternoon — will swap with presets later)
+    ctx.fillStyle = 'rgba(4,8,14,0.62)';
+    for (let x = -20; x < w + 40; x += 42) {
+      const bh = h * (0.28 + ((x * 13) % 70) / 220);
+      ctx.fillRect(x, h * 0.78 - bh, 32, bh);
+      ctx.fillStyle = 'rgba(251,191,36,0.32)';
+      for (let y = h * 0.78 - bh + 16; y < h * 0.76; y += 20) {
+        if (((x + y + frame) % 5) > 1) ctx.fillRect(x + 8, y, 5, 7);
+        if (((x + y) % 7) > 2) ctx.fillRect(x + 20, y, 5, 7);
+      }
+      ctx.fillStyle = 'rgba(4,8,14,0.62)';
+    }
+
+    const room = ctx.createLinearGradient(0, h * 0.72, 0, h);
+    room.addColorStop(0, 'rgba(31,41,55,0.72)');
+    room.addColorStop(1, 'rgba(10,14,22,0.96)');
+    ctx.fillStyle = room;
+    ctx.fillRect(0, h * 0.72, w, h * 0.28);
+    ctx.fillStyle = 'rgba(148,163,184,0.12)';
+    ctx.fillRect(w * 0.08, h * 0.22, w * 0.84, 3);
+    ctx.fillRect(w * 0.08, h * 0.66, w * 0.84, 4);
+  }
+
+  function drawStudio() {
+    const wall = ctx.createLinearGradient(0, 0, w, h);
+    wall.addColorStop(0, '#172033');
+    wall.addColorStop(0.52, '#202a3d');
+    wall.addColorStop(1, '#121722');
+    ctx.fillStyle = wall;
+    ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = 'rgba(249,168,212,0.12)';
+    ctx.fillRect(w * 0.08, h * 0.24, w * 0.32, h * 0.22);
+    ctx.fillStyle = 'rgba(96,165,250,0.13)';
+    ctx.fillRect(w * 0.58, h * 0.18, w * 0.28, h * 0.18);
+    ctx.fillStyle = 'rgba(10,14,22,0.58)';
+    ctx.fillRect(0, h * 0.78, w, h * 0.22);
+  }
+
+  function drawEstate() {
+    const sky = ctx.createLinearGradient(0, 0, 0, h);
+    sky.addColorStop(0, '#172554');
+    sky.addColorStop(0.55, '#312e81');
+    sky.addColorStop(1, '#111827');
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = 'rgba(254,243,199,0.2)';
+    for (let x = w * 0.15; x <= w * 0.85; x += w * 0.14) {
+      ctx.beginPath();
+      ctx.arc(x, h * 0.48, 18, Math.PI, 0);
+      ctx.fill();
+      ctx.fillRect(x - 18, h * 0.48, 36, h * 0.22);
+    }
+    ctx.fillStyle = 'rgba(8,13,26,0.72)';
+    ctx.fillRect(0, h * 0.7, w, h * 0.3);
+  }
+
+  function drawForest() {
     const sky = ctx.createLinearGradient(0, 0, 0, h);
     sky.addColorStop(0,   '#0e2a4a');
     sky.addColorStop(0.5, '#1565c0');
@@ -5278,7 +5603,6 @@ function initCatsBgCanvas() {
     ctx.fillStyle = sky;
     ctx.fillRect(0, 0, w, h);
 
-    // ── distant treeline silhouette (mid-ground)
     ctx.fillStyle = 'rgba(12,28,14,0.45)';
     ctx.beginPath();
     ctx.moveTo(0, h * 0.68);
@@ -5289,33 +5613,44 @@ function initCatsBgCanvas() {
     ctx.lineTo(w, h); ctx.lineTo(0, h); ctx.closePath();
     ctx.fill();
 
-    // ── foreground trees
     drawTree(w * 0.06, h * 0.88, h * 0.52, 0);
     drawTree(w * 0.94, h * 0.88, h * 0.44, 1.4);
     drawTree(w * 0.88, h * 0.92, h * 0.32, 0.7);
 
-    // ── ground strip
     const grd = ctx.createLinearGradient(0, h * 0.84, 0, h);
     grd.addColorStop(0, 'rgba(14,42,14,0.7)');
     grd.addColorStop(1, 'rgba(8,24,8,0.9)');
     ctx.fillStyle = grd;
     ctx.fillRect(0, h * 0.84, w, h * 0.16);
+  }
 
-    // ── leaves
-    leaves.forEach(l => {
+  function draw() {
+    // Self-terminate if canvas removed from DOM
+    if (!document.getElementById('gh-cats-bg-canvas')) {
+      cancelAnimationFrame(rafId); return;
+    }
+    if (canvas.offsetWidth !== w || canvas.offsetHeight !== h) resize();
+    ctx.clearRect(0, 0, w, h);
+
+    if (env === 'forest') drawForest();
+    else if (env === 'studio') drawStudio();
+    else if (env === 'estate') drawEstate();
+    else drawUrban();
+
+    particles.forEach(l => {
       l.wobble   += l.wobbleSpd;
       l.spin     += l.spinSpeed;
       l.x        += l.vx + Math.sin(l.wobble) * l.wobbleAmp;
       l.y        += l.vy;
-      // reset when off-screen
-      if (l.y > h + 12 || l.x > w + 12) { Object.assign(l, mkLeaf()); l.y = -12; l.x = Math.random() * w * 0.7; }
+      if (l.y > h + 12 || l.x > w + 12 || l.x < -12) { Object.assign(l, mkParticle()); l.y = -12; l.x = Math.random() * w; }
 
       ctx.save();
       ctx.globalAlpha = l.alpha;
       ctx.translate(l.x, l.y);
       ctx.rotate(l.spin);
       ctx.beginPath();
-      ctx.ellipse(0, 0, l.size, l.size * 0.48, 0, 0, Math.PI * 2);
+      if (env === 'urban') ctx.arc(0, 0, l.size, 0, Math.PI * 2);
+      else ctx.ellipse(0, 0, l.size, l.size * 0.48, 0, 0, Math.PI * 2);
       ctx.fillStyle = l.col;
       ctx.fill();
       ctx.restore();
@@ -5483,12 +5818,14 @@ function ghSwitchHome(idx) {
     const saved = (sbx.savedHomes || {})[selected.id];
     if (saved) {
       sbx.cats      = saved.cats.slice(0, selected.data.max_occupants || 0);
-      sbx.homeItems = saved.homeItems.slice(0, selected.data.expansion_slots || 0);
+      sbx.homeItems = saved.homeItems || [];
+      normalizeHomeItemsForSlots(selected.data.expansion_slots || 0);
     } else {
       sbx.cats      = [];
       sbx.homeItems = [];
     }
   }
+  savePlayer();
   renderGameHome();
 }
 
@@ -5498,8 +5835,11 @@ function ghShowAddCat() {
   if (picker.style.display !== 'none') { picker.style.display = 'none'; return; }
   const player = PLAYER || {};
   const deckIds = (player.deckIds) || sbx.deck || [];
-  const assignedBreedIds = new Set((sbx.cats || []).map(cs => cs.breed && cs.breed.id).filter(Boolean));
-  const available = deckIds.map(id => getCard(id)).filter(c => c && c.type === 'cat_breed' && !assignedBreedIds.has(c.id));
+  const ownedCounts = getOwnedCardCounts(deckIds);
+  const catUsage = getHomeUsageCounts().cat_breed;
+  const available = uniqueCards(deckIds.map(entry => cardObjOf(entry)).filter(c =>
+    c && c.type === 'cat_breed' && (catUsage[c.id] || 0) < (ownedCounts[c.id] || 0)
+  ));
   if (!available.length) {
     picker.innerHTML = `<div style="font-family:var(--fm);font-size:11px;color:var(--t3);padding:6px 4px">No unassigned cat breed cards in deck.</div>`;
   } else {
@@ -5518,10 +5858,75 @@ function ghAddCatAssign(cardId) {
   const card = getCard(cardId);
   if (!card) return;
   const maxCats = sbx.home ? (sbx.home.data.max_occupants || 0) : 0;
+  const deckIds = (PLAYER && PLAYER.deckIds) || sbx.deck || [];
+  const ownedCounts = getOwnedCardCounts(deckIds);
+  const catUsage = getHomeUsageCounts().cat_breed;
+  if ((catUsage[cardId] || 0) >= (ownedCounts[cardId] || 0)) {
+    showCareToast('That cat is already active in another home.');
+    return;
+  }
   if ((sbx.cats || []).length < maxCats) {
     sbx.cats = sbx.cats || [];
     sbx.cats.push({ breed: card, gear: [], abilities: [], home_joined_at: Date.now(), home_dev_gains: {}, rep: 100, allies: [] });
   }
+  savePlayer();
+  renderGameHome();
+}
+
+function ghShowAddHomeItem() {
+  const picker = document.getElementById('gh-home-item-picker');
+  if (!picker) return;
+  if (picker.style.display !== 'none') { picker.style.display = 'none'; return; }
+  const activeHome = cardObjOf(sbx.home);
+  if (!activeHome) return;
+  const maxSlots = activeHome.data ? (activeHome.data.expansion_slots || 0) : 0;
+  const { usedSlots } = normalizeHomeItemsForSlots(maxSlots);
+  const remainingSlots = Math.max(0, maxSlots - usedSlots);
+  const deckIds = (PLAYER && PLAYER.deckIds) || sbx.deck || [];
+  const ownedCounts = getOwnedCardCounts(deckIds);
+  const itemUsage = getHomeUsageCounts().home_item;
+  const available = uniqueCards(deckIds.map(entry => cardObjOf(entry)).filter(c =>
+    c && c.type === 'home_item' &&
+    getHomeSlotCost(c) <= remainingSlots &&
+    (itemUsage[c.id] || 0) < (ownedCounts[c.id] || 0)
+  ));
+  picker.innerHTML = available.length ? available.map(c => `
+    <div class="gh-item-row clickable" onclick="ghAddHomeItemAssign('${c.id}')">
+      <span style="font-size:20px">📦</span>
+      <div style="flex:1">
+        <div class="gh-item-name">${c.name}</div>
+        <div class="gh-item-desc">${getHomeSlotCost(c)} slot${getHomeSlotCost(c) === 1 ? '' : 's'}</div>
+      </div>
+    </div>`).join('') : `<div class="gh-food-empty">No unassigned item fits the remaining slots.</div>`;
+  picker.style.display = 'flex';
+}
+
+function ghAddHomeItemAssign(cardId) {
+  const card = getCard(cardId);
+  const activeHome = cardObjOf(sbx.home);
+  if (!card || !activeHome) return;
+  const maxSlots = activeHome.data ? (activeHome.data.expansion_slots || 0) : 0;
+  const { usedSlots } = normalizeHomeItemsForSlots(maxSlots);
+  if (usedSlots + getHomeSlotCost(card) > maxSlots) {
+    showCareToast('That item does not fit this home.');
+    return;
+  }
+  const deckIds = (PLAYER && PLAYER.deckIds) || sbx.deck || [];
+  const ownedCounts = getOwnedCardCounts(deckIds);
+  const itemUsage = getHomeUsageCounts().home_item;
+  if ((itemUsage[cardId] || 0) >= (ownedCounts[cardId] || 0)) {
+    showCareToast('That item is already active in another home.');
+    return;
+  }
+  sbx.homeItems = [...(sbx.homeItems || []), card];
+  savePlayer();
+  renderGameHome();
+}
+
+function ghRemoveHomeItem(idx) {
+  if (!Array.isArray(sbx.homeItems)) return;
+  sbx.homeItems.splice(idx, 1);
+  savePlayer();
   renderGameHome();
 }
 
@@ -5553,6 +5958,13 @@ function ghEquipAbility(ci, cardId, evt) {
     // Remove (unassign)
     cs.abilities = cs.abilities.filter(id => id !== cardId);
   } else {
+    const deckIds = (PLAYER && PLAYER.deckIds) || sbx.deck || [];
+    const ownedCounts = getOwnedCardCounts(deckIds);
+    const abilityUsage = getHomeUsageCounts().special_ability;
+    if ((abilityUsage[cardId] || 0) >= (ownedCounts[cardId] || 0)) {
+      showCareToast('That ability is already active in another home.');
+      return;
+    }
     // Assign — check memory slot limit (max 2 total)
     const card = getCard(cardId);
     if (!card) return;
@@ -5595,6 +6007,13 @@ function ghEquipGear(ci, cardId, evt) {
   if (cs.gear.includes(cardId)) {
     cs.gear = cs.gear.filter(id => id !== cardId);
   } else {
+    const deckIds = (PLAYER && PLAYER.deckIds) || sbx.deck || [];
+    const ownedCounts = getOwnedCardCounts(deckIds);
+    const gearUsage = getHomeUsageCounts().battle_gear;
+    if ((gearUsage[cardId] || 0) >= (ownedCounts[cardId] || 0)) {
+      showCareToast('That gear is already active in another home.');
+      return;
+    }
     cs.gear.push(cardId);
   }
   GH_OPEN_GEAR.add(ci); // keep dropdown open after equip/unequip
@@ -5638,27 +6057,11 @@ function dismissCarePopup() {
   if (ov) ov.style.display = 'none';
 }
 function renderAndAnimateCareAction() {
-  // Capture current bar widths before the DOM gets wiped
-  const fills = Array.from(document.querySelectorAll('.gh-need-fill[data-w]'));
-  const oldW = fills.map(el => parseFloat(el.style.width) || 0);
   renderGameHomeKeepScroll();
-  requestAnimationFrame(() => {
-    const newFills = Array.from(document.querySelectorAll('.gh-need-fill[data-w]'));
-    // Snap to old widths (bypass transition)
-    newFills.forEach((el, i) => {
-      el.style.transition = 'none';
-      el.style.width = (oldW[i] !== undefined ? oldW[i] : 0) + '%';
-    });
-    // Force layout flush, then animate to new target
-    newFills.forEach(el => el.offsetWidth); // eslint-disable-line no-unused-expressions
-    requestAnimationFrame(() => {
-      newFills.forEach(el => { el.style.transition = ''; el.style.width = el.dataset.w + '%'; });
-    });
-  });
 }
 function ghFeed(ci) {
   const _inv = (PLAYER && PLAYER.inventory) ? PLAYER.inventory : {};
-  const _hasFood = MARKET_CONSUMABLES.some(c => c.type === 'food' && (_inv[c.id]||0) > 0);
+  const _hasFood = CONSUMABLE_CARDS.some(c => (c.data.consumable_type === 'food' || c.data.consumable_type === 'treat') && (_inv[c.id]||0) > 0);
   if (!_hasFood) {
     showCarePopup(`<div class="care-popup-icon">🍽</div><div class="care-popup-title">Pantry is empty</div><div class="care-popup-desc">No cat food in your inventory. Visit the market to restock.</div><button class="care-popup-btn primary" onclick="dismissCarePopup();showMarket()">🛒 Visit Market</button><button class="care-popup-btn secondary" onclick="dismissCarePopup()">Not now</button>`);
     return;
@@ -5670,16 +6073,26 @@ function ghFeed(ci) {
 function ghFeedWith(ci, consId) {
   const cs = sbx.cats[ci]; if (!cs) return;
   const inv = (PLAYER && PLAYER.inventory) ? PLAYER.inventory : {};
-  const item = MARKET_CONSUMABLES.find(c => c.id === consId);
+  const item = getCard(consId);
   if (!item || (inv[consId]||0) <= 0) return;
+  const data = item.data || {};
   const traits = getTraits(cs.breed);
   if (traits.food_pref === 'premium' && item.id !== 'cons-002' && item.id !== 'cons-005') {
     showCareToast(`${cs.breed.name} only eats premium food! 😤`);
     return;
   }
-  inv[consId] = (inv[consId]||0) - 1;
   const state = getLiveCatState(ci, cs);
-  setCatCare(ci, cs, { hunger: Math.min(100, state.hunger + item.hunger) });
+  const patch = {};
+  if (data.hunger) patch.hunger = Math.min(100, state.hunger + data.hunger);
+  if (data.energy) patch.energy = Math.min(100, state.energy + data.energy);
+  if (data.mood) patch.mood = Math.min(100, state.mood + data.mood);
+  if (data.statBoosts) {
+    const _care = CAT_CARE[String(ci)] || {};
+    patch.statBoosts = {...(_care.statBoosts||{})};
+    Object.entries(data.statBoosts).forEach(([stat, val]) => { patch.statBoosts[stat] = (patch.statBoosts[stat]||0) + val; });
+  }
+  setCatCare(ci, cs, patch);
+  consumeCardUse(consId);
   if (PLAYER) { PLAYER.inventory = inv; savePlayer(); }
   GH_OPEN_FEED.delete(ci);
   showCareToast(`Fed ${cs.breed.name} with ${item.name}! 🍽`);
@@ -5692,7 +6105,7 @@ function ghPlay(ci) {
 }
 function ghGroom(ci) {
   const _inv = (PLAYER && PLAYER.inventory) ? PLAYER.inventory : {};
-  const _hasItems = MARKET_CONSUMABLES.some(c => c.type === 'groom' && (_inv[c.id]||0) > 0);
+  const _hasItems = CONSUMABLE_CARDS.some(c => c.data.consumable_type === 'groom' && (_inv[c.id]||0) > 0);
   if (!_hasItems) {
     showCarePopup(`<div class="care-popup-icon">✨</div><div class="care-popup-title">No grooming tools</div><div class="care-popup-desc">You don't have any grooming items. You can still hand-groom, or visit the market for brushes and shampoos.</div><button class="care-popup-btn primary" onclick="dismissCarePopup();ghGroomWith(${ci},'basic')">🖐 Basic Groom</button><button class="care-popup-btn secondary" onclick="dismissCarePopup();showMarket()">🛒 Visit Market</button>`);
     return;
@@ -5714,17 +6127,21 @@ function ghGroomWith(ci, consId) {
     return;
   }
   const inv = (PLAYER && PLAYER.inventory) ? PLAYER.inventory : {};
-  const item = MARKET_CONSUMABLES.find(c => c.id === consId);
+  const item = getCard(consId);
   if (!item || (inv[consId]||0) <= 0) return;
-  inv[consId] = (inv[consId]||0) - 1;
+  const data = item.data || {};
   const state = getLiveCatState(ci, cs);
-  setCatCare(ci, cs, { mood: Math.min(100, state.mood + item.mood) });
-  if (item.statBoosts) {
+  const patch = {};
+  if (data.mood) patch.mood = Math.min(100, state.mood + data.mood);
+  if (data.hunger) patch.hunger = Math.min(100, state.hunger + data.hunger);
+  if (data.energy) patch.energy = Math.min(100, state.energy + data.energy);
+  if (data.statBoosts) {
     const _care = CAT_CARE[String(ci)] || {};
-    const _boosts = {...(_care.statBoosts||{})};
-    Object.entries(item.statBoosts).forEach(([stat, val]) => { _boosts[stat] = (_boosts[stat]||0) + val; });
-    setCatCare(ci, cs, { statBoosts: _boosts });
+    patch.statBoosts = {...(_care.statBoosts||{})};
+    Object.entries(data.statBoosts).forEach(([stat, val]) => { patch.statBoosts[stat] = (patch.statBoosts[stat]||0) + val; });
   }
+  setCatCare(ci, cs, patch);
+  consumeCardUse(consId);
   if (PLAYER) { PLAYER.inventory = inv; savePlayer(); }
   GH_OPEN_GROOM.delete(ci);
   showCareToast(`Groomed ${cs.breed.name} with ${item.name}! ✨`);
@@ -5954,6 +6371,7 @@ function ghSendOutside() {
 function savePlayer() {
   if (!PLAYER) return;
   PLAYER.coins = sbx.coins;
+  syncConsumableDeckCopies(PLAYER);
   try { localStorage.setItem('cz_player', JSON.stringify(PLAYER)); } catch(e) {}
   savePlayerToCloud();
 }
@@ -5964,7 +6382,10 @@ function buildGameState() {
     cats:   sbx.cats,
     deck:   sbx.deck,
     coins:  sbx.coins,
-    homeItems: sbx.homeItems || []
+    home:   sbx.home || null,
+    homeItems: sbx.homeItems || [],
+    savedHomes: sbx.savedHomes || {},
+    activeHomeIdx: GH_ACTIVE_HOME_IDX
   };
 }
 
@@ -5996,7 +6417,10 @@ async function loadPlayerFromCloud(userId) {
     sbx.cats  = gs.cats   || [];
     sbx.deck  = gs.deck   || [];
     sbx.coins = gs.coins  || 1500;
+    sbx.home  = gs.home   || null;
     sbx.homeItems = gs.homeItems || [];
+    sbx.savedHomes = gs.savedHomes || {};
+    GH_ACTIVE_HOME_IDX = gs.activeHomeIdx || 0;
     if (PLAYER) {
       PLAYER.coins = sbx.coins;
       PLAYER.cardSerials = PLAYER.cardSerials || {}; // older saves predate limited editions
@@ -6011,19 +6435,15 @@ async function loadPlayerFromCloud(userId) {
 ══════════════════════════════════════════ */
 let MARKET_TAB = 'food';
 
-const MARKET_CONSUMABLES = [
-  { id:'cons-001', name:'Bag of Kibble',    icon:'🥣', type:'food',  cost:5,  hunger:22, desc:'Basic dry food. Gets the job done.' },
-  { id:'cons-002', name:'Gourmet Wet Food', icon:'🍱', type:'food',  cost:12, hunger:38, desc:'Rich and nutritious. Most cats love it.' },
-  { id:'cons-003', name:'Salmon Fillet',    icon:'🐟', type:'food',  cost:18, hunger:55, desc:'Premium protein. Even picky eaters approve.' },
-  { id:'cons-004', name:'Energy Treat',     icon:'⚡', type:'treat', cost:8,  energy:20, desc:'Quick boost for a tired cat.' },
-  { id:'cons-005', name:'Catnip Bundle',    icon:'🌿', type:'treat', cost:10, mood:28,   desc:'Instant happiness in herb form.' },
-  { id:'cons-006', name:'Vitamin Paste',    icon:'💊', type:'treat', cost:15, hunger:15, energy:15, desc:'Balanced supplement. Boosts both hunger and energy.' },
-  // Grooming items
-  { id:'cons-007', name:'Soft Brush',         icon:'🪮', type:'groom', cost:8,  mood:20, statBoosts:{affection:2},                desc:'A gentle daily brush. Keeps the coat gleaming and the mood lifted.' },
-  { id:'cons-008', name:'Detangling Comb',    icon:'🪮', type:'groom', cost:14, mood:25, statBoosts:{affection:3, agility:1},     desc:'Works out knots without drama. Cats move more freely after.' },
-  { id:'cons-009', name:'Aromatic Shampoo',   icon:'🧴', type:'groom', cost:22, mood:32, statBoosts:{affection:5, speed:2},       desc:'Luxury bath formula. Leaves a gleam that intimidates rivals.' },
-  { id:'cons-010', name:'Conditioning Spray', icon:'✨', type:'groom', cost:18, mood:28, statBoosts:{affection:4, stamina:2},     desc:'No-rinse coat conditioner. Hydrates and subtly boosts endurance.' },
-];
+const MARKET_CONSUMABLES = CONSUMABLE_CARDS.map(c => ({
+  ...c.data,
+  id:c.id,
+  name:c.name,
+  icon:c.icon,
+  type:c.data.consumable_type,
+  cost:c.coin_cost,
+  desc:c.description
+}));
 
 function showMarket() {
   document.getElementById('market-ov').style.display = 'flex';
@@ -6039,12 +6459,13 @@ function setMarketTab(tab) { MARKET_TAB = tab; renderMarket(); }
 
 function renderMarket() {
   const mkt = document.getElementById('market-ov'); if (!mkt) return;
+  if (PLAYER) syncConsumableDeckCopies(PLAYER);
   const coins  = PLAYER ? PLAYER.coins : sbx.coins;
   const inv    = (PLAYER && PLAYER.inventory) || {};
   const deckIds = new Set((PLAYER && PLAYER.deckIds) || []);
 
   const tabDefs = [
-    { id:'food',  label:'🍽 Food & Treats' },
+    { id:'food',  label:'🥣 Consumables' },
     { id:'items', label:'🧸 Home Items' },
     { id:'gear',  label:'⚔️ Battle Gear' },
     { id:'homes', label:'🏠 Homes' },
@@ -6055,24 +6476,21 @@ function renderMarket() {
 
   let gridHtml = '';
   if (MARKET_TAB === 'food') {
-    gridHtml = MARKET_CONSUMABLES.map(item => {
+    gridHtml = CONSUMABLE_CARDS.map(item => {
       const qty  = inv[item.id] || 0;
-      const can  = coins >= item.cost;
-      const effs = [
-        item.hunger ? `+${item.hunger} Hunger` : '',
-        item.energy ? `+${item.energy} Energy` : '',
-        item.mood   ? `+${item.mood} Mood`     : '',
-      ].filter(Boolean).map(e => `<span class="mkt-card-eff">${e}</span>`).join('');
-      return `<div class="mkt-card">
-        <div class="mkt-card-art">${item.icon}</div>
+      const can  = coins >= item.coin_cost;
+      const effs = formatConsumableEffects(item).map(e => `<span class="mkt-card-eff">${e}</span>`).join('');
+      return `<div class="mkt-card" onclick="openCardModal('${item.id}')">
+        <div class="mkt-card-art">${item.icon || TYPE_META.consumable.emoji}</div>
         <div class="mkt-card-body">
           <div class="mkt-card-name">${item.name}</div>
-          <div class="mkt-card-desc">${item.desc}</div>
+          <div class="mkt-card-rar" style="color:${RAR_COLOR[item.rarity] || 'var(--acc2)'}">${item.rarity.toUpperCase()} CONSUMABLE</div>
+          <div class="mkt-card-desc">${item.description}</div>
           <div class="mkt-card-effects">${effs}</div>
         </div>
-        <div class="mkt-card-foot">
-          <div class="mkt-card-price">🪙 ${item.cost}</div>
-          ${qty > 0 ? `<span class="mkt-qty-badge">×${qty}</span>` : ''}
+        <div class="mkt-card-foot" onclick="event.stopPropagation()">
+          <div class="mkt-card-price">🪙 ${item.coin_cost}</div>
+          ${qty > 0 ? `<span class="mkt-qty-badge">${qty} use${qty === 1 ? '' : 's'}</span>` : ''}
           <button class="mkt-buy-btn"${!can?' disabled':''} onclick="buyConsumable('${item.id}')">Buy</button>
         </div>
       </div>`;
@@ -6124,15 +6542,17 @@ function renderMarket() {
 }
 
 function buyConsumable(itemId) {
-  const item = MARKET_CONSUMABLES.find(c => c.id === itemId);
+  const item = getCard(itemId);
   if (!item || !PLAYER) return;
-  if (PLAYER.coins < item.cost) { showCareToast('Not enough coins! 🪙'); return; }
-  PLAYER.coins -= item.cost;
+  if (PLAYER.coins < item.coin_cost) { showCareToast('Not enough coins! 🪙'); return; }
+  PLAYER.coins -= item.coin_cost;
   sbx.coins = PLAYER.coins;
   if (!PLAYER.inventory) PLAYER.inventory = {};
-  PLAYER.inventory[itemId] = (PLAYER.inventory[itemId]||0) + 1;
+  PLAYER.inventory[itemId] = (PLAYER.inventory[itemId]||0) + ((item.data && item.data.max_uses) || 1);
+  PLAYER.deckIds = [...(PLAYER.deckIds || []), itemId];
+  sbx.deck = [...(sbx.deck || []), itemId];
   savePlayer();
-  showCareToast(`${item.icon} Bought ${item.name}!`);
+  showCareToast(`${item.icon || TYPE_META.consumable.emoji} Bought ${item.name}!`);
   renderMarket();
 }
 
