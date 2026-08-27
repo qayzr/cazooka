@@ -534,7 +534,7 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .ob-btn-ghost:hover{border-color:var(--acc);color:var(--t1)}
 .ob-auth-err{font-family:var(--fb);font-size:12px;color:#F43F5E;text-align:center;padding:8px 12px;background:rgba(244,63,94,0.08);border-radius:var(--r-sm);border:1px solid rgba(244,63,94,0.2)}
 /* Draft */
-.ob-draft{display:flex;flex-direction:column;width:100%;max-width:700px;height:100%;min-height:0;margin:auto 0}
+.ob-draft{display:flex;flex-direction:column;width:100%;max-width:1320px;height:100%;min-height:0;margin:auto 0}
 .ob-draft-head{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:10px;padding:24px 20px 16px}
 .ob-draft-progress{display:flex;gap:0;align-items:center}
 .ob-prog-dot{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;border:1px solid var(--bd);background:var(--s2);transition:all .2s}
@@ -545,7 +545,7 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .ob-draft-sub{font-family:var(--fb);font-size:12px;color:var(--t2);text-align:center}
 .ob-pick-counter{font-family:var(--fm);font-size:11px;color:var(--acc2);letter-spacing:.03em}
 .ob-draft-scroll{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding:16px 20px}
-.ob-draft-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;width:100%}
+.ob-draft-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;width:100%}
 .ob-draft-foot{flex-shrink:0;padding:14px 20px;border-top:1px solid var(--bd);display:flex;align-items:center;justify-content:center;gap:10px;background:var(--bg)}
 .ob-info-btn{width:38px;height:38px;border-radius:50%;border:1px solid var(--bd);background:var(--s1);color:var(--t2);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s}
 .ob-info-btn:hover{border-color:var(--acc);color:var(--acc);background:var(--acc-bg)}
@@ -639,13 +639,19 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .ob-budget-fill{height:100%;background:var(--acc);border-radius:var(--r-f);transition:width .3s ease,background .2s}
 .ob-budget-fill.danger{background:#F43F5E}
 .ob-reveal-hint{font-family:var(--fb);font-size:11px;color:var(--t3);text-align:center;line-height:1.55}
-@media(min-width:900px){
-  .ob-draft{max-width:1320px}
+@media(min-width:768px){
   .ob-draft-head{padding:26px 36px 18px}
   .ob-draft-scroll{padding:18px 40px}
-  .ob-draft-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
   .ob-draft-title{font-size:34px}
   .ob-draft-foot{padding:14px 40px}
+}
+@media(max-width:767px){
+  .ob-draft{max-width:700px}
+  .ob-draft-head{padding:24px 20px 16px}
+  .ob-draft-scroll{padding:16px 20px}
+  .ob-draft-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  .ob-draft-title{font-size:clamp(22px,5vw,36px)}
+  .ob-draft-foot{padding:14px 20px}
 }
 
 /* ── GAME HOME ── */
