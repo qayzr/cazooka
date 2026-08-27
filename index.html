@@ -641,12 +641,6 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .ob-budget-fill.danger{background:#F43F5E}
 .ob-reveal-hint{font-family:var(--fb);font-size:11px;color:var(--t3);text-align:center;line-height:1.55}
 
-/* ── SIMULATION BANNER ── */
-.sim-banner{display:flex;align-items:center;gap:10px;padding:6px 16px;background:rgba(240,160,48,.12);border-bottom:1px solid rgba(240,160,48,.3);font-family:var(--fm);font-size:9.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--acc2)}
-.sim-banner-dot{width:6px;height:6px;border-radius:50%;background:var(--acc);animation:sim-pulse 1.4s ease infinite}
-@keyframes sim-pulse{0%,100%{opacity:1}50%{opacity:.3}}
-.sim-exit-btn{margin-left:auto;padding:4px 12px;font-family:var(--fm);font-size:9px;text-transform:uppercase;letter-spacing:.07em;background:none;border:1px solid rgba(240,160,48,.4);border-radius:var(--r-md);color:var(--acc2);cursor:pointer;transition:all .15s}
-.sim-exit-btn:hover{background:rgba(240,160,48,.15);border-color:var(--acc)}
 /* ── GAME HOME ── */
 .game-ov{position:absolute;inset:0;z-index:900;background:var(--bg);display:flex;flex-direction:column;overflow:hidden}
 .gh-hdr{flex-shrink:0;height:52px;display:flex;align-items:center;gap:12px;padding:0 20px;background:var(--s1);border-bottom:1px solid var(--bd)}
@@ -870,22 +864,39 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .gh-inbox-dot{position:absolute;top:-1px;right:-1px;width:8px;height:8px;border-radius:50%;background:#F0A030;border:1.5px solid var(--s1);animation:inbox-pulse 1.8s ease infinite;display:block}
 @keyframes inbox-pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.35);opacity:.55}}
 /* Cards tab */
-.gh-cards-tab{display:flex;flex-direction:column;gap:8px;width:100%;max-width:860px}
-.gh-cards-header{padding:2px 0 6px}
+.gh-cards-tab{display:flex;flex-direction:column;gap:12px;width:100%;max-width:860px}
+.gh-cards-header{padding:2px 0 0;display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
 .gh-cards-title{font-family:var(--fd);font-size:17px;font-weight:700;color:var(--t1)}
 .gh-cards-sub{font-family:var(--fb);font-size:12px;color:var(--t3);margin-top:2px}
-.gh-card-row{display:flex;align-items:center;gap:12px;border-radius:var(--r-lg);padding:11px 14px;transition:border-color .15s,box-shadow .15s;cursor:pointer}
-.gh-card-row:hover{filter:brightness(1.08);box-shadow:0 4px 18px rgba(0,0,0,.3)}
-.gh-card-row-art{font-size:22px;line-height:1;flex-shrink:0;width:32px;text-align:center}
-.gh-card-row-info{flex:1;min-width:0}
-.gh-card-row-name{font-family:var(--fd);font-size:13px;font-weight:700;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.gh-card-row-type{font-family:var(--fm);font-size:8px;text-transform:uppercase;letter-spacing:.08em;color:var(--t3);margin-top:1px}
+.gh-card-count{font-family:var(--fm);font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--t3);white-space:nowrap;padding-bottom:2px}
+.gh-card-tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--s1);border:1px solid var(--bd);border-radius:var(--r-lg);padding:10px 12px}
+.gh-card-search{flex:1;min-width:180px;font-family:var(--fb);font-size:12px;padding:7px 10px;background:var(--s2);border:1px solid var(--bd);border-radius:var(--r-md);color:var(--t1);outline:none;transition:border-color .15s}
+.gh-card-search:focus{border-color:var(--acc)}
+.gh-card-filter{font-family:var(--fb);font-size:12px;padding:7px 10px;background:var(--s2);border:1px solid var(--bd);border-radius:var(--r-md);color:var(--t1);outline:none;cursor:pointer;min-width:118px}
+.gh-card-grid{display:grid;grid-template-columns:repeat(3,210px);gap:14px;align-items:start;justify-content:center}
+.gh-card-cell{position:relative;display:flex;flex-direction:column;gap:7px;width:210px}
+.gh-card-cell .cv{cursor:pointer;transition:transform .14s,box-shadow .14s;height:294px;display:flex;flex-direction:column}
+.gh-card-cell .cv:hover{transform:translateY(-3px);box-shadow:0 0 0 2px var(--cv-r,var(--cv-c)),0 16px 40px rgba(0,0,0,.55)}
+.gh-card-cell .cv .cv-art{height:70px!important;font-size:34px!important;flex-shrink:0!important}
+.gh-card-cell .cv .cv-art::after{display:none}
+.gh-card-cell .cv .cv-hdr{padding:7px 10px 6px!important}
+.gh-card-cell .cv .cv-name{font-size:12.5px!important}
+.gh-card-cell .cv .cv-body{flex:1;min-height:0;overflow:hidden;padding:7px 10px 7px!important;gap:5px!important}
+.gh-card-cell .cv .cv-stats-grid{gap:2px 6px!important}
+.gh-card-cell .cv .cv-desc{font-size:10px!important}
+.gh-card-cell .cv .cv-subtext{font-size:9px!important}
+.gh-card-cell .cvs-n{font-size:7px!important}
+.gh-card-cell .cvs-v{font-size:7px!important}
+.gh-card-cell .cv .cv-foot{flex-shrink:0!important;padding:6px 10px 7px!important}
+.gh-card-meta{display:flex;align-items:center;gap:6px;min-height:24px}
 .gh-card-badge{font-family:var(--fm);font-size:8px;text-transform:uppercase;letter-spacing:.06em;padding:3px 8px;border-radius:var(--r-f);flex-shrink:0}
 .gh-card-badge.active{background:rgba(52,211,153,.12);color:#34D399;border:1px solid rgba(52,211,153,.3)}
 .gh-card-badge.inactive{background:var(--s3);color:var(--t3);border:1px solid var(--bd)}
-.gh-card-actions-row{display:flex;gap:5px;flex-shrink:0}
+.gh-card-actions-row{display:flex;gap:5px;flex-shrink:0;margin-left:auto}
 .gh-card-act-btn{padding:4px 9px;font-family:var(--fm);font-size:8px;text-transform:uppercase;letter-spacing:.05em;background:none;border:1px solid var(--bd);border-radius:var(--r-md);color:var(--t3);cursor:pointer;transition:all .15s;white-space:nowrap}
 .gh-card-act-btn:hover{border-color:var(--acc);color:var(--acc2)}
+@media(max-width:720px){.gh-card-grid{grid-template-columns:repeat(2,210px)}}
+@media(max-width:480px){.gh-card-grid{grid-template-columns:210px}.gh-cards-header{align-items:flex-start;flex-direction:column}.gh-card-tools{align-items:stretch}.gh-card-search,.gh-card-filter{width:100%;min-width:0}}
 .gh-visits-tab{display:flex;flex-direction:column;gap:14px;width:100%;max-width:860px}
 .gh-visits-header{padding:2px 0 4px}
 .gh-visits-title{font-family:var(--fd);font-size:17px;font-weight:700;color:var(--t1)}
@@ -1138,7 +1149,6 @@ let CUSTOM_CARDS = [];
 try { CUSTOM_CARDS = JSON.parse(localStorage.getItem('cz_custom_cards') || '[]'); } catch(e) {}
 
 let PLAYER       = null;
-let SIM_MODE     = false;
 let GH_TAB        = 'cats';
 let GH_OPEN_GEAR    = new Set();
 let GH_OPEN_ABILITY = new Set();
@@ -1148,6 +1158,7 @@ let GH_OPEN_CAT      = new Set();
 let GH_HAS_UNREAD    = true; // demo: unread messages exist
 let GH_RETURN_DIFFS  = null; // {ci: {hungerDiff, moodDiff, energyDiff}} set on return from adventure
 let GH_ACTIVE_HOME_IDX = 0;  // which home card is active on the home tab
+const GH_CARD_FILTER = { search:'', type:'all', rarity:'all' };
 let _GH_TOUCH_MOVED = false; // true if last touch event involved significant horizontal movement
 
 const ONBOARD = {
@@ -1244,7 +1255,14 @@ const RAR_COLOR = {
   common:'var(--rar-common)', uncommon:'var(--rar-uncommon)',
   rare:'var(--rar-rare)', epic:'var(--rar-epic)', legendary:'var(--rar-legendary)'
 };
+const RARITIES = ['common','uncommon','rare','epic','legendary'];
 const STATS_ORDER = ['strength','speed','agility','stamina','intelligence','stealth','loyalty'];
+
+function escapeAttr(value) {
+  return String(value ?? '').replace(/[&<>"']/g, ch => ({
+    '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
+  }[ch]));
+}
 
 function cardArtHTML(card, tm) {
   if (card && card.image_url) {
@@ -3914,7 +3932,7 @@ function showOnboardStep(step) {
   ov.classList.toggle('reveal-mode', step === 'reveal');
   if (step === 'register') ov.innerHTML = buildRegisterHtml();
   else if (step === 'draft')  ov.innerHTML = buildDraftHtml();
-  else if (step === 'reveal') { ov.innerHTML = buildRevealHtml(); setTimeout(triggerRevealFlips, 350); }
+  else if (step === 'reveal') { ov.innerHTML = buildRevealHtml(); updateRevealBudget(); setTimeout(triggerRevealFlips, 350); }
 }
 
 function buildRegisterHtml() {
@@ -4282,7 +4300,7 @@ function buildRevealHtml() {
     <!-- ── SCROLLABLE MIDDLE: cards ── -->
     <div class="ob-reveal-scroll">
       <div class="ob-reveal-groups" id="ob-reveal-groups">${groupsHtml}</div>
-      <div class="ob-reveal-hint" style="margin-top:14px">All cards selected by default. Tap any card to remove it from your deck.<br>You can earn more coins on runs to buy the rest later.</div>
+      <div class="ob-reveal-hint" style="margin-top:14px">All cards selected by default. Tap any card to remove it from your deck.<br>Keep at least 1 cat and 1 home. Everything else is optional.</div>
     </div>
 
     <!-- ── STICKY BOTTOM: begin button ── -->
@@ -4328,11 +4346,22 @@ function calcSpent() {
   return ONBOARD.revealCards.filter(c => ONBOARD.purchaseSet.has(c.id)).reduce((s,c) => s + (c.coin_cost||0), 0);
 }
 
+function getRevealRequirements() {
+  const kept = ONBOARD.revealCards.filter(c => ONBOARD.purchaseSet.has(c.id));
+  const hasCat = kept.some(c => c.type === 'cat_breed');
+  const hasHome = kept.some(c => c.type === 'home');
+  const missing = [];
+  if (!hasCat) missing.push('1 cat');
+  if (!hasHome) missing.push('1 home');
+  return { valid: missing.length === 0, missing };
+}
+
 function updateRevealBudget() {
   const spent     = calcSpent();
   const remaining = ONBOARD.startingCoins - spent;
   const pct       = Math.min(100, Math.round((spent / ONBOARD.startingCoins) * 100));
   const danger    = remaining < 0;
+  const req       = getRevealRequirements();
   const numEl   = document.getElementById('ob-budget-num');
   const spentEl = document.getElementById('ob-budget-spent');
   const fillEl  = document.getElementById('ob-budget-fill');
@@ -4342,7 +4371,7 @@ function updateRevealBudget() {
   if (numEl)  { numEl.textContent = remaining; numEl.className = danger ? 'ob-budget-num danger' : 'ob-budget-num'; }
   if (spentEl) spentEl.textContent = spent + ' coins';
   if (fillEl)  { fillEl.style.width = pct + '%'; fillEl.className = danger ? 'ob-budget-fill danger' : 'ob-budget-fill'; }
-  if (finBtn)  finBtn.disabled = danger;
+  if (finBtn)  finBtn.disabled = danger || !req.valid;
   if (csRem)   { csRem.textContent = remaining; csRem.style.color = danger ? '#F43F5E' : 'var(--acc2)'; }
   const cs = document.getElementById('ob-coin-status');
   if (cs) cs.style.color = danger ? '#F43F5E' : 'var(--t2)';
@@ -4350,6 +4379,9 @@ function updateRevealBudget() {
     if (danger) {
       overMsg.style.display = 'block';
       overMsg.textContent = `⚠️ Over budget by ${Math.abs(remaining)} coins — deselect a card to continue.`;
+    } else if (!req.valid) {
+      overMsg.style.display = 'block';
+      overMsg.textContent = `Pick at least ${req.missing.join(' and ')} before beginning.`;
     } else {
       overMsg.style.display = 'none';
     }
@@ -4358,6 +4390,11 @@ function updateRevealBudget() {
 
 function completeOnboarding() {
   const kept  = ONBOARD.revealCards.filter(c => ONBOARD.purchaseSet.has(c.id));
+  const req = getRevealRequirements();
+  if (!req.valid) {
+    updateRevealBudget();
+    return;
+  }
   const spent = calcSpent();
   const player = {
     name: ONBOARD.name, registered: true,
@@ -4367,7 +4404,6 @@ function completeOnboarding() {
     inventory: {}
   };
   PLAYER = player;
-  SIM_MODE = true;
   sbx.deck  = kept.map(c => c.id);
   sbx.coins = player.coins;
   const keptBreeds    = kept.filter(c => c.type === 'cat_breed');
@@ -4386,13 +4422,11 @@ function completeOnboarding() {
   savePlayerToCloud();
   const ov = document.getElementById('onboard');
   if (ov) { ov.style.opacity = '0'; ov.style.transition = 'opacity .45s ease'; setTimeout(() => { ov.style.display = 'none'; ov.style.opacity = ''; }, 500); }
-  const sf = document.getElementById('dash-sim-foot'); if (sf) sf.textContent = '▶ Resume simulation';
   setTimeout(showGameHome, 480);
 }
 
 function startSimulation() {
   // Reset simulation state
-  SIM_MODE = false;
   PLAYER = null;
   sbx.cats = [];
   sbx.deck = [];
@@ -4405,26 +4439,6 @@ function startSimulation() {
   const mkt = document.getElementById('market-ov'); if (mkt) mkt.style.display = 'none';
   const op = document.getElementById('outing-picker-ov'); if (op) op.style.display = 'none';
   showOnboardStep('register');
-}
-
-function exitSimulation() {
-  SIM_MODE = false;
-  PLAYER = null;
-  sbx.cats = [];
-  sbx.deck = [];
-  sbx.coins = 1500;
-  sbx.savedHomes = {};
-  GH_ACTIVE_HOME_IDX = 0;
-  CAT_CARE = {};
-  try { localStorage.removeItem('cz_cat_care'); } catch(e) {}
-  if (GAME_CARE_TIMER) { clearInterval(GAME_CARE_TIMER); GAME_CARE_TIMER = null; }
-  document.getElementById('game-home').style.display  = 'none';
-  document.getElementById('market-ov').style.display  = 'none';
-  document.getElementById('onboard').style.display    = 'none';
-  document.getElementById('outing-picker-ov').style.display = 'none';
-  document.getElementById('run-ov').style.display     = 'none';
-  const sf = document.getElementById('dash-sim-foot'); if (sf) sf.textContent = '▶ Start new game';
-  showTab('dashboard');
 }
 
 async function initApp() {
@@ -4469,6 +4483,21 @@ const CAT_EMOJIS = {
 };
 
 function getCatEmoji(card) { return CAT_EMOJIS[card && card.id] || '🐱'; }
+
+function setGhCardFilter(key, value) {
+  if (!(key in GH_CARD_FILTER)) return;
+  GH_CARD_FILTER[key] = key === 'search' ? String(value || '').toLowerCase() : value;
+  const caret = key === 'search' ? (document.getElementById('gh-card-search')?.selectionStart || 0) : 0;
+  renderGameHome();
+  if (key === 'search') {
+    requestAnimationFrame(() => {
+      const input = document.getElementById('gh-card-search');
+      if (!input) return;
+      input.focus();
+      input.setSelectionRange(caret, caret);
+    });
+  }
+}
 
 function showGameHome() {
   document.getElementById('onboard').style.display  = 'none';
@@ -5066,42 +5095,67 @@ function renderGameHome() {
   // ── CARDS TAB ──
   const activeCardIds = new Set([
     ...cats.map(cs => cs.breed && cs.breed.id).filter(Boolean),
-    ...cats.flatMap(cs => cs.gear || []),
-    ...(sbx.home ? [sbx.home] : []),
+    ...cats.flatMap(cs => (cs.gear || []).map(g => typeof g === 'string' ? g : (g && g.id))).filter(Boolean),
+    ...cats.flatMap(cs => (cs.abilities || []).map(a => typeof a === 'string' ? a : (a && a.id))).filter(Boolean),
+    ...(sbx.home ? [typeof sbx.home === 'string' ? sbx.home : sbx.home.id] : []),
     ...(sbx.homeItems || []).map(hi => typeof hi === 'string' ? hi : (hi && hi.id)).filter(Boolean),
   ]);
-  const TYPE_ICON = { cat_breed:'🐱', home:'🏠', home_item:'📦', battle_gear:'⚔️', special_ability:'✨' };
-  const TYPE_LABEL = { cat_breed:'Cat Breed', home:'Home', home_item:'Home Item', battle_gear:'Battle Gear', special_ability:'Special Ability' };
-  const allDeckCards = deckIds.map(id => getCard(id)).filter(Boolean);
+  const allDeckCards = deckIds.map(entry => typeof entry === 'string' ? getCard(entry) : entry).filter(Boolean);
   let cardsTabHtml;
   if (!allDeckCards.length) {
     cardsTabHtml = `<div class="gh-cards-tab"><div class="gh-empty">No cards in your deck yet.</div></div>`;
   } else {
-    const rows = allDeckCards.map(card => {
+    const filteredDeckCards = allDeckCards.filter(card => {
+      const q = GH_CARD_FILTER.search;
+      if (GH_CARD_FILTER.type !== 'all' && card.type !== GH_CARD_FILTER.type) return false;
+      if (GH_CARD_FILTER.rarity !== 'all' && card.rarity !== GH_CARD_FILTER.rarity) return false;
+      if (q && !card.name.toLowerCase().includes(q) &&
+          !(card.description||'').toLowerCase().includes(q) &&
+          !(card.series||'').toLowerCase().includes(q)) return false;
+      return true;
+    });
+    const typeOptions = [
+      ['all', 'All Types'],
+      ['cat_breed', 'Cat Breeds'],
+      ['home', 'Homes'],
+      ['home_item', 'Items'],
+      ['battle_gear', 'Gear'],
+      ['special_ability', 'Abilities']
+    ];
+    const rarityOptions = ['all', ...RARITIES];
+    const cardsGrid = filteredDeckCards.map(card => {
       const isActive = activeCardIds.has(card.id);
-      const icon = TYPE_ICON[card.type] || '🃏';
-      const typeLbl = TYPE_LABEL[card.type] || card.type;
-      const rc = RAR_COLOR[card.rarity] || 'var(--bd)';
-      const rowStyle = `border:1px solid color-mix(in srgb,${rc} 45%,transparent);background:color-mix(in srgb,${rc} 9%,var(--s1))`;
-      return `<div class="gh-card-row" style="${rowStyle}" onclick="openCardModal('${card.id}')">
-        <div class="gh-card-row-art">${icon}</div>
-        <div class="gh-card-row-info">
-          <div class="gh-card-row-name">${card.name}</div>
-          <div class="gh-card-row-type" style="color:${rc};opacity:.75">${typeLbl} · ${card.rarity}</div>
+      return `<div class="gh-card-cell">
+        ${buildCardFaceHtml(card, { onclick: `openCardModal('${card.id}')`, standardLayout: true })}
+        <div class="gh-card-meta">
+          <span class="gh-card-badge ${isActive ? 'active' : 'inactive'}">${isActive ? 'Active' : 'Inactive'}</span>
+          ${!isActive ? `<div class="gh-card-actions-row" onclick="event.stopPropagation()">
+            <button class="gh-card-act-btn">Trade</button>
+            <button class="gh-card-act-btn">Send</button>
+          </div>` : ''}
         </div>
-        <span class="gh-card-badge ${isActive ? 'active' : 'inactive'}">${isActive ? 'Active' : 'Inactive'}</span>
-        ${!isActive ? `<div class="gh-card-actions-row" onclick="event.stopPropagation()">
-          <button class="gh-card-act-btn">🤝 Trade</button>
-          <button class="gh-card-act-btn">📤 Send</button>
-        </div>` : ''}
       </div>`;
     }).join('');
     cardsTabHtml = `<div class="gh-cards-tab">
       <div class="gh-cards-header">
-        <div class="gh-cards-title">🃏 Your Cards</div>
-        <div class="gh-cards-sub">Inactive cards can be traded or sent to other players.</div>
+        <div>
+          <div class="gh-cards-title">🃏 Your Cards</div>
+          <div class="gh-cards-sub">Inactive cards can be traded or sent to other players.</div>
+        </div>
+        <div class="gh-card-count">${filteredDeckCards.length} / ${allDeckCards.length}</div>
       </div>
-      ${rows}
+      <div class="gh-card-tools">
+        <input class="gh-card-search" id="gh-card-search" type="text" placeholder="Search cards…" value="${escapeAttr(GH_CARD_FILTER.search)}" oninput="setGhCardFilter('search',this.value)">
+        <select class="gh-card-filter" onchange="setGhCardFilter('type',this.value)">
+          ${typeOptions.map(([value, label]) => `<option value="${value}"${GH_CARD_FILTER.type===value?' selected':''}>${label}</option>`).join('')}
+        </select>
+        <select class="gh-card-filter" onchange="setGhCardFilter('rarity',this.value)">
+          ${rarityOptions.map(value => `<option value="${value}"${GH_CARD_FILTER.rarity===value?' selected':''}>${value==='all'?'All Rarities':value[0].toUpperCase()+value.slice(1)}</option>`).join('')}
+        </select>
+      </div>
+      ${filteredDeckCards.length
+        ? `<div class="gh-card-grid">${cardsGrid}</div>`
+        : `<div class="gh-empty">No cards match those filters.</div>`}
     </div>`;
   }
 
@@ -5113,7 +5167,6 @@ function renderGameHome() {
     : catsTabHtml;
 
   gh.innerHTML = `
-    ${SIM_MODE ? `<div class="sim-banner"><span class="sim-banner-dot"></span>Simulation Mode — deck locked to drafted cards<button class="sim-exit-btn" onclick="exitSimulation()">✕ Exit</button></div>` : ''}
     <div class="gh-hdr">
       <span class="gh-home-name">🏠 ${homeName}</span>
       <div class="gh-hdr-right">
@@ -5944,7 +5997,6 @@ async function loadPlayerFromCloud(userId) {
     sbx.deck  = gs.deck   || [];
     sbx.coins = gs.coins  || 1500;
     sbx.homeItems = gs.homeItems || [];
-    SIM_MODE  = true;
     if (PLAYER) {
       PLAYER.coins = sbx.coins;
       PLAYER.cardSerials = PLAYER.cardSerials || {}; // older saves predate limited editions
@@ -6062,7 +6114,6 @@ function renderMarket() {
   }
 
   mkt.innerHTML = `
-    ${SIM_MODE ? `<div class="sim-banner"><span class="sim-banner-dot"></span>Simulation Mode<button class="sim-exit-btn" onclick="exitSimulation()">✕ Exit</button></div>` : ''}
     <div class="mkt-hdr">
       <button class="mkt-back" onclick="closeMarket()">← Home</button>
       <span class="mkt-title">🏪 Market</span>
