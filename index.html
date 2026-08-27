@@ -1194,7 +1194,7 @@ let GH_OPEN_CAT      = new Set();
 let GH_HAS_UNREAD    = true; // demo: unread messages exist
 let GH_RETURN_DIFFS  = null; // {ci: {hungerDiff, moodDiff, energyDiff}} set on return from adventure
 let GH_ACTIVE_HOME_IDX = 0;  // which home card is active on the home tab
-const GH_CARD_FILTER = { search:'', type:'all', rarity:'all' };
+const GH_CARD_FILTER = { search:'', type:'all', rarity:'all', view:'recent' };
 let _GH_TOUCH_MOVED = false; // true if last touch event involved significant horizontal movement
 
 const ONBOARD = {
@@ -5734,7 +5734,20 @@ function renderGameHome() {
   if (!allDeckCards.length) {
     cardsTabHtml = `<div class="gh-cards-tab"><div class="gh-empty">No cards in your deck yet.</div></div>`;
   } else {
-    const filteredDeckCards = allDeckCards.filter(card => {
+    const recentLimit = 12;
+    const allDeckEntries = deckIds.map((entry, deckIndex) => ({
+      card: typeof entry === 'string' ? getCard(entry) : entry,
+      deckIndex
+    })).filter(entry => entry.card);
+    const newestDeckEntries = [...allDeckEntries].sort((a, b) => b.deckIndex - a.deckIndex);
+    const viewEntries = GH_CARD_FILTER.view === 'recent'
+      ? newestDeckEntries.slice(0, Math.min(recentLimit, newestDeckEntries.length))
+      : GH_CARD_FILTER.view === 'active'
+        ? newestDeckEntries.filter(entry => activeCardIds.has(entry.card.id))
+        : GH_CARD_FILTER.view === 'inactive'
+          ? newestDeckEntries.filter(entry => !activeCardIds.has(entry.card.id))
+          : newestDeckEntries;
+    const filteredDeckEntries = viewEntries.filter(({ card }) => {
       const q = GH_CARD_FILTER.search;
       if (GH_CARD_FILTER.type !== 'all' && card.type !== GH_CARD_FILTER.type) return false;
       if (GH_CARD_FILTER.rarity !== 'all' && card.rarity !== GH_CARD_FILTER.rarity) return false;
@@ -5743,6 +5756,13 @@ function renderGameHome() {
           !(card.series||'').toLowerCase().includes(q)) return false;
       return true;
     });
+    const filteredDeckCards = filteredDeckEntries.map(entry => entry.card);
+    const viewOptions = [
+      ['recent', 'Recent Cards'],
+      ['all', 'All Cards'],
+      ['active', 'Active Cards'],
+      ['inactive', 'Inactive Cards']
+    ];
     const typeOptions = [
       ['all', 'All Types'],
       ['cat_breed', 'Cat Breeds'],
@@ -5753,12 +5773,13 @@ function renderGameHome() {
       ['consumable', 'Consumables']
     ];
     const rarityOptions = ['all', ...RARITIES];
-    const cardsGrid = filteredDeckCards.map(card => {
+    const cardsGrid = filteredDeckEntries.map(({ card, deckIndex }) => {
       const isActive = activeCardIds.has(card.id);
       return `<div class="gh-card-cell">
         ${buildCardFaceHtml(card, { onclick: `openCardModal('${card.id}')`, standardLayout: true })}
         <div class="gh-card-meta">
           <span class="gh-card-badge ${isActive ? 'active' : 'inactive'}">${isActive ? 'Active' : 'Inactive'}</span>
+          ${GH_CARD_FILTER.view === 'recent' ? `<span class="gh-card-badge inactive">New #${deckIndex + 1}</span>` : ''}
           ${!isActive ? `<div class="gh-card-actions-row" onclick="event.stopPropagation()">
             <button class="gh-card-act-btn">Trade</button>
             <button class="gh-card-act-btn">Send</button>
@@ -5770,12 +5791,15 @@ function renderGameHome() {
       <div class="gh-cards-header">
         <div>
           <div class="gh-cards-title">🃏 Your Cards</div>
-          <div class="gh-cards-sub">Inactive cards can be traded or sent to other players.</div>
+          <div class="gh-cards-sub">${GH_CARD_FILTER.view === 'recent' ? 'Newest cards appear first after market buys and outside trips.' : 'Inactive cards can be traded or sent to other players.'}</div>
         </div>
         <div class="gh-card-count">${filteredDeckCards.length} / ${allDeckCards.length}</div>
       </div>
       <div class="gh-card-tools">
         <input class="gh-card-search" id="gh-card-search" type="text" placeholder="Search cards…" value="${escapeAttr(GH_CARD_FILTER.search)}" oninput="setGhCardFilter('search',this.value)">
+        <select class="gh-card-filter" onchange="setGhCardFilter('view',this.value)">
+          ${viewOptions.map(([value, label]) => `<option value="${value}"${GH_CARD_FILTER.view===value?' selected':''}>${label}</option>`).join('')}
+        </select>
         <select class="gh-card-filter" onchange="setGhCardFilter('type',this.value)">
           ${typeOptions.map(([value, label]) => `<option value="${value}"${GH_CARD_FILTER.type===value?' selected':''}>${label}</option>`).join('')}
         </select>
@@ -5785,7 +5809,7 @@ function renderGameHome() {
       </div>
       ${filteredDeckCards.length
         ? `<div class="gh-card-grid">${cardsGrid}</div>`
-        : `<div class="gh-empty">No cards match those filters.</div>`}
+        : `<div class="gh-empty">No cards match this view.</div>`}
     </div>`;
   }
 
