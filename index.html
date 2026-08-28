@@ -828,7 +828,6 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .gh-room-object,.gh-room-cat-avatar{position:absolute;left:calc(var(--x)*1%);top:calc(var(--y)*1%);z-index:var(--z);transform:translate(-50%,-50%) scale(var(--scale));border:none;background:transparent;color:var(--t1);padding:0;cursor:pointer;filter:drop-shadow(0 18px 18px rgba(0,0,0,.38));animation:room-idle 4.8s ease-in-out infinite;animation-delay:var(--delay)}
 .gh-room-object:hover,.gh-room-cat-avatar:hover{z-index:30}
 .gh-room-object-base{min-width:68px;height:40px;padding:6px 9px;border-radius:10px 10px 13px 13px;background:linear-gradient(180deg,rgba(52,64,83,.98),rgba(25,33,44,.98));border:1px solid rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;box-shadow:0 12px 0 rgba(0,0,0,.16)}
-.gh-room-object-icon{font-size:26px;line-height:1}
 .gh-room-sprite{display:block;max-width:78px;max-height:78px;image-rendering:pixelated;image-rendering:crisp-edges;object-fit:contain}
 .gh-room-cat-sprite{display:block;width:56px;height:56px;image-rendering:pixelated;image-rendering:crisp-edges;object-fit:contain}
 .gh-room-object-label,.gh-room-cat-label{position:absolute;left:50%;top:100%;transform:translate(-50%,7px);max-width:126px;padding:3px 7px;border-radius:999px;background:rgba(7,11,17,.72);border:1px solid rgba(255,255,255,.12);font-family:var(--fm);font-size:7.5px;color:var(--t2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:.84;pointer-events:none}
@@ -842,6 +841,24 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .gh-pixel-eye.l{left:9px}.gh-pixel-eye.r{right:9px}
 .gh-pixel-nose{position:absolute;left:17px;top:20px;width:4px;height:3px;background:#5a3340;border-radius:1px}
 .gh-pixel-tail{position:absolute;right:-12px;bottom:5px;width:13px;height:6px;background:var(--cat-fur,#d8b36a);border-radius:0 5px 5px 0;box-shadow:4px -4px 0 -1px var(--cat-fur,#d8b36a)}
+.gh-pixel-item{position:relative;display:block;width:42px;height:34px;image-rendering:pixelated}
+.gh-pixel-item:before,.gh-pixel-item:after{content:"";position:absolute;display:block}
+.gh-pixel-box{background:#9c6b3e;border-radius:2px;box-shadow:0 4px 0 #654023,8px 0 0 -3px #c28a54,-8px 0 0 -3px #704728}
+.gh-pixel-box:before{left:12px;top:0;width:18px;height:34px;background:rgba(255,224,166,.18)}
+.gh-pixel-food{height:20px;margin-top:11px;border-radius:2px 2px 11px 11px;background:#b8854e;box-shadow:0 4px 0 #654023}
+.gh-pixel-food:before{left:8px;top:-7px;width:26px;height:10px;border-radius:50%;background:#e8c27a;box-shadow:0 3px 0 #7a5630 inset}
+.gh-pixel-play{width:36px;height:36px;border-radius:50%;background:#e94b5f;box-shadow:0 4px 0 #8c2938}
+.gh-pixel-play:before{left:15px;top:-8px;width:6px;height:18px;background:#ffcf5f;box-shadow:0 -4px 0 #fff1a8}
+.gh-pixel-scratch{width:18px;height:46px;margin-top:-8px;margin-left:12px;background:#b07b4b;box-shadow:0 4px 0 #6a4427,12px 39px 0 7px #6a4427,-12px 39px 0 7px #6a4427}
+.gh-pixel-scratch:before{left:-4px;top:6px;width:26px;height:5px;background:#e0b171;box-shadow:0 10px 0 #e0b171,0 20px 0 #e0b171}
+.gh-pixel-study{width:44px;height:28px;margin-top:4px;background:#26364d;border-radius:2px;box-shadow:0 4px 0 #111925}
+.gh-pixel-study:before{left:6px;top:5px;width:32px;height:14px;background:#55b7c8;box-shadow:0 0 0 3px #151d2b inset}
+.gh-pixel-rest{width:48px;height:24px;margin-top:9px;background:#6f5f8f;border-radius:3px;box-shadow:0 5px 0 #352f49}
+.gh-pixel-rest:before{left:4px;top:-7px;width:17px;height:10px;background:#d7c8f2;border-radius:2px}
+.gh-pixel-care{width:12px;height:42px;margin-left:15px;margin-top:-4px;background:#d5b28d;border-radius:2px;box-shadow:0 4px 0 #735139}
+.gh-pixel-care:before{left:-8px;top:4px;width:28px;height:6px;background:#f0d0aa;box-shadow:0 8px 0 #f0d0aa,0 16px 0 #f0d0aa,0 24px 0 #f0d0aa}
+.gh-pixel-plant{width:18px;height:18px;margin-left:12px;margin-top:18px;background:#8a5836;box-shadow:0 4px 0 #4b3324}
+.gh-pixel-plant:before{left:-8px;top:-19px;width:14px;height:22px;background:#3fa35a;border-radius:50% 50% 0 50%;box-shadow:12px -3px 0 #55b96c,23px 1px 0 #367d49,6px 7px 0 #2f8d4a}
 .gh-room-status-mini{position:absolute;left:50%;bottom:-19px;transform:translateX(-50%);width:54px;display:flex;gap:2px}
 .gh-room-status-mini span{height:3px;flex:1;border-radius:999px;background:var(--s3);overflow:hidden}
 .gh-room-status-mini b{display:block;height:100%;border-radius:999px}
@@ -5223,20 +5240,21 @@ function getRoomItemVisual(card) {
   if (defined) return {
     icon: defined.icon || card.icon || '📦',
     sprite: defined.sprite || '',
+    pixel: defined.pixel || '',
     label: defined.label || defined.zone || 'item',
     zone: defined.zone || 'floor',
     size: defined.size || 'medium',
   };
   const key = `${card?.id || ''} ${card?.name || ''} ${card?.data?.special_properties || ''}`.toLowerCase();
-  if (key.includes('laser')) return { icon:'🔴', label:'toy', zone:'play', size:'small' };
-  if (key.includes('scratch')) return { icon:'🪵', label:'scratch', zone:'play', size:'tall' };
-  if (key.includes('feeder') || key.includes('food')) return { icon:'🍽️', label:'food', zone:'food', size:'wide' };
-  if (key.includes('comb') || key.includes('brush') || key.includes('groom')) return { icon:'🪮', label:'groom', zone:'care', size:'small' };
-  if (key.includes('puzzle')) return { icon:'🧩', label:'puzzle', zone:'study', size:'wide' };
-  if (key.includes('laptop') || key.includes('screen')) return { icon:'💻', label:'tech', zone:'study', size:'wide' };
-  if (key.includes('bed') || key.includes('cushion') || key.includes('blanket')) return { icon:'🛏️', label:'rest', zone:'rest', size:'wide' };
-  if (key.includes('plant') || key.includes('garden')) return { icon:'🪴', label:'plant', zone:'wall', size:'tall' };
-  return { icon:card?.icon || '📦', label:'item', zone:'floor', size:'medium' };
+  if (key.includes('laser')) return { pixel:'play', label:'toy', zone:'play', size:'small' };
+  if (key.includes('scratch')) return { pixel:'scratch', label:'scratch', zone:'play', size:'tall' };
+  if (key.includes('feeder') || key.includes('food')) return { pixel:'food', label:'food', zone:'food', size:'wide' };
+  if (key.includes('comb') || key.includes('brush') || key.includes('groom')) return { pixel:'care', label:'groom', zone:'care', size:'small' };
+  if (key.includes('puzzle')) return { pixel:'study', label:'puzzle', zone:'study', size:'wide' };
+  if (key.includes('laptop') || key.includes('screen')) return { pixel:'study', label:'tech', zone:'study', size:'wide' };
+  if (key.includes('bed') || key.includes('cushion') || key.includes('blanket')) return { pixel:'rest', label:'rest', zone:'rest', size:'wide' };
+  if (key.includes('plant') || key.includes('garden')) return { pixel:'plant', label:'plant', zone:'wall', size:'tall' };
+  return { pixel:'box', label:'item', zone:'floor', size:'medium' };
 }
 
 function getRoomProfile(homeCard) {
@@ -5365,7 +5383,7 @@ function renderRoomEngineHtml(homeCard, cats, homeItems) {
     const zone = env.zones.includes(visual.zone) ? visual.zone : 'floor';
     const itemFace = visual.sprite
       ? `<img class="gh-room-sprite" src="${escapeAttr(visual.sprite)}" alt="">`
-      : `<span class="gh-room-object-icon">${visual.icon}</span>`;
+      : `<span class="gh-pixel-item gh-pixel-${escapeAttr(visual.pixel || 'box')}"></span>`;
     return `<button class="gh-room-object" data-zone="${escapeAttr(zone)}" data-size="${escapeAttr(visual.size)}" style="${getRoomSlotStyle(i, 'item', zone)}" onclick="openCardModal('${card.id}')" title="${escapeAttr(card.name)}">
       <span class="gh-room-object-base">${itemFace}</span>
       <span class="gh-room-object-label">${card.name}</span>
