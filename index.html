@@ -829,10 +829,19 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .gh-room-object:hover,.gh-room-cat-avatar:hover{z-index:30}
 .gh-room-object-base{min-width:68px;height:40px;padding:6px 9px;border-radius:10px 10px 13px 13px;background:linear-gradient(180deg,rgba(52,64,83,.98),rgba(25,33,44,.98));border:1px solid rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;box-shadow:0 12px 0 rgba(0,0,0,.16)}
 .gh-room-object-icon{font-size:26px;line-height:1}
+.gh-room-sprite{display:block;max-width:78px;max-height:78px;image-rendering:pixelated;image-rendering:crisp-edges;object-fit:contain}
+.gh-room-cat-sprite{display:block;width:56px;height:56px;image-rendering:pixelated;image-rendering:crisp-edges;object-fit:contain}
 .gh-room-object-label,.gh-room-cat-label{position:absolute;left:50%;top:100%;transform:translate(-50%,7px);max-width:126px;padding:3px 7px;border-radius:999px;background:rgba(7,11,17,.72);border:1px solid rgba(255,255,255,.12);font-family:var(--fm);font-size:7.5px;color:var(--t2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:.84;pointer-events:none}
 .gh-room-cat-avatar{width:58px;height:62px;border-radius:48% 48% 42% 42%;background:linear-gradient(180deg,#334155,#141b27);border:1px solid rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;box-shadow:0 14px 0 rgba(0,0,0,.14)}
 .gh-room-cat-emoji{font-size:34px;line-height:1;transform:translateY(-2px)}
 .gh-room-cat-resting{opacity:.72;filter:drop-shadow(0 18px 18px rgba(0,0,0,.28)) saturate(.78)}
+.gh-pixel-cat{position:relative;width:38px;height:34px;background:var(--cat-fur,#d8b36a);border-radius:4px;box-shadow:0 -8px 0 -2px var(--cat-fur,#d8b36a),0 5px 0 rgba(0,0,0,.18);image-rendering:pixelated}
+.gh-pixel-cat:before,.gh-pixel-cat:after{content:"";position:absolute;top:-10px;width:14px;height:14px;background:var(--cat-fur,#d8b36a);clip-path:polygon(50% 0,0 100%,100% 100%)}
+.gh-pixel-cat:before{left:2px}.gh-pixel-cat:after{right:2px}
+.gh-pixel-eye{position:absolute;top:12px;width:5px;height:5px;background:#10141d;border-radius:1px;box-shadow:0 1px 0 rgba(255,255,255,.35)}
+.gh-pixel-eye.l{left:9px}.gh-pixel-eye.r{right:9px}
+.gh-pixel-nose{position:absolute;left:17px;top:20px;width:4px;height:3px;background:#5a3340;border-radius:1px}
+.gh-pixel-tail{position:absolute;right:-12px;bottom:5px;width:13px;height:6px;background:var(--cat-fur,#d8b36a);border-radius:0 5px 5px 0;box-shadow:4px -4px 0 -1px var(--cat-fur,#d8b36a)}
 .gh-room-status-mini{position:absolute;left:50%;bottom:-19px;transform:translateX(-50%);width:54px;display:flex;gap:2px}
 .gh-room-status-mini span{height:3px;flex:1;border-radius:999px;background:var(--s3);overflow:hidden}
 .gh-room-status-mini b{display:block;height:100%;border-radius:999px}
@@ -854,6 +863,12 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .gh-room-engine.room-estate{--room-wall-a:#2a2432;--room-wall-b:#15131b;--room-floor-a:#3a3440;--room-floor-b:#17141c;--room-window-a:#51446a;--room-window-b:#201a2d;--room-accent:rgba(216,180,254,.2)}
 .gh-room-engine.room-studio{--room-wall-a:#253238;--room-wall-b:#10191d;--room-floor-a:#314049;--room-floor-b:#111a20;--room-window-a:#3b6670;--room-window-b:#17303a;--room-accent:rgba(45,212,191,.18)}
 .gh-room-engine.room-urban{--room-wall-a:#202938;--room-wall-b:#101721;--room-floor-a:#28303b;--room-floor-b:#111820;--room-window-a:#284566;--room-window-b:#16273d;--room-accent:rgba(240,160,48,.24)}
+.gh-room-engine.room-pixel .gh-room-stage{background-image:var(--room-bg);background-size:cover;background-position:center bottom;background-repeat:no-repeat;image-rendering:pixelated;image-rendering:crisp-edges}
+.gh-room-engine.room-pixel.room-urban{--room-bg:url("assets/rooms/pixel-room-urban.png")}
+.gh-room-engine.room-pixel.room-forest{--room-bg:url("assets/rooms/pixel-room-forest.png")}
+.gh-room-engine.room-pixel.room-estate{--room-bg:url("assets/rooms/pixel-room-estate.png")}
+.gh-room-engine.room-pixel.room-studio{--room-bg:url("assets/rooms/pixel-room-studio.png")}
+.gh-room-engine.room-pixel .gh-room-wall,.gh-room-engine.room-pixel .gh-room-floor,.gh-room-engine.room-pixel .gh-room-window,.gh-room-engine.room-pixel .gh-room-shelf,.gh-room-engine.room-pixel .gh-room-rug{display:none}
 .gh-room-zone{position:absolute;border:1px solid rgba(255,255,255,.055);background:rgba(255,255,255,.025);border-radius:999px;transform:rotateX(62deg);transform-origin:50% 50%;pointer-events:none;opacity:.72}
 .gh-room-zone-food{left:9%;bottom:13%;width:19%;height:13%}
 .gh-room-zone-play{right:9%;bottom:14%;width:23%;height:14%}
@@ -861,6 +876,10 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .gh-room-zone-study{right:15%;top:34%;width:22%;height:12%;transform:rotateX(52deg)}
 .gh-room-object-base{transition:transform .18s,border-color .18s,background .18s}
 .gh-room-object:hover .gh-room-object-base{transform:translateY(-3px);border-color:var(--acc)}
+.gh-room-engine.room-pixel .gh-room-object,.gh-room-engine.room-pixel .gh-room-cat-avatar{filter:drop-shadow(0 10px 0 rgba(0,0,0,.18)) drop-shadow(0 20px 16px rgba(0,0,0,.32))}
+.gh-room-engine.room-pixel .gh-room-object-base{border-radius:3px;background:rgba(23,31,44,.94);box-shadow:0 4px 0 rgba(0,0,0,.28),0 0 0 2px rgba(255,255,255,.045) inset}
+.gh-room-engine.room-pixel .gh-room-cat-avatar{border-radius:6px;background:rgba(20,27,39,.94);box-shadow:0 5px 0 rgba(0,0,0,.28),0 0 0 2px rgba(255,255,255,.045) inset}
+.gh-room-engine.room-pixel .gh-room-object-label,.gh-room-engine.room-pixel .gh-room-cat-label{border-radius:3px;background:rgba(7,11,17,.82)}
 .gh-room-object[data-size="small"] .gh-room-object-base{min-width:54px;height:34px}
 .gh-room-object[data-size="wide"] .gh-room-object-base{min-width:92px;height:38px}
 .gh-room-object[data-size="tall"] .gh-room-object-base{min-width:58px;height:58px;border-radius:14px}
@@ -5203,6 +5222,7 @@ function getRoomItemVisual(card) {
   const defined = card?.data?.room_object;
   if (defined) return {
     icon: defined.icon || card.icon || '📦',
+    sprite: defined.sprite || '',
     label: defined.label || defined.zone || 'item',
     zone: defined.zone || 'floor',
     size: defined.size || 'medium',
@@ -5233,6 +5253,7 @@ function getRoomProfile(homeCard) {
 function roomProfileStyle(profile) {
   const p = profile?.palette || {};
   const vars = [
+    ['--room-bg', profile?.background ? `url("${profile.background}")` : null],
     ['--room-wall-a', p.wallA],
     ['--room-wall-b', p.wallB],
     ['--room-floor-a', p.floorA],
@@ -5327,6 +5348,13 @@ function getRoomCatState(cs, state, homeItems, index) {
   return { key:'wander', icon:'•', zone:index % 2 ? 'play' : 'floor' };
 }
 
+function getRoomCatColor(breed, index) {
+  const colors = ['#d8b36a', '#c9c2b8', '#8f8173', '#f1d7a5', '#9ea7b3', '#c07a4a', '#2f3440'];
+  const key = `${breed?.id || ''}${breed?.name || ''}`;
+  const seed = [...key].reduce((sum, ch) => sum + ch.charCodeAt(0), index || 0);
+  return colors[seed % colors.length];
+}
+
 function renderRoomEngineHtml(homeCard, cats, homeItems) {
   const env = getRoomProfile(homeCard);
   const homeId = homeCard?.id;
@@ -5335,15 +5363,17 @@ function renderRoomEngineHtml(homeCard, cats, homeItems) {
   const itemHtml = (homeItems || []).map((card, i) => {
     const visual = getRoomItemVisual(card);
     const zone = env.zones.includes(visual.zone) ? visual.zone : 'floor';
+    const itemFace = visual.sprite
+      ? `<img class="gh-room-sprite" src="${escapeAttr(visual.sprite)}" alt="">`
+      : `<span class="gh-room-object-icon">${visual.icon}</span>`;
     return `<button class="gh-room-object" data-zone="${escapeAttr(zone)}" data-size="${escapeAttr(visual.size)}" style="${getRoomSlotStyle(i, 'item', zone)}" onclick="openCardModal('${card.id}')" title="${escapeAttr(card.name)}">
-      <span class="gh-room-object-base"><span class="gh-room-object-icon">${visual.icon}</span></span>
+      <span class="gh-room-object-base">${itemFace}</span>
       <span class="gh-room-object-label">${card.name}</span>
     </button>`;
   }).join('');
   const catHtml = (cats || []).map((cs, i) => {
     const state = getLiveCatState(i, cs);
     const breed = cs.breed || {};
-    const emoji = getCatEmoji(breed);
     const name = cs.name || breed.name || 'Cat';
     const hPct = Math.round(Math.min(100, state.hunger));
     const mPct = Math.round(Math.min(100, state.mood));
@@ -5351,8 +5381,12 @@ function renderRoomEngineHtml(homeCard, cats, homeItems) {
     const resting = state.isResting ? ' gh-room-cat-resting' : '';
     const roomState = getRoomCatState(cs, state, homeItems, i);
     const zone = env.zones.includes(roomState.zone) || roomState.zone === 'social' ? roomState.zone : 'floor';
+    const catSprite = breed.data?.room_sprite;
+    const catFace = catSprite
+      ? `<img class="gh-room-cat-sprite" src="${escapeAttr(catSprite)}" alt="">`
+      : `<span class="gh-pixel-cat" style="--cat-fur:${getRoomCatColor(breed, i)}"><span class="gh-pixel-tail"></span><span class="gh-pixel-eye l"></span><span class="gh-pixel-eye r"></span><span class="gh-pixel-nose"></span></span>`;
     return `<button class="gh-room-cat-avatar${resting}" data-state="${roomState.key}" style="${getRoomSlotStyle(i, 'cat', zone)}" onclick="openCardModal('${breed.id}')" title="${escapeAttr(name)}">
-      <span class="gh-room-cat-emoji">${emoji}</span>
+      ${catFace}
       <span class="gh-room-cat-state">${roomState.icon}</span>
       <span class="gh-room-cat-label">${name}</span>
       <span class="gh-room-status-mini">
@@ -5362,7 +5396,7 @@ function renderRoomEngineHtml(homeCard, cats, homeItems) {
       </span>
     </button>`;
   }).join('');
-  return `<section class="gh-room-engine room-${env.kind}"${styleAttr ? ` style="${escapeAttr(styleAttr)}"` : ''}>
+  return `<section class="gh-room-engine room-pixel room-${env.kind}"${styleAttr ? ` style="${escapeAttr(styleAttr)}"` : ''}>
     <div class="gh-room-stage">
       <div class="gh-room-wall"></div>
       <div class="gh-room-window"></div>
