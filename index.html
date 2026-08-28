@@ -808,13 +808,89 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .gh-food-name{font-family:var(--fb);font-size:12px;color:var(--t1)}
 .gh-food-qty{font-family:var(--fm);font-size:10px;color:var(--acc2);font-weight:700}
 .gh-food-empty{font-family:var(--fb);font-size:12px;color:var(--t3);padding:8px 0}
-/* Cats tab — horizontal scroll */
-.gh-cats-tab{display:flex;flex-direction:column;height:100%;overflow:hidden;position:relative}
-.gh-cats-scroll{display:flex;flex-direction:row;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;gap:0;padding:0;flex:1;scrollbar-width:none;align-items:stretch;position:relative;z-index:1}
+/* Cats tab — room engine + horizontal scroll */
+.gh-cats-tab{display:grid;grid-template-rows:clamp(230px,38vh,360px) minmax(0,1fr) auto;height:100%;overflow:hidden;position:relative;background:#080d13}
+.gh-room-engine{position:relative;overflow:hidden;border-bottom:1px solid rgba(255,255,255,.09);isolation:isolate;background:#10161f}
+.gh-room-stage{position:absolute;inset:0;perspective:900px}
+.gh-room-wall{position:absolute;inset:0 0 28%;background:linear-gradient(180deg,#17202d 0%,#101823 100%)}
+.gh-room-floor{position:absolute;left:-8%;right:-8%;bottom:-18%;height:48%;background:linear-gradient(160deg,#28303b 0%,#111820 72%);transform:rotateX(58deg);transform-origin:50% 100%;box-shadow:0 -1px 0 rgba(255,255,255,.08) inset}
+.gh-room-floor:after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,rgba(255,255,255,.045) 0 1px,transparent 1px 72px),linear-gradient(180deg,rgba(255,255,255,.06),transparent 42%);opacity:.55}
+.gh-room-window{position:absolute;right:9%;top:12%;width:96px;height:70px;border:4px solid rgba(226,232,240,.72);border-radius:4px;background:linear-gradient(180deg,#284566,#16273d);box-shadow:0 12px 30px rgba(0,0,0,.28),0 0 0 1px rgba(255,255,255,.08) inset}
+.gh-room-window:before{content:"";position:absolute;left:50%;top:0;bottom:0;width:3px;background:rgba(226,232,240,.7)}
+.gh-room-window:after{content:"";position:absolute;left:0;right:0;top:50%;height:3px;background:rgba(226,232,240,.7)}
+.gh-room-rug{position:absolute;left:28%;right:22%;bottom:10%;height:24%;border-radius:50%;background:radial-gradient(ellipse at center,rgba(240,160,48,.28),rgba(240,160,48,.04) 66%,transparent 68%);transform:rotateX(62deg);transform-origin:50% 100%;filter:blur(.2px)}
+.gh-room-shelf{position:absolute;left:8%;top:22%;width:150px;height:10px;border-radius:999px;background:rgba(226,232,240,.22);box-shadow:0 10px 0 rgba(0,0,0,.13)}
+.gh-room-home-card{position:absolute;left:18px;top:16px;z-index:12;max-width:min(44%,260px);border:1px solid rgba(255,255,255,.16);background:rgba(8,13,19,.7);color:var(--t1);border-radius:var(--r-md);padding:8px 11px;display:flex;align-items:center;gap:8px;cursor:pointer;text-align:left;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.gh-room-home-card:hover{border-color:var(--acc);color:var(--acc2)}
+.gh-room-home-icon{font-size:19px;line-height:1}
+.gh-room-home-title{font-family:var(--fd);font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gh-room-home-meta{font-family:var(--fm);font-size:8px;letter-spacing:.08em;text-transform:uppercase;color:var(--t3);margin-top:1px}
+.gh-room-object,.gh-room-cat-avatar{position:absolute;left:calc(var(--x)*1%);top:calc(var(--y)*1%);z-index:var(--z);transform:translate(-50%,-50%) scale(var(--scale));border:none;background:transparent;color:var(--t1);padding:0;cursor:pointer;filter:drop-shadow(0 18px 18px rgba(0,0,0,.38));animation:room-idle 4.8s ease-in-out infinite;animation-delay:var(--delay)}
+.gh-room-object:hover,.gh-room-cat-avatar:hover{z-index:30}
+.gh-room-object-base{min-width:68px;height:40px;padding:6px 9px;border-radius:10px 10px 13px 13px;background:linear-gradient(180deg,rgba(52,64,83,.98),rgba(25,33,44,.98));border:1px solid rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;box-shadow:0 12px 0 rgba(0,0,0,.16)}
+.gh-room-object-icon{font-size:26px;line-height:1}
+.gh-room-object-label,.gh-room-cat-label{position:absolute;left:50%;top:100%;transform:translate(-50%,7px);max-width:126px;padding:3px 7px;border-radius:999px;background:rgba(7,11,17,.72);border:1px solid rgba(255,255,255,.12);font-family:var(--fm);font-size:7.5px;color:var(--t2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:.84;pointer-events:none}
+.gh-room-cat-avatar{width:58px;height:62px;border-radius:48% 48% 42% 42%;background:linear-gradient(180deg,#334155,#141b27);border:1px solid rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;box-shadow:0 14px 0 rgba(0,0,0,.14)}
+.gh-room-cat-emoji{font-size:34px;line-height:1;transform:translateY(-2px)}
+.gh-room-cat-resting{opacity:.72;filter:drop-shadow(0 18px 18px rgba(0,0,0,.28)) saturate(.78)}
+.gh-room-status-mini{position:absolute;left:50%;bottom:-19px;transform:translateX(-50%);width:54px;display:flex;gap:2px}
+.gh-room-status-mini span{height:3px;flex:1;border-radius:999px;background:var(--s3);overflow:hidden}
+.gh-room-status-mini b{display:block;height:100%;border-radius:999px}
+.gh-room-empty{position:absolute;left:50%;top:62%;transform:translate(-50%,-50%);font-family:var(--fm);font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--t3);opacity:.65}
+.gh-room-engine.room-forest .gh-room-wall{background:linear-gradient(180deg,#183524 0%,#0d1914 100%)}
+.gh-room-engine.room-forest .gh-room-floor{background:linear-gradient(160deg,#314229 0%,#121b15 74%)}
+.gh-room-engine.room-forest .gh-room-window{background:linear-gradient(180deg,#2f6f61,#123227)}
+.gh-room-engine.room-estate .gh-room-wall{background:linear-gradient(180deg,#2a2432 0%,#15131b 100%)}
+.gh-room-engine.room-estate .gh-room-floor{background:linear-gradient(160deg,#3a3440 0%,#17141c 74%)}
+.gh-room-engine.room-studio .gh-room-wall{background:linear-gradient(180deg,#253238 0%,#10191d 100%)}
+.gh-room-engine.room-studio .gh-room-floor{background:linear-gradient(160deg,#314049 0%,#111a20 74%)}
+.gh-room-engine.room-urban .gh-room-wall{background:linear-gradient(180deg,#202938 0%,#101721 100%)}
+.gh-room-engine{--room-wall-a:#17202d;--room-wall-b:#101823;--room-floor-a:#28303b;--room-floor-b:#111820;--room-window-a:#284566;--room-window-b:#16273d;--room-accent:rgba(240,160,48,.28)}
+.gh-room-engine .gh-room-wall{background:linear-gradient(180deg,var(--room-wall-a) 0%,var(--room-wall-b) 100%)}
+.gh-room-engine .gh-room-floor{background:linear-gradient(160deg,var(--room-floor-a) 0%,var(--room-floor-b) 72%)}
+.gh-room-engine .gh-room-window{background:linear-gradient(180deg,var(--room-window-a),var(--room-window-b))}
+.gh-room-engine .gh-room-rug{background:radial-gradient(ellipse at center,var(--room-accent),rgba(240,160,48,.04) 66%,transparent 68%)}
+.gh-room-engine.room-forest{--room-wall-a:#183524;--room-wall-b:#0d1914;--room-floor-a:#314229;--room-floor-b:#121b15;--room-window-a:#2f6f61;--room-window-b:#123227;--room-accent:rgba(74,222,128,.2)}
+.gh-room-engine.room-estate{--room-wall-a:#2a2432;--room-wall-b:#15131b;--room-floor-a:#3a3440;--room-floor-b:#17141c;--room-window-a:#51446a;--room-window-b:#201a2d;--room-accent:rgba(216,180,254,.2)}
+.gh-room-engine.room-studio{--room-wall-a:#253238;--room-wall-b:#10191d;--room-floor-a:#314049;--room-floor-b:#111a20;--room-window-a:#3b6670;--room-window-b:#17303a;--room-accent:rgba(45,212,191,.18)}
+.gh-room-engine.room-urban{--room-wall-a:#202938;--room-wall-b:#101721;--room-floor-a:#28303b;--room-floor-b:#111820;--room-window-a:#284566;--room-window-b:#16273d;--room-accent:rgba(240,160,48,.24)}
+.gh-room-zone{position:absolute;border:1px solid rgba(255,255,255,.055);background:rgba(255,255,255,.025);border-radius:999px;transform:rotateX(62deg);transform-origin:50% 50%;pointer-events:none;opacity:.72}
+.gh-room-zone-food{left:9%;bottom:13%;width:19%;height:13%}
+.gh-room-zone-play{right:9%;bottom:14%;width:23%;height:14%}
+.gh-room-zone-rest{left:35%;bottom:9%;width:30%;height:15%}
+.gh-room-zone-study{right:15%;top:34%;width:22%;height:12%;transform:rotateX(52deg)}
+.gh-room-object-base{transition:transform .18s,border-color .18s,background .18s}
+.gh-room-object:hover .gh-room-object-base{transform:translateY(-3px);border-color:var(--acc)}
+.gh-room-object[data-size="small"] .gh-room-object-base{min-width:54px;height:34px}
+.gh-room-object[data-size="wide"] .gh-room-object-base{min-width:92px;height:38px}
+.gh-room-object[data-size="tall"] .gh-room-object-base{min-width:58px;height:58px;border-radius:14px}
+.gh-room-object[data-zone="food"] .gh-room-object-base{background:linear-gradient(180deg,rgba(87,71,50,.98),rgba(33,27,21,.98))}
+.gh-room-object[data-zone="play"] .gh-room-object-base{background:linear-gradient(180deg,rgba(54,67,100,.98),rgba(24,31,54,.98))}
+.gh-room-object[data-zone="rest"] .gh-room-object-base{background:linear-gradient(180deg,rgba(66,61,78,.98),rgba(28,25,38,.98))}
+.gh-room-object[data-zone="study"] .gh-room-object-base{background:linear-gradient(180deg,rgba(39,78,85,.98),rgba(16,37,44,.98))}
+.gh-room-cat-avatar{transition:left .55s ease,top .55s ease,transform .18s,border-color .18s}
+.gh-room-cat-avatar:hover{border-color:var(--acc);transform:translate(-50%,-50%) scale(calc(var(--scale) * 1.06))}
+.gh-room-cat-avatar[data-state="hungry"]{border-color:rgba(240,160,48,.45)}
+.gh-room-cat-avatar[data-state="playful"]{border-color:rgba(96,165,250,.45)}
+.gh-room-cat-avatar[data-state="resting"],.gh-room-cat-avatar[data-state="sleepy"]{animation:room-sleep 5.5s ease-in-out infinite}
+.gh-room-cat-avatar[data-state="social"]{border-color:rgba(52,211,153,.42)}
+.gh-room-cat-state{position:absolute;right:-7px;top:-8px;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(7,11,17,.78);border:1px solid rgba(255,255,255,.12);font-size:11px;line-height:1}
+@keyframes room-sleep{0%,100%{translate:0 0;filter:drop-shadow(0 18px 18px rgba(0,0,0,.28)) saturate(.78)}50%{translate:0 2px;filter:drop-shadow(0 14px 14px rgba(0,0,0,.24)) saturate(.7)}}
+@keyframes room-idle{0%,100%{translate:0 0}50%{translate:0 -3px}}
+.gh-cats-scroll{display:flex;flex-direction:row;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;gap:0;padding:0;flex:1;scrollbar-width:none;align-items:stretch;position:relative;z-index:1;min-height:0}
 .gh-cats-scroll::-webkit-scrollbar{display:none}
 .gh-cat-dots{display:flex;justify-content:center;align-items:center;gap:5px;padding:0 0 8px;flex-shrink:0;position:relative;z-index:1}
 .gh-cat-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.3);transition:all .25s;flex-shrink:0}
 .gh-cat-dot.active{background:rgba(255,255,255,0.9);width:20px;border-radius:3px}
+@media(max-width:560px){
+  .gh-cats-tab{grid-template-rows:clamp(210px,34vh,300px) minmax(0,1fr) auto}
+  .gh-room-home-card{left:12px;top:12px;max-width:56%;padding:7px 9px}
+  .gh-room-window{right:7%;top:16%;width:72px;height:54px}
+  .gh-room-shelf{width:104px}
+  .gh-room-object-label,.gh-room-cat-label{display:none}
+  .gh-room-cat-avatar{width:50px;height:54px}
+  .gh-room-cat-emoji{font-size:30px}
+}
 /* Sticky send-outside footer */
 .gh-cats-footer{flex-shrink:0;padding:10px 20px;background:var(--bg);border-top:1px solid var(--bd)}
 .gh-send-outside-btn{width:100%;padding:14px;font-family:var(--fd);font-size:14px;font-weight:700;border-radius:var(--r-lg);border:none;background:var(--acc);color:#0D1117;cursor:pointer;transition:all .18s;letter-spacing:.01em}
@@ -1026,6 +1102,8 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .mkt-card-eff{font-family:var(--fm);font-size:9px;padding:2px 7px;background:var(--s3);border-radius:var(--r-f);color:var(--t2)}
 .mkt-card-foot{padding:10px 14px;display:flex;align-items:center;gap:8px;border-top:1px solid var(--bd);flex-shrink:0}
 .mkt-card-price{font-family:var(--fd);font-size:14px;font-weight:700;color:var(--acc2);flex:1}
+.mkt-card-price-old{font-size:10px;color:var(--t3);text-decoration:line-through;margin-left:4px}
+.mkt-discount{font-family:var(--fm);font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:#34d399;background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.28);border-radius:var(--r-f);padding:4px 8px}
 .mkt-buy-btn{padding:7px 16px;font-family:var(--fm);font-size:10px;text-transform:uppercase;letter-spacing:.06em;background:var(--acc);border:none;border-radius:var(--r-md);color:#0D1117;cursor:pointer;font-weight:700;transition:all .15s;flex-shrink:0}
 .mkt-buy-btn:hover:not(:disabled){background:var(--acc2)}
 .mkt-buy-btn:disabled{background:var(--s3);color:var(--t3);cursor:not-allowed}
@@ -1195,6 +1273,7 @@ let GH_RETURN_DIFFS  = null; // {ci: {hungerDiff, moodDiff, energyDiff}} set on 
 let GH_ACTIVE_HOME_IDX = 0;  // which home card is active on the home tab
 const GH_CARD_FILTER = { search:'', type:'all', rarity:'all', view:'recent' };
 let _GH_TOUCH_MOVED = false; // true if last touch event involved significant horizontal movement
+const MARKETPLACE_CAT_ID = 'npc-marketplace-miso';
 
 const ONBOARD = {
   step: 'register',
@@ -1257,9 +1336,46 @@ function effectiveCard(card) {
   return normalizeAbilityCard(merged);
 }
 
-function getLibrary() { return [...baseLibrary().map(effectiveCard), ...CONSUMABLE_CARDS.map(effectiveCard), ...CUSTOM_CARDS.map(normalizeAbilityCard)]; }
+function getLibrary() { return [...baseLibrary().map(effectiveCard), ...CONSUMABLE_CARDS.map(effectiveCard), ...NPC_CARDS.map(effectiveCard), ...CUSTOM_CARDS.map(normalizeAbilityCard)]; }
 
 function getCard(id) { return getLibrary().find(c => c.id === id) || null; }
+
+function isOwnableCard(card) {
+  return !!card && card.npc !== true && card.obtainable !== false;
+}
+
+function getAllPlayerCats() {
+  const cats = [...(sbx.cats || [])];
+  Object.values(sbx.savedHomes || {}).forEach(saved => {
+    (saved.cats || []).forEach(cs => cats.push(cs));
+  });
+  return cats;
+}
+
+function hasNpcAlly(cardId) {
+  return getAllPlayerCats().some(cs => (cs.allies || []).some(a => a.cardId === cardId));
+}
+
+function getMarketplaceDiscount() {
+  const npc = getCard(MARKETPLACE_CAT_ID);
+  if (!npc || !hasNpcAlly(MARKETPLACE_CAT_ID)) return 0;
+  return Math.max(0, Math.min(0.8, npc.data?.market_discount || 0));
+}
+
+function getMarketPrice(cardOrId) {
+  const card = typeof cardOrId === 'string' ? getCard(cardOrId) : cardOrId;
+  const base = Math.max(0, (card && card.coin_cost) || 0);
+  const discount = getMarketplaceDiscount();
+  if (!discount || base <= 0) return base;
+  return Math.max(1, Math.ceil(base * (1 - discount)));
+}
+
+function marketPriceHtml(cardOrId) {
+  const card = typeof cardOrId === 'string' ? getCard(cardOrId) : cardOrId;
+  const base = Math.max(0, (card && card.coin_cost) || 0);
+  const price = getMarketPrice(card);
+  return `🪙 ${price}${price < base ? `<span class="mkt-card-price-old">${base}</span>` : ''}`;
+}
 
 function saveCardEdit(id, patch) {
   const base = baseLibrary().find(c => c.id === id);
@@ -1306,6 +1422,28 @@ const CONSUMABLE_CARDS = [
   { id:'cons-008', name:'Detangling Comb', icon:'🪮', type:'consumable', rarity:'uncommon', coin_cost:30, description:'Works out knots without fuss. Cats move more freely after.', data:{ consumable_type:'groom', max_uses:3, mood:22, statBoosts:{affection:2, agility:1} } },
   { id:'cons-009', name:'Aromatic Shampoo', icon:'🧴', type:'consumable', rarity:'rare', coin_cost:36, description:'Luxury bath formula. Leaves a gleam that makes rivals hesitate.', data:{ consumable_type:'groom', max_uses:2, mood:32, statBoosts:{affection:3, speed:1} } },
   { id:'cons-010', name:'Conditioning Spray', icon:'✨', type:'consumable', rarity:'uncommon', coin_cost:36, description:'No-rinse coat conditioner. Hydrates and subtly boosts endurance.', data:{ consumable_type:'groom', max_uses:3, mood:25, statBoosts:{affection:2, stamina:2} } },
+];
+
+const NPC_CARDS = [
+  {
+    id: MARKETPLACE_CAT_ID,
+    name: 'Miso, Marketplace Cat',
+    icon: '🐱',
+    type: 'cat_breed',
+    rarity: 'rare',
+    coin_cost: 0,
+    series: 'NPC',
+    npc: true,
+    obtainable: false,
+    description: 'The sharp-eyed vendor cat who knows every stall, shortcut, and suspiciously good deal in the market.',
+    data: {
+      role: 'market_vendor',
+      market_discount: 0.10,
+      base_inventory_slots: 0,
+      stats: { strength:8, speed:16, agility:15, stamina:12, intelligence:26, stealth:18, loyalty:18, affection:20, amicability:28, weight:9 },
+      home_dev_traits: { label:'NPC Ally' }
+    }
+  }
 ];
 
 function escapeAttr(value) {
@@ -1545,6 +1683,12 @@ function buildCardBodyHtml(card, showDesc=true) {
         hdtStr += ` · ${pct > 0 ? '+' : ''}${pct}% home dev rate`;
       }
       body += `<div class="cv-subtext" style="color:#a78bfa;margin-top:2px">${hdtStr}</div>`;
+    }
+    if (card.npc) {
+      body += `<div class="cv-subtext" style="color:#34d399;margin-top:2px">NPC ally · not ownable</div>`;
+      if (card.data && card.data.market_discount) {
+        body += `<div class="cv-subtext" style="color:var(--acc2);margin-top:2px">${Math.round(card.data.market_discount * 100)}% marketplace discount while allied</div>`;
+      }
     }
   } else if (card.type === 'home') {
     body += `<div class="cv-hchips">
@@ -2711,7 +2855,7 @@ function setShopFilter(type, btn) {
 
 function renderShopBrowser() {
   const el = document.getElementById('shop-browser-list');
-  const cards = getLibrary().filter(c => sbx.shopFilter === 'all' || c.type === sbx.shopFilter);
+  const cards = getLibrary().filter(c => isOwnableCard(c) && (sbx.shopFilter === 'all' || c.type === sbx.shopFilter));
   el.innerHTML = cards.map(c => {
     const tc = TYPE_META[c.type].color;
     const rc = RAR_COLOR[c.rarity];
@@ -2753,7 +2897,7 @@ function renderCardDetail() {
 
 function toggleDeck(id) {
   const card = getCard(id);
-  if (!card) return;
+  if (!isOwnableCard(card)) return;
   const idx = sbx.deck.findIndex(c => c.id === id);
   if (idx >= 0) {
     // Remove from deck
@@ -3850,7 +3994,14 @@ function generateEncounters(catName, stats, numEnc, gearCards, homeItems, catRep
       const intro     = pick(FRIEND_INTROS)(catName);
       if (success) {
         const lootRoll = pickLootWithAbilities((stats.affection || 0) >= 20 ? 'uncommon' : 'common', abilityCards, abilityState, `friend-${i}`);
-        encounters.push({type:'friend-win', icon:'🤝', intro, outcome: pick(FRIEND_WIN_TEXTS), loot: lootRoll.loot, extraLoot: lootRoll.extraLoot, abilityNotes: lootRoll.notes});
+        const marketCat = getCard(MARKETPLACE_CAT_ID);
+        const hasMarketAlly = allies.some(a => a.cardId === MARKETPLACE_CAT_ID) || hasNpcAlly(MARKETPLACE_CAT_ID);
+        const marketCatChance = Math.min(0.35, 0.08 + ((stats.amicability || 0) + (stats.affection || 0)) / 500);
+        const npcAlly = marketCat && !hasMarketAlly && Math.random() < marketCatChance ? marketCat : null;
+        const outcome = npcAlly
+          ? `${catName} met ${npcAlly.name} near the market stalls. A useful friendship started.`
+          : pick(FRIEND_WIN_TEXTS);
+        encounters.push({type:'friend-win', icon:npcAlly?'🏪':'🤝', intro, outcome, loot: lootRoll.loot, extraLoot: lootRoll.extraLoot, abilityNotes: lootRoll.notes, npcAlly});
       } else {
         encounters.push({type:'friend-lose', icon:'🙂', intro, outcome: pick(FRIEND_LOSE_TEXTS), loot: null});
       }
@@ -4114,6 +4265,7 @@ function buildEventHtml(enc) {
     <div class="ev-body">
       <div class="ev-detail">${enc.intro}${enc.outcome ? ' ' + enc.outcome : ''}</div>
       ${enc.abilityNotes && enc.abilityNotes.length ? `<div class="ev-detail" style="color:#a78bfa;font-size:10px;margin-top:3px">${enc.abilityNotes.join(' · ')}</div>` : ''}
+      ${enc.npcAlly ? `<div class="pvp-footer"><span class="pvp-befriended">🐾 New ally: ${enc.npcAlly.name}</span></div>` : ''}
       ${lootPillHtml(enc.loot, enc.extraLoot)}
     </div>`;
 }
@@ -4208,6 +4360,21 @@ function finishRun() {
     // Trim to current slot count in case stats dropped since last run
     while (cs.allies.length > allySlotCount) cs.allies.shift();
     run.encounters.forEach(enc => {
+      if (enc.type === 'friend-win' && enc.npcAlly) {
+        const npc = enc.npcAlly;
+        if (cs.allies.some(a => a.cardId === npc.id)) return;
+        if (cs.allies.length >= allySlotCount) cs.allies.shift();
+        cs.allies.push({
+          ownerName: 'Marketplace',
+          catName: npc.name,
+          rep: 200,
+          stats: npc.data?.stats || {},
+          cardId: npc.id,
+          npc: true,
+          befriendedAt: Date.now()
+        });
+        return;
+      }
       if (enc.type !== 'pvp-battle' || !enc.befriendable || !enc.opponent) return;
       const opp = enc.opponent;
       // Avoid duplicates (same catName + ownerName)
@@ -4472,12 +4639,12 @@ function buildDraftPool() {
   let pool;
   if (cat === 'items') {
     // Combined battle_gear + home_item
-    const starters = getLibrary().filter(c => (c.type === 'battle_gear' || c.type === 'home_item') && c.is_starter === true);
-    pool = starters.length >= 10 ? starters : getLibrary().filter(c => c.type === 'battle_gear' || c.type === 'home_item');
+    const starters = getLibrary().filter(c => isOwnableCard(c) && (c.type === 'battle_gear' || c.type === 'home_item') && c.is_starter === true);
+    pool = starters.length >= 10 ? starters : getLibrary().filter(c => isOwnableCard(c) && (c.type === 'battle_gear' || c.type === 'home_item'));
   } else {
     // cat_breed and special_ability: use is_starter filter, fall back to all of that type
-    const starters = getLibrary().filter(c => c.type === cat && c.is_starter === true);
-    pool = starters.length >= 10 ? starters : getLibrary().filter(c => c.type === cat);
+    const starters = getLibrary().filter(c => isOwnableCard(c) && c.type === cat && c.is_starter === true);
+    pool = starters.length >= 10 ? starters : getLibrary().filter(c => isOwnableCard(c) && c.type === cat);
   }
   ONBOARD.pool = shuffleArr(pool).slice(0, 10);
   ONBOARD.pickedInCurrentStep = [];
@@ -5002,7 +5169,7 @@ function syncConsumableDeckCopies(player = PLAYER) {
 
 function awardOwnedCard(cardId) {
   const card = cardId ? getCard(cardId) : null;
-  if (!card) return false;
+  if (!isOwnableCard(card)) return false;
   if (PLAYER && card.type === 'consumable') {
     PLAYER.inventory = PLAYER.inventory || {};
     PLAYER.inventory[cardId] = (PLAYER.inventory[cardId] || 0) + ((card.data && card.data.max_uses) || 1);
@@ -5030,6 +5197,190 @@ function getHomeEnvProfile(homeCard) {
     return { kind:'studio', icon:'🛋️', name:'Studio' };
   }
   return { kind:'urban', icon:'🏙️', name:'Urban' };
+}
+
+function getRoomItemVisual(card) {
+  const defined = card?.data?.room_object;
+  if (defined) return {
+    icon: defined.icon || card.icon || '📦',
+    label: defined.label || defined.zone || 'item',
+    zone: defined.zone || 'floor',
+    size: defined.size || 'medium',
+  };
+  const key = `${card?.id || ''} ${card?.name || ''} ${card?.data?.special_properties || ''}`.toLowerCase();
+  if (key.includes('laser')) return { icon:'🔴', label:'toy', zone:'play', size:'small' };
+  if (key.includes('scratch')) return { icon:'🪵', label:'scratch', zone:'play', size:'tall' };
+  if (key.includes('feeder') || key.includes('food')) return { icon:'🍽️', label:'food', zone:'food', size:'wide' };
+  if (key.includes('comb') || key.includes('brush') || key.includes('groom')) return { icon:'🪮', label:'groom', zone:'care', size:'small' };
+  if (key.includes('puzzle')) return { icon:'🧩', label:'puzzle', zone:'study', size:'wide' };
+  if (key.includes('laptop') || key.includes('screen')) return { icon:'💻', label:'tech', zone:'study', size:'wide' };
+  if (key.includes('bed') || key.includes('cushion') || key.includes('blanket')) return { icon:'🛏️', label:'rest', zone:'rest', size:'wide' };
+  if (key.includes('plant') || key.includes('garden')) return { icon:'🪴', label:'plant', zone:'wall', size:'tall' };
+  return { icon:card?.icon || '📦', label:'item', zone:'floor', size:'medium' };
+}
+
+function getRoomProfile(homeCard) {
+  const env = getHomeEnvProfile(homeCard);
+  const profile = homeCard?.data?.room_profile || {};
+  return {
+    ...env,
+    density: profile.density || (homeCard?.data?.max_occupants >= 4 ? 'large' : 'cozy'),
+    window: profile.window || (env.kind === 'forest' ? 'wide' : env.kind === 'estate' ? 'arched' : 'city'),
+    zones: profile.zones || ['food', 'play', 'rest', 'study', 'floor', 'wall'],
+  };
+}
+
+function roomProfileStyle(profile) {
+  const p = profile?.palette || {};
+  const vars = [
+    ['--room-wall-a', p.wallA],
+    ['--room-wall-b', p.wallB],
+    ['--room-floor-a', p.floorA],
+    ['--room-floor-b', p.floorB],
+    ['--room-window-a', p.windowA],
+    ['--room-window-b', p.windowB],
+    ['--room-accent', p.accent],
+  ].filter(([, value]) => value);
+  return vars.map(([key, value]) => `${key}:${value}`).join(';');
+}
+
+function getRoomSlotStyle(index, kind, zone = 'floor') {
+  const zoneItemSlots = {
+    food: [
+      { x:16, y:70, z:6, scale:.92 }, { x:25, y:74, z:7, scale:.84 },
+    ],
+    play: [
+      { x:78, y:72, z:8, scale:.96 }, { x:66, y:64, z:7, scale:.82 },
+    ],
+    rest: [
+      { x:46, y:72, z:5, scale:1.02 }, { x:56, y:68, z:6, scale:.92 },
+    ],
+    study: [
+      { x:72, y:48, z:4, scale:.72 }, { x:61, y:52, z:4, scale:.66 },
+    ],
+    care: [
+      { x:31, y:57, z:5, scale:.72 }, { x:39, y:61, z:6, scale:.66 },
+    ],
+    wall: [
+      { x:20, y:42, z:3, scale:.68 }, { x:34, y:36, z:3, scale:.62 },
+    ],
+    floor: [
+      { x:38, y:62, z:5, scale:.82 }, { x:60, y:66, z:7, scale:.9 }, { x:28, y:49, z:3, scale:.66 },
+    ],
+  };
+  const fallbackItemSlots = [
+    { x:18, y:70, z:6, scale:.92 },
+    { x:38, y:62, z:5, scale:.82 },
+    { x:60, y:66, z:7, scale:.9 },
+    { x:79, y:73, z:8, scale:.96 },
+    { x:28, y:49, z:3, scale:.66 },
+    { x:70, y:48, z:3, scale:.68 },
+  ];
+  const zoneCatSlots = {
+    food: [
+      { x:24, y:80, z:14, scale:1 }, { x:34, y:76, z:13, scale:.9 },
+    ],
+    play: [
+      { x:73, y:83, z:16, scale:.98 }, { x:63, y:74, z:15, scale:.9 },
+    ],
+    rest: [
+      { x:49, y:80, z:15, scale:1.08 }, { x:58, y:77, z:14, scale:.95 },
+    ],
+    study: [
+      { x:65, y:68, z:13, scale:.86 }, { x:74, y:65, z:13, scale:.78 },
+    ],
+    social: [
+      { x:43, y:76, z:15, scale:1.04 }, { x:55, y:77, z:16, scale:1.02 },
+    ],
+    floor: [
+      { x:27, y:79, z:14, scale:1 }, { x:52, y:76, z:15, scale:1.08 }, { x:74, y:82, z:16, scale:.98 },
+    ],
+  };
+  const fallbackCatSlots = [
+    { x:27, y:79, z:14, scale:1 },
+    { x:52, y:76, z:15, scale:1.08 },
+    { x:74, y:82, z:16, scale:.98 },
+    { x:39, y:68, z:12, scale:.84 },
+    { x:63, y:66, z:12, scale:.86 },
+  ];
+  const slots = kind === 'cat'
+    ? (zoneCatSlots[zone] || fallbackCatSlots)
+    : (zoneItemSlots[zone] || fallbackItemSlots);
+  const slot = slots[index % slots.length];
+  const row = Math.floor(index / slots.length);
+  const x = Math.min(86, slot.x + row * 4);
+  const y = Math.min(86, slot.y + row * 3);
+  const scale = Math.max(.62, slot.scale - row * .06);
+  return `--x:${x};--y:${y};--z:${slot.z + row};--scale:${scale};--delay:${(index % 5) * .35}s`;
+}
+
+function getRoomCatState(cs, state, homeItems, index) {
+  const visuals = (homeItems || []).map(getRoomItemVisual);
+  const hasZone = zone => visuals.some(v => v.zone === zone);
+  if (state.isResting) return { key:'resting', icon:'💤', zone:hasZone('rest') ? 'rest' : 'floor' };
+  if (state.energy < 32) return { key:'sleepy', icon:'💤', zone:hasZone('rest') ? 'rest' : 'floor' };
+  if (state.hunger < 38 && hasZone('food')) return { key:'hungry', icon:'🍽️', zone:'food' };
+  if (state.mood < 48 && hasZone('play')) return { key:'playful', icon:'✨', zone:'play' };
+  const stats = cs?.breed?.data?.stats || {};
+  if ((stats.intelligence || 0) >= 20 && hasZone('study')) return { key:'curious', icon:'?', zone:'study' };
+  if (((stats.amicability || 0) + (stats.affection || 0)) >= 36) return { key:'social', icon:'♡', zone:'social' };
+  return { key:'wander', icon:'•', zone:index % 2 ? 'play' : 'floor' };
+}
+
+function renderRoomEngineHtml(homeCard, cats, homeItems) {
+  const env = getRoomProfile(homeCard);
+  const homeId = homeCard?.id;
+  const homeName = homeCard?.name || 'Your Home';
+  const styleAttr = roomProfileStyle(homeCard?.data?.room_profile);
+  const itemHtml = (homeItems || []).map((card, i) => {
+    const visual = getRoomItemVisual(card);
+    const zone = env.zones.includes(visual.zone) ? visual.zone : 'floor';
+    return `<button class="gh-room-object" data-zone="${escapeAttr(zone)}" data-size="${escapeAttr(visual.size)}" style="${getRoomSlotStyle(i, 'item', zone)}" onclick="openCardModal('${card.id}')" title="${escapeAttr(card.name)}">
+      <span class="gh-room-object-base"><span class="gh-room-object-icon">${visual.icon}</span></span>
+      <span class="gh-room-object-label">${card.name}</span>
+    </button>`;
+  }).join('');
+  const catHtml = (cats || []).map((cs, i) => {
+    const state = getLiveCatState(i, cs);
+    const breed = cs.breed || {};
+    const emoji = getCatEmoji(breed);
+    const name = cs.name || breed.name || 'Cat';
+    const hPct = Math.round(Math.min(100, state.hunger));
+    const mPct = Math.round(Math.min(100, state.mood));
+    const ePct = Math.round(Math.min(100, state.energy));
+    const resting = state.isResting ? ' gh-room-cat-resting' : '';
+    const roomState = getRoomCatState(cs, state, homeItems, i);
+    const zone = env.zones.includes(roomState.zone) || roomState.zone === 'social' ? roomState.zone : 'floor';
+    return `<button class="gh-room-cat-avatar${resting}" data-state="${roomState.key}" style="${getRoomSlotStyle(i, 'cat', zone)}" onclick="openCardModal('${breed.id}')" title="${escapeAttr(name)}">
+      <span class="gh-room-cat-emoji">${emoji}</span>
+      <span class="gh-room-cat-state">${roomState.icon}</span>
+      <span class="gh-room-cat-label">${name}</span>
+      <span class="gh-room-status-mini">
+        <span><b style="width:${hPct}%;background:#60a5fa"></b></span>
+        <span><b style="width:${mPct}%;background:#a78bfa"></b></span>
+        <span><b style="width:${ePct}%;background:#34d399"></b></span>
+      </span>
+    </button>`;
+  }).join('');
+  return `<section class="gh-room-engine room-${env.kind}"${styleAttr ? ` style="${escapeAttr(styleAttr)}"` : ''}>
+    <div class="gh-room-stage">
+      <div class="gh-room-wall"></div>
+      <div class="gh-room-window"></div>
+      <div class="gh-room-shelf"></div>
+      <div class="gh-room-floor"></div>
+      <div class="gh-room-rug"></div>
+      ${env.zones.includes('food') ? '<div class="gh-room-zone gh-room-zone-food"></div>' : ''}
+      ${env.zones.includes('play') ? '<div class="gh-room-zone gh-room-zone-play"></div>' : ''}
+      ${env.zones.includes('rest') ? '<div class="gh-room-zone gh-room-zone-rest"></div>' : ''}
+      ${env.zones.includes('study') ? '<div class="gh-room-zone gh-room-zone-study"></div>' : ''}
+      ${homeId ? `<button class="gh-room-home-card" onclick="openCardModal('${homeId}')" title="${escapeAttr(homeName)}">
+        <span class="gh-room-home-icon">${env.icon}</span>
+        <span><span class="gh-room-home-title">${homeName}</span><span class="gh-room-home-meta">${env.name}</span></span>
+      </button>` : ''}
+      ${itemHtml}
+      ${catHtml || '<div class="gh-room-empty">No cats home</div>'}
+    </div>
+  </section>`;
 }
 
 function getHomeUsageCounts() {
@@ -5232,6 +5583,10 @@ function renderGameHome() {
   }
   const homeEnv = getHomeEnvProfile(homeCard);
   const homeName = homeCard ? homeCard.name : 'Your Home';
+  const hd = homeCard && homeCard.data ? homeCard.data : {};
+  const maxItemSlots = homeCard ? (hd.expansion_slots || 0) : 0;
+  const currentHomeLoad = normalizeHomeItemsForSlots(maxItemSlots);
+  const currentHomeItems = currentHomeLoad.items;
   const allGearCards = deckCards.filter(c => c.type === 'battle_gear');
   const allItemCards = deckCards.filter(c => c.type === 'home_item');
   const allConsumableCards = uniqueCards(deckCards.filter(c => c.type === 'consumable' && (inv[c.id] || 0) > 0));
@@ -5473,8 +5828,10 @@ function renderGameHome() {
             const catAllies = (cs.allies || []).slice(0, allySlots); // defensive trim for display
             const catEmojis = ['🐱','😺','😸','😹','😻','🙀','😿','😾'];
             const allyChips = catAllies.map(a => {
-              const allyEmoji = catEmojis[(a.catName.charCodeAt(0) || 0) % catEmojis.length];
-              return `<div class="gh-ally-chip">
+              const allyCard = a.cardId ? getCard(a.cardId) : null;
+              const allyEmoji = allyCard ? getCatEmoji(allyCard) : catEmojis[(a.catName.charCodeAt(0) || 0) % catEmojis.length];
+              const cardClick = allyCard ? ` onclick="openCardModal('${allyCard.id}')"` : '';
+              return `<div class="gh-ally-chip"${cardClick} style="${allyCard ? 'cursor:pointer' : ''}">
                 <div class="gh-ally-emoji">${allyEmoji}</div>
                 <div class="gh-ally-info">
                   <div class="gh-ally-name">${a.catName}</div>
@@ -5532,6 +5889,7 @@ function renderGameHome() {
     ? `<div class="gh-cat-dots" id="gh-cat-dots">${Array.from({length:catCount},(_,i)=>`<div class="gh-cat-dot${i===0?' active':''}" data-idx="${i}"></div>`).join('')}</div>`
     : '';
   const catsTabHtml = `<div class="gh-cats-tab">
+    ${renderRoomEngineHtml(homeCard, cats, currentHomeItems)}
     <div class="gh-cats-scroll" id="gh-cats-scroll" onscroll="ghUpdateCatDots(this)">${catCardsHtml}</div>
     ${dotsHtml}
   </div>`;
@@ -5539,13 +5897,9 @@ function renderGameHome() {
   // ── HOME TAB ──
   const activeHomeCard = homeCard;
   if (activeHomeCard && cardIdOf(sbx.home) !== activeHomeCard.id) sbx.home = activeHomeCard;
-  const hd = activeHomeCard && activeHomeCard.data ? activeHomeCard.data : {};
   const activeHomeName = activeHomeCard ? activeHomeCard.name : 'Your Home';
   const activeHomeEnv = getHomeEnvProfile(activeHomeCard);
   const maxOccupants = hd.max_occupants || 0;
-  const maxItemSlots = activeHomeCard ? (hd.expansion_slots || 0) : 0;
-  const currentHomeLoad = normalizeHomeItemsForSlots(maxItemSlots);
-  const currentHomeItems = currentHomeLoad.items;
   const homeItemUsage = getHomeUsageCounts().home_item;
 
   const careConsumableRows = allConsumableCards.map(c => {
@@ -6677,6 +7031,7 @@ function renderMarket() {
   const coins  = PLAYER ? PLAYER.coins : sbx.coins;
   const inv    = (PLAYER && PLAYER.inventory) || {};
   const deckIds = new Set((PLAYER && PLAYER.deckIds) || []);
+  const marketDiscount = getMarketplaceDiscount();
 
   const tabDefs = [
     { id:'food',  label:'🥣 Consumables' },
@@ -6692,7 +7047,8 @@ function renderMarket() {
   if (MARKET_TAB === 'food') {
     gridHtml = CONSUMABLE_CARDS.map(item => {
       const qty  = inv[item.id] || 0;
-      const can  = coins >= item.coin_cost;
+      const price = getMarketPrice(item);
+      const can  = coins >= price;
       const effs = formatConsumableEffects(item).map(e => `<span class="mkt-card-eff">${e}</span>`).join('');
       return `<div class="mkt-card" onclick="openCardModal('${item.id}')">
         <div class="mkt-card-art">${item.icon || TYPE_META.consumable.emoji}</div>
@@ -6703,7 +7059,7 @@ function renderMarket() {
           <div class="mkt-card-effects">${effs}</div>
         </div>
         <div class="mkt-card-foot" onclick="event.stopPropagation()">
-          <div class="mkt-card-price">🪙 ${item.coin_cost}</div>
+          <div class="mkt-card-price">${marketPriceHtml(item)}</div>
           ${qty > 0 ? `<span class="mkt-qty-badge">${qty} use${qty === 1 ? '' : 's'}</span>` : ''}
           <button class="mkt-buy-btn"${!can?' disabled':''} onclick="buyConsumable('${item.id}')">Buy</button>
         </div>
@@ -6712,13 +7068,14 @@ function renderMarket() {
   } else {
     const typeMap = { items:'home_item', gear:'battle_gear', homes:'home' };
     const t       = typeMap[MARKET_TAB];
-    const items   = getLibrary().filter(c => c.type === t && (c.coin_cost||0) > 0);
+    const items   = getLibrary().filter(c => isOwnableCard(c) && c.type === t && (c.coin_cost||0) > 0);
     if (!items.length) {
       gridHtml = `<div class="mkt-empty">Nothing here yet.</div>`;
     } else {
       gridHtml = items.map(card => {
         const owned  = deckIds.has(card.id);
-        const can    = coins >= (card.coin_cost||0);
+        const price  = getMarketPrice(card);
+        const can    = coins >= price;
         const rc     = RAR_COLOR[card.rarity] || 'var(--t3)';
         const ticon  = TYPE_META[card.type] ? TYPE_META[card.type].icon : '📦';
         const effs   = (card.data && card.data.effects || []).slice(0,4).map(e =>
@@ -6734,10 +7091,10 @@ function renderMarket() {
             ${effs||stats ? `<div class="mkt-card-effects">${effs||stats}</div>` : ''}
           </div>
           <div class="mkt-card-foot" onclick="event.stopPropagation()">
-            <div class="mkt-card-price">🪙 ${card.coin_cost||0}</div>
+            <div class="mkt-card-price">${marketPriceHtml(card)}</div>
             ${owned
               ? `<span class="mkt-owned">Owned</span>`
-              : `<button class="mkt-buy-btn"${!can?' disabled':''} onclick="buyCard('${card.id}',${card.coin_cost||0})">${can?'Buy':'Need coins'}</button>`
+              : `<button class="mkt-buy-btn"${!can?' disabled':''} onclick="buyCard('${card.id}')">${can?'Buy':'Need coins'}</button>`
             }
           </div>
         </div>`;
@@ -6749,6 +7106,7 @@ function renderMarket() {
     <div class="mkt-hdr">
       <button class="mkt-back" onclick="closeMarket()">← Home</button>
       <span class="mkt-title">🏪 Market</span>
+      ${marketDiscount ? `<span class="mkt-discount">Miso -${Math.round(marketDiscount * 100)}%</span>` : ''}
       <span class="mkt-coins">🪙 <span id="mkt-coin-num">${coins}</span></span>
     </div>
     <div class="mkt-tabs">${tabsHtml}</div>
@@ -6758,8 +7116,10 @@ function renderMarket() {
 function buyConsumable(itemId) {
   const item = getCard(itemId);
   if (!item || !PLAYER) return;
-  if (PLAYER.coins < item.coin_cost) { showCareToast('Not enough coins! 🪙'); return; }
-  PLAYER.coins -= item.coin_cost;
+  if (!isOwnableCard(item)) return;
+  const price = getMarketPrice(item);
+  if (PLAYER.coins < price) { showCareToast('Not enough coins! 🪙'); return; }
+  PLAYER.coins -= price;
   sbx.coins = PLAYER.coins;
   if (!PLAYER.inventory) PLAYER.inventory = {};
   PLAYER.inventory[itemId] = (PLAYER.inventory[itemId]||0) + ((item.data && item.data.max_uses) || 1);
@@ -6770,11 +7130,13 @@ function buyConsumable(itemId) {
   renderMarket();
 }
 
-function buyCard(cardId, cost) {
+function buyCard(cardId) {
   if (!PLAYER) return;
+  const card = getCard(cardId);
+  if (!isOwnableCard(card)) return;
+  const cost = getMarketPrice(card);
   if (PLAYER.coins < cost) { showCareToast('Not enough coins! 🪙'); return; }
   if ((PLAYER.deckIds||[]).includes(cardId)) { showCareToast('Already owned!'); return; }
-  const card = getCard(cardId);
   PLAYER.coins -= cost;
   sbx.coins = PLAYER.coins;
   PLAYER.deckIds = [...(PLAYER.deckIds||[]), cardId];
