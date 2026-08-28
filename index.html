@@ -313,9 +313,19 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .run-pixel-city:after{content:"";position:absolute;inset:9px 0 0;background:repeating-linear-gradient(90deg,transparent 0 10px,#f6c96d 10px 13px,transparent 13px 24px)}
 .run-pixel-road{position:absolute;left:0;right:0;bottom:0;height:42px;background:#1f2937;border-top:4px solid #334155;animation:run-road-scroll .9s linear infinite}
 .run-pixel-road:after{content:"";position:absolute;left:0;right:0;top:18px;height:3px;background:repeating-linear-gradient(90deg,#f3c45f 0 24px,transparent 24px 54px)}
-.run-pixel-cat{position:absolute;left:calc(12% + var(--lane)*58px);bottom:20px;transform:scale(.82);animation:run-cat-hop .42s steps(2,end) infinite}
+.run-pixel-cat{position:absolute;left:calc(11% + var(--lane)*50px);bottom:20px;transform:scale(.82);animation:run-cat-hop .42s steps(2,end) infinite;z-index:4}
 .run-pixel-cat .gh-cat-face{animation:none}
-.run-pixel-beat{position:absolute;right:32px;top:24px;display:flex;align-items:center;gap:8px;padding:7px 11px;border-radius:4px;border:1px solid rgba(255,255,255,.13);background:rgba(8,12,18,.78);font-family:var(--fm);font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--t2);max-width:230px}
+.run-pixel-encounter{position:absolute;right:92px;bottom:23px;width:72px;height:62px;z-index:3;animation:run-encounter-pop .34s steps(3,end)}
+.run-pixel-encounter .gh-cat-face{transform:scale(.78);animation:none}
+.run-pixel-encounter[data-kind="fight"] .gh-cat-face{--cat-fur:#596173}
+.run-pixel-encounter[data-kind="friend"] .gh-cat-face{--cat-fur:#c78a4b}
+.run-pixel-encounter[data-kind="market"] .gh-cat-face{--cat-fur:#d1a65d}
+.run-pixel-thing{position:absolute;left:14px;top:8px;width:38px;height:38px;image-rendering:pixelated}
+.run-pixel-thing.loot{background:#f6c75a;clip-path:polygon(50% 0,63% 35%,100% 50%,63% 65%,50% 100%,37% 65%,0 50%,37% 35%);box-shadow:0 0 0 5px rgba(246,199,90,.14)}
+.run-pixel-thing.escape{width:52px;height:20px;left:6px;top:24px;background:repeating-linear-gradient(90deg,#94a3b8 0 8px,transparent 8px 15px);opacity:.8}
+.run-pixel-thing.market{width:44px;height:38px;left:8px;top:14px;background:#8b5e34;box-shadow:0 4px 0 #4b3324}
+.run-pixel-thing.market:before{content:"";position:absolute;left:-4px;top:-12px;width:52px;height:14px;background:#d8a95b;clip-path:polygon(0 100%,12% 0,88% 0,100% 100%)}
+.run-pixel-beat{position:absolute;right:18px;top:18px;display:flex;align-items:center;gap:8px;padding:7px 11px;border-radius:4px;border:1px solid rgba(255,255,255,.13);background:rgba(8,12,18,.78);font-family:var(--fm);font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--t2);max-width:230px;z-index:5}
 .run-pixel-beat-icon{font-size:17px;line-height:1}
 .run-pixel-prog{position:absolute;left:12px;right:12px;bottom:8px;height:4px;background:rgba(255,255,255,.11);border-radius:1px;overflow:hidden}
 .run-pixel-prog span{display:block;height:100%;width:calc(var(--run-progress,0)*1%);background:var(--acc);transition:width .28s linear}
@@ -325,6 +335,13 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 @keyframes run-city-scroll{from{background-position:0 0}to{background-position:-340px 0}}
 @keyframes run-road-scroll{from{background-position:0 0}to{background-position:-54px 0}}
 @keyframes run-cat-hop{0%,100%{bottom:20px}50%{bottom:24px}}
+@keyframes run-encounter-pop{from{transform:translateX(16px);opacity:0}to{transform:translateX(0);opacity:1}}
+@media(max-width:560px){
+  .run-pixel-stage{height:112px}
+  .run-pixel-cat{left:calc(7% + var(--lane)*34px);transform:scale(.66)}
+  .run-pixel-encounter{right:46px;transform:scale(.78);transform-origin:right bottom}
+  .run-pixel-beat{left:10px;right:10px;top:8px;max-width:none;font-size:8px;padding:5px 8px}
+}
 .run-cat-lbl{font-family:var(--fm);font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--t3);width:100%;max-width:640px;padding-top:4px;flex-shrink:0}
 .run-feed{width:100%;max-width:640px;display:flex;flex-direction:column;gap:8px}
 .run-event{display:flex;gap:10px;align-items:flex-start;background:var(--s1);border:1px solid var(--bd);border-radius:var(--r-lg);padding:10px 14px;animation:ev-slide-in .38s cubic-bezier(.34,1.2,.64,1)}
@@ -693,17 +710,18 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 
 .gh-cat-top{display:flex;align-items:center;gap:12px}
 .gh-cat-face{--cat-fur:#d8b36a;position:relative;width:60px;height:54px;flex:0 0 60px;display:block;filter:drop-shadow(0 0 10px rgba(255,200,96,.16));animation:cat-face-bob 3.8s ease-in-out infinite;image-rendering:pixelated}
-.gh-cat-face-head{position:absolute;left:12px;top:2px;width:34px;height:31px;background:var(--cat-fur);border-radius:4px;box-shadow:0 4px 0 rgba(0,0,0,.18),0 0 0 2px rgba(255,255,255,.08) inset;z-index:2}
+.gh-cat-face-head{position:absolute;left:23px;top:2px;width:34px;height:31px;background:var(--cat-fur);border-radius:4px 6px 5px 4px;box-shadow:0 4px 0 rgba(0,0,0,.18),0 0 0 2px rgba(255,255,255,.08) inset;z-index:2}
 .gh-cat-face-head:before,.gh-cat-face-head:after{content:"";position:absolute;top:-9px;width:13px;height:13px;background:var(--cat-fur);clip-path:polygon(50% 0,0 100%,100% 100%)}
 .gh-cat-face-head:before{left:2px}.gh-cat-face-head:after{right:2px}
 .gh-cat-face-eye{position:absolute;top:11px;width:5px;height:6px;background:#0b111a;border-radius:1px;transition:height .22s,top .22s,transform .22s}
 .gh-cat-face-eye.l{left:8px}.gh-cat-face-eye.r{right:8px}
 .gh-cat-face-nose{position:absolute;left:15px;top:19px;width:4px;height:3px;background:#5c3041;border-radius:1px}
 .gh-cat-face-mouth{position:absolute;left:14px;top:24px;width:7px;height:3px;border-bottom:2px solid #0b111a;border-radius:0 0 8px 8px;transition:all .22s}
-.gh-cat-face-body{position:absolute;left:15px;bottom:9px;width:34px;height:20px;background:var(--cat-fur);border-radius:5px 8px 4px 4px;box-shadow:0 4px 0 rgba(0,0,0,.18),0 0 0 2px rgba(255,255,255,.06) inset;z-index:1}
-.gh-cat-face-tail{position:absolute;right:3px;bottom:18px;width:17px;height:6px;background:var(--cat-fur);border-radius:0 6px 6px 0;box-shadow:5px -5px 0 -1px var(--cat-fur);opacity:.95;transform-origin:left center;animation:cat-tail-sway 2.2s ease-in-out infinite}
+.gh-cat-face-snout{position:absolute;right:-5px;top:13px;width:9px;height:7px;background:var(--cat-fur);border-radius:0 3px 3px 0}
+.gh-cat-face-body{position:absolute;left:8px;bottom:9px;width:38px;height:20px;background:var(--cat-fur);border-radius:8px 4px 4px 5px;box-shadow:0 4px 0 rgba(0,0,0,.18),0 0 0 2px rgba(255,255,255,.06) inset;z-index:1}
+.gh-cat-face-tail{position:absolute;left:1px;bottom:21px;width:18px;height:6px;background:var(--cat-fur);border-radius:6px 0 0 6px;box-shadow:-4px -5px 0 -1px var(--cat-fur);opacity:.95;transform-origin:right center;animation:cat-tail-sway 2.2s ease-in-out infinite}
 .gh-cat-face-paw{position:absolute;bottom:4px;width:7px;height:8px;background:var(--cat-fur);border-radius:0 0 2px 2px;box-shadow:0 3px 0 rgba(0,0,0,.16);z-index:0}
-.gh-cat-face-paw.p1{left:19px}.gh-cat-face-paw.p2{left:37px;animation-delay:.18s}
+.gh-cat-face-paw.p1{left:17px}.gh-cat-face-paw.p2{left:38px;animation-delay:.18s}
 .gh-cat-face.walking .gh-cat-face-paw.p1,.run-pixel-cat .gh-cat-face-paw.p1{animation:cat-paw-step .32s steps(2,end) infinite}
 .gh-cat-face.walking .gh-cat-face-paw.p2,.run-pixel-cat .gh-cat-face-paw.p2{animation:cat-paw-step .32s steps(2,end) infinite reverse}
 .gh-cat-face.happy .gh-cat-face-eye{height:3px;top:13px;border-radius:999px}
@@ -4042,15 +4060,15 @@ function startRun(selectedCatIndices) {
 }
 
 function getRunSceneForEncounter(enc) {
-  if (!enc) return { key:'travel', icon:'🌙', label:'On the move' };
+  if (!enc) return { key:'travel', icon:'🌙', label:'On the move', thing:'escape' };
   if (enc.type === 'battle' || enc.type === 'pvp-battle') {
-    if (enc.friendly || enc.charmed || enc.npcAlly) return { key:'friend', icon:'🤝', label:'Making contact' };
-    if (enc.avoided || enc.allyAssist) return { key:'travel', icon:'💨', label:'Slipping through' };
-    return { key:'fight', icon:'⚔', label:'Trouble ahead' };
+    if (enc.friendly || enc.charmed || enc.npcAlly) return { key:'friend', icon:'🤝', label:'Making contact', thing:enc.npcAlly ? 'market' : 'friend' };
+    if (enc.avoided || enc.allyAssist) return { key:'travel', icon:'💨', label:'Slipping through', thing:'escape' };
+    return { key:'fight', icon:'⚔', label:'Trouble ahead', thing:'fight' };
   }
-  if (enc.type === 'friend-win' || enc.type === 'friend-lose') return { key:'friend', icon:enc.icon || '🤝', label:'Social encounter' };
-  if (enc.type === 'persist-bonus') return { key:'find', icon:'🌆', label:'Checking the street' };
-  return { key:'find', icon:'✨', label:'Searching' };
+  if (enc.type === 'friend-win' || enc.type === 'friend-lose') return { key:'friend', icon:enc.icon || '🤝', label:'Social encounter', thing:enc.npcAlly ? 'market' : 'friend' };
+  if (enc.type === 'persist-bonus') return { key:'find', icon:'🌆', label:'Checking the street', thing:enc.loot ? 'loot' : 'escape' };
+  return { key:'find', icon:'✨', label:'Searching', thing:enc.loot ? 'loot' : 'escape' };
 }
 
 function getRunPixelState(runs) {
@@ -4077,9 +4095,30 @@ function buildRunPixelStageHtml(runs) {
     <div class="run-pixel-city"></div>
     <div class="run-pixel-road"></div>
     ${cats}
+    <div class="run-pixel-encounter" id="run-pixel-encounter">${runEncounterThingHtml(scene.thing)}</div>
     <div class="run-pixel-beat" id="run-pixel-beat"><span class="run-pixel-beat-icon">${scene.icon}</span><span>${scene.label}</span></div>
     <div class="run-pixel-prog"><span></span></div>
   </div>`;
+}
+
+function runEncounterThingHtml(kind) {
+  if (kind === 'fight' || kind === 'friend' || kind === 'market') {
+    const mood = kind === 'fight' ? 'sad' : 'happy';
+    const color = kind === 'fight' ? '#667085' : kind === 'market' ? '#d1a65d' : '#c78a4b';
+    return `<span class="gh-cat-face ${mood}" style="--cat-fur:${color}">
+      <span class="gh-cat-face-tail"></span>
+      <span class="gh-cat-face-body"></span>
+      <span class="gh-cat-face-paw p1"></span>
+      <span class="gh-cat-face-paw p2"></span>
+      <span class="gh-cat-face-head">
+        <span class="gh-cat-face-eye l"></span>
+        <span class="gh-cat-face-eye r"></span>
+        <span class="gh-cat-face-nose"></span>
+        <span class="gh-cat-face-mouth"></span>
+      </span>
+    </span>`;
+  }
+  return `<span class="run-pixel-thing ${kind || 'escape'}"></span>`;
 }
 
 function updateRunPixelStage(now, runs) {
@@ -4093,6 +4132,11 @@ function updateRunPixelStage(now, runs) {
   stage.dataset.scene = scene.key;
   const beat = document.getElementById('run-pixel-beat');
   if (beat) beat.innerHTML = `<span class="run-pixel-beat-icon">${scene.icon}</span><span>${scene.label}</span>`;
+  const encounter = document.getElementById('run-pixel-encounter');
+  if (encounter && encounter.dataset.kind !== scene.thing) {
+    encounter.dataset.kind = scene.thing;
+    encounter.innerHTML = runEncounterThingHtml(scene.thing);
+  }
 }
 
 function buildRunSkeleton() {
@@ -5255,6 +5299,7 @@ function renderCatFaceHtml(breed, state, index) {
     <span class="gh-cat-face-head">
       <span class="gh-cat-face-eye l"></span>
       <span class="gh-cat-face-eye r"></span>
+      <span class="gh-cat-face-snout"></span>
       <span class="gh-cat-face-nose"></span>
       <span class="gh-cat-face-mouth"></span>
     </span>
