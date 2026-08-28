@@ -826,6 +826,8 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 @keyframes zzz-float{0%{opacity:0;transform:translateY(0)}20%{opacity:1}65%{opacity:.55;transform:translateY(-22px)}100%{opacity:0;transform:translateY(-38px)}}
 .gh-sleep-name{font-family:var(--fd);font-size:17px;color:var(--t2)}
 .gh-sleep-hint{font-family:var(--fm);font-size:9px;text-transform:uppercase;letter-spacing:.11em;color:var(--t3)}
+.gh-sleep-needs{width:min(320px,100%);margin-top:2px}
+.gh-sleep-needs .gh-need-lbl{color:#60A5FA}
 /* Home tab cat roster */
 .gh-home-cats{display:flex;flex-direction:column;gap:6px;padding:10px 14px;background:var(--s2);border:1px solid var(--bd);border-radius:0 0 var(--r-lg) var(--r-lg);border-top:none;margin-top:-4px}
 .gh-home-cat-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.05)}
@@ -1264,6 +1266,10 @@ let GH_RETURN_DIFFS  = null; // {ci: {hungerDiff, moodDiff, energyDiff}} set on 
 let GH_ACTIVE_HOME_IDX = 0;  // which home card is active on the home tab
 const GH_CARD_FILTER = { search:'', type:'all', rarity:'all', view:'recent' };
 let _GH_TOUCH_MOVED = false; // true if last touch event involved significant horizontal movement
+let GH_LAST_INTERACTION = Date.now();
+let GH_SLEEP_CHECK_TIMER = null;
+const GH_AUTO_SLEEP_ENERGY = 25;
+const GH_AUTO_SLEEP_IDLE_MS = 90000;
 const MARKETPLACE_CAT_ID = 'npc-marketplace-miso';
 
 const ONBOARD = {
@@ -2501,6 +2507,40 @@ function setCatCare(ci, catSetup, patch) {
   CAT_CARE[String(ci)] = upd;
   saveCareStore();
   return upd;
+}
+
+function noteGameInteraction() {
+  GH_LAST_INTERACTION = Date.now();
+}
+
+function isGameHomeVisible() {
+  const gh = document.getElementById('game-home');
+  return !!(gh && gh.style.display !== 'none');
+}
+
+function autoSleepLowEnergyCats(reason = 'idle') {
+  const cats = sbx.cats || [];
+  if (!cats.length) return 0;
+  let changed = 0;
+  cats.forEach((cs, ci) => {
+    if (!cs) return;
+    const state = getLiveCatState(ci, cs);
+    if (!state.isResting && state.energy <= GH_AUTO_SLEEP_ENERGY) {
+      setCatCare(ci, cs, { isResting:true, autoRestReason:reason });
+      changed++;
+    }
+  });
+  return changed;
+}
+
+function checkAutoSleepCats() {
+  const idleEnough = Date.now() - GH_LAST_INTERACTION >= GH_AUTO_SLEEP_IDLE_MS;
+  const away = document.hidden || !document.hasFocus();
+  if (!idleEnough && !away) return false;
+  const changed = autoSleepLowEnergyCats(away ? 'away' : 'idle');
+  if (!changed) return false;
+  if (isGameHomeVisible()) renderGameHomeKeepScroll();
+  return true;
 }
 
 function hasPremiumFood() {
@@ -5368,6 +5408,8 @@ function showGameHome() {
   renderGameHome();
   if (GAME_CARE_TIMER) clearInterval(GAME_CARE_TIMER);
   GAME_CARE_TIMER = setInterval(updateGameHomeBars, 30000);
+  if (GH_SLEEP_CHECK_TIMER) clearInterval(GH_SLEEP_CHECK_TIMER);
+  GH_SLEEP_CHECK_TIMER = setInterval(checkAutoSleepCats, 15000);
 }
 
 // Periodic tick: update only the hunger/mood/energy bar widths + labels in
@@ -5377,27 +5419,32 @@ function showGameHome() {
 function updateGameHomeBars() {
   const gh = document.getElementById('game-home');
   if (!gh || gh.style.display === 'none') return;
+  if (checkAutoSleepCats()) return;
   const cats = sbx.cats || [];
   const catEls = gh.querySelectorAll('.gh-cats-scroll .gh-cat');
   catEls.forEach((catEl, ci) => {
     const cs = cats[ci];
     if (!cs) return;
     const needsEl = catEl.querySelector('.gh-needs');
-    if (!needsEl) return; // sleeping cat — no bars shown
+    if (!needsEl) return;
     const state = getLiveCatState(ci, cs);
-    const rows = [
-      Math.round(state.hunger),
-      Math.round(state.mood),
-      Math.round(state.energy),
-    ];
-    const colFor = (i, v) => i === 2
+    const needValues = {
+      hunger: Math.round(state.hunger),
+      mood: Math.round(state.mood),
+      energy: Math.round(state.energy),
+    };
+    const colFor = (need, v) => need === 'energy'
       ? (v > 60 ? '#60A5FA' : v > 30 ? '#F0A030' : '#F43F5E')
       : (v > 60 ? '#34D399' : v > 30 ? '#F0A030' : '#F43F5E');
-    const pctEls  = needsEl.querySelectorAll('.gh-need-pct');
-    const fillEls = needsEl.querySelectorAll('.gh-need-fill');
-    rows.forEach((pct, i) => {
-      if (fillEls[i]) { fillEls[i].style.width = pct + '%'; fillEls[i].style.background = colFor(i, pct); fillEls[i].dataset.w = pct; }
-      if (pctEls[i])  pctEls[i].textContent = pct + '%';
+    const blocks = needsEl.querySelectorAll('.gh-need-block[data-need]');
+    blocks.forEach(block => {
+      const need = block.dataset.need;
+      const pct = needValues[need];
+      if (pct === undefined) return;
+      const fillEl = block.querySelector('.gh-need-fill');
+      const pctEl = block.querySelector('.gh-need-pct');
+      if (fillEl) { fillEl.style.width = pct + '%'; fillEl.style.background = colFor(need, pct); fillEl.dataset.w = pct; }
+      if (pctEl) pctEl.textContent = pct + '%';
     });
   });
 }
@@ -5705,6 +5752,9 @@ function renderGameHome() {
             <span class="zzz-z zzz-3">z</span>
           </div>
           <div class="gh-sleep-name">${name}</div>
+          <div class="gh-needs gh-sleep-needs">
+            <div class="gh-need-block" data-need="energy"><div class="gh-need-row"><span class="gh-need-lbl">Stamina</span><span class="gh-need-pct">${ePct}%</span></div><div class="gh-need-bar">${barFill(ePct,eFrom,eCol)}</div></div>
+          </div>
           <div class="gh-sleep-hint">Tap to wake up · scroll to browse</div>
         </div>` : `
         <div class="gh-cat-top">
@@ -5716,9 +5766,9 @@ function renderGameHome() {
           </div>
         </div>
         <div class="gh-needs">
-          <div><div class="gh-need-row"><span class="gh-need-lbl">Hunger</span><span class="gh-need-pct">${hPct}%${diffLabel(hDiff)}</span></div><div class="gh-need-bar">${barFill(hPct,hFrom,hCol)}</div></div>
-          <div><div class="gh-need-row"><span class="gh-need-lbl">Mood</span><span class="gh-need-pct">${mPct}%${diffLabel(mDiff)}</span></div><div class="gh-need-bar">${barFill(mPct,mFrom,mCol)}</div></div>
-          <div><div class="gh-need-row"><span class="gh-need-lbl">Energy</span><span class="gh-need-pct">${ePct}%${diffLabel(eDiff)}</span></div><div class="gh-need-bar">${barFill(ePct,eFrom,eCol)}</div></div>
+          <div class="gh-need-block" data-need="hunger"><div class="gh-need-row"><span class="gh-need-lbl">Hunger</span><span class="gh-need-pct">${hPct}%${diffLabel(hDiff)}</span></div><div class="gh-need-bar">${barFill(hPct,hFrom,hCol)}</div></div>
+          <div class="gh-need-block" data-need="mood"><div class="gh-need-row"><span class="gh-need-lbl">Mood</span><span class="gh-need-pct">${mPct}%${diffLabel(mDiff)}</span></div><div class="gh-need-bar">${barFill(mPct,mFrom,mCol)}</div></div>
+          <div class="gh-need-block" data-need="energy"><div class="gh-need-row"><span class="gh-need-lbl">Energy</span><span class="gh-need-pct">${ePct}%${diffLabel(eDiff)}</span></div><div class="gh-need-bar">${barFill(ePct,eFrom,eCol)}</div></div>
         </div>
         <div class="gh-cat-expand">
           <div class="gh-actions">
@@ -6671,6 +6721,24 @@ function ghConfirmWake(ci) {
   `);
 }
 function ghRest(ci)  { toggleRest(ci); renderGameHomeKeepScroll(); }
+
+(function setupAutoSleepPresence() {
+  ['pointerdown','touchstart','mousemove','wheel'].forEach(type => {
+    document.addEventListener(type, noteGameInteraction, {passive:true, capture:true});
+  });
+  document.addEventListener('keydown', noteGameInteraction, {capture:true});
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      checkAutoSleepCats();
+    } else {
+      noteGameInteraction();
+      if (isGameHomeVisible()) renderGameHomeKeepScroll();
+    }
+  });
+  window.addEventListener('blur', () => setTimeout(checkAutoSleepCats, 250));
+  window.addEventListener('focus', noteGameInteraction);
+})();
+
 // Horizontal scroll guard — prevents accidental wake on swipe
 (function() {
   let _tx0 = 0;
