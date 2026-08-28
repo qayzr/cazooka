@@ -306,6 +306,25 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .run-speed-note{font-family:var(--fm);font-size:8px;color:var(--t3);background:var(--s3);padding:2px 8px;border-radius:999px}
 .run-skip-btn{font-family:var(--fm);font-size:9px;text-transform:uppercase;letter-spacing:.08em;padding:6px 18px;background:none;border:1px solid var(--bd);border-radius:999px;color:var(--t2);cursor:pointer;transition:all .15s;flex-shrink:0}
 .run-skip-btn:hover{border-color:var(--acc);color:var(--acc2)}
+.run-pixel-stage{position:relative;width:100%;max-width:640px;height:126px;overflow:hidden;border:1px solid var(--bd);border-radius:var(--r-lg);background:#101720;box-shadow:0 16px 50px rgba(0,0,0,.22) inset;image-rendering:pixelated;flex-shrink:0}
+.run-pixel-sky{position:absolute;inset:0 0 42px;background:linear-gradient(180deg,#172943,#101720)}
+.run-pixel-moon{position:absolute;right:38px;top:18px;width:16px;height:16px;background:#d7deea;box-shadow:0 0 0 4px rgba(215,222,234,.08);border-radius:2px}
+.run-pixel-city{position:absolute;left:0;right:0;bottom:38px;height:42px;background:repeating-linear-gradient(90deg,#202b3b 0 22px,#162131 22px 34px);opacity:.9;animation:run-city-scroll 18s linear infinite}
+.run-pixel-city:after{content:"";position:absolute;inset:9px 0 0;background:repeating-linear-gradient(90deg,transparent 0 10px,#f6c96d 10px 13px,transparent 13px 24px)}
+.run-pixel-road{position:absolute;left:0;right:0;bottom:0;height:42px;background:#1f2937;border-top:4px solid #334155;animation:run-road-scroll .9s linear infinite}
+.run-pixel-road:after{content:"";position:absolute;left:0;right:0;top:18px;height:3px;background:repeating-linear-gradient(90deg,#f3c45f 0 24px,transparent 24px 54px)}
+.run-pixel-cat{position:absolute;left:calc(12% + var(--lane)*58px);bottom:20px;transform:scale(.82);animation:run-cat-hop .42s steps(2,end) infinite}
+.run-pixel-cat .gh-cat-face{animation:none}
+.run-pixel-beat{position:absolute;right:32px;top:24px;display:flex;align-items:center;gap:8px;padding:7px 11px;border-radius:4px;border:1px solid rgba(255,255,255,.13);background:rgba(8,12,18,.78);font-family:var(--fm);font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--t2);max-width:230px}
+.run-pixel-beat-icon{font-size:17px;line-height:1}
+.run-pixel-prog{position:absolute;left:12px;right:12px;bottom:8px;height:4px;background:rgba(255,255,255,.11);border-radius:1px;overflow:hidden}
+.run-pixel-prog span{display:block;height:100%;width:calc(var(--run-progress,0)*1%);background:var(--acc);transition:width .28s linear}
+.run-pixel-stage[data-scene="fight"] .run-pixel-sky{background:linear-gradient(180deg,#382029,#141018)}
+.run-pixel-stage[data-scene="friend"] .run-pixel-sky{background:linear-gradient(180deg,#17352a,#101720)}
+.run-pixel-stage[data-scene="find"] .run-pixel-sky{background:linear-gradient(180deg,#26224b,#101720)}
+@keyframes run-city-scroll{from{background-position:0 0}to{background-position:-340px 0}}
+@keyframes run-road-scroll{from{background-position:0 0}to{background-position:-54px 0}}
+@keyframes run-cat-hop{0%,100%{bottom:20px}50%{bottom:24px}}
 .run-cat-lbl{font-family:var(--fm);font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--t3);width:100%;max-width:640px;padding-top:4px;flex-shrink:0}
 .run-feed{width:100%;max-width:640px;display:flex;flex-direction:column;gap:8px}
 .run-event{display:flex;gap:10px;align-items:flex-start;background:var(--s1);border:1px solid var(--bd);border-radius:var(--r-lg);padding:10px 14px;animation:ev-slide-in .38s cubic-bezier(.34,1.2,.64,1)}
@@ -673,15 +692,20 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .gh-cat{border:1px solid rgba(255,255,255,0.09);border-radius:0;padding:20px;display:flex;flex-direction:column;gap:14px;background:rgba(10,14,20,0.76);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
 
 .gh-cat-top{display:flex;align-items:center;gap:12px}
-.gh-cat-face{--cat-fur:#d8b36a;position:relative;width:48px;height:48px;flex:0 0 48px;display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 0 10px rgba(255,200,96,.16));animation:cat-face-bob 3.8s ease-in-out infinite}
-.gh-cat-face-head{position:relative;width:34px;height:31px;background:var(--cat-fur);border-radius:4px;box-shadow:0 4px 0 rgba(0,0,0,.18),0 0 0 2px rgba(255,255,255,.08) inset;image-rendering:pixelated}
+.gh-cat-face{--cat-fur:#d8b36a;position:relative;width:60px;height:54px;flex:0 0 60px;display:block;filter:drop-shadow(0 0 10px rgba(255,200,96,.16));animation:cat-face-bob 3.8s ease-in-out infinite;image-rendering:pixelated}
+.gh-cat-face-head{position:absolute;left:12px;top:2px;width:34px;height:31px;background:var(--cat-fur);border-radius:4px;box-shadow:0 4px 0 rgba(0,0,0,.18),0 0 0 2px rgba(255,255,255,.08) inset;z-index:2}
 .gh-cat-face-head:before,.gh-cat-face-head:after{content:"";position:absolute;top:-9px;width:13px;height:13px;background:var(--cat-fur);clip-path:polygon(50% 0,0 100%,100% 100%)}
 .gh-cat-face-head:before{left:2px}.gh-cat-face-head:after{right:2px}
 .gh-cat-face-eye{position:absolute;top:11px;width:5px;height:6px;background:#0b111a;border-radius:1px;transition:height .22s,top .22s,transform .22s}
 .gh-cat-face-eye.l{left:8px}.gh-cat-face-eye.r{right:8px}
 .gh-cat-face-nose{position:absolute;left:15px;top:19px;width:4px;height:3px;background:#5c3041;border-radius:1px}
 .gh-cat-face-mouth{position:absolute;left:14px;top:24px;width:7px;height:3px;border-bottom:2px solid #0b111a;border-radius:0 0 8px 8px;transition:all .22s}
-.gh-cat-face-tail{position:absolute;right:2px;bottom:8px;width:12px;height:5px;background:var(--cat-fur);border-radius:0 5px 5px 0;box-shadow:4px -4px 0 -1px var(--cat-fur);opacity:.9}
+.gh-cat-face-body{position:absolute;left:15px;bottom:9px;width:34px;height:20px;background:var(--cat-fur);border-radius:5px 8px 4px 4px;box-shadow:0 4px 0 rgba(0,0,0,.18),0 0 0 2px rgba(255,255,255,.06) inset;z-index:1}
+.gh-cat-face-tail{position:absolute;right:3px;bottom:18px;width:17px;height:6px;background:var(--cat-fur);border-radius:0 6px 6px 0;box-shadow:5px -5px 0 -1px var(--cat-fur);opacity:.95;transform-origin:left center;animation:cat-tail-sway 2.2s ease-in-out infinite}
+.gh-cat-face-paw{position:absolute;bottom:4px;width:7px;height:8px;background:var(--cat-fur);border-radius:0 0 2px 2px;box-shadow:0 3px 0 rgba(0,0,0,.16);z-index:0}
+.gh-cat-face-paw.p1{left:19px}.gh-cat-face-paw.p2{left:37px;animation-delay:.18s}
+.gh-cat-face.walking .gh-cat-face-paw.p1,.run-pixel-cat .gh-cat-face-paw.p1{animation:cat-paw-step .32s steps(2,end) infinite}
+.gh-cat-face.walking .gh-cat-face-paw.p2,.run-pixel-cat .gh-cat-face-paw.p2{animation:cat-paw-step .32s steps(2,end) infinite reverse}
 .gh-cat-face.happy .gh-cat-face-eye{height:3px;top:13px;border-radius:999px}
 .gh-cat-face.happy .gh-cat-face-mouth{height:5px;border-bottom-width:2px}
 .gh-cat-face.ok .gh-cat-face-mouth{width:8px;height:1px;border-bottom-width:2px;border-radius:0;top:25px}
@@ -696,6 +720,8 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 @keyframes cat-face-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
 @keyframes cat-face-sleep{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(2px) rotate(1deg)}}
 @keyframes cat-face-zzz{0%{opacity:0;transform:translate(0,5px)}35%{opacity:1}100%{opacity:0;transform:translate(7px,-12px)}}
+@keyframes cat-tail-sway{0%,100%{transform:rotate(0)}50%{transform:rotate(-10deg)}}
+@keyframes cat-paw-step{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
 .gh-cat-info{flex:1}
 .gh-cat-name{font-family:var(--fd);font-size:15px;font-weight:700;color:var(--t1)}
 .gh-cat-breed{font-family:var(--fm);font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--t3);margin-top:1px}
@@ -4009,10 +4035,64 @@ function startRun(selectedCatIndices) {
     return { catIdx: ci, name: catSetup.breed.name, stats, dur_min, endWall: startTime + dur_wall, encounters, done: false, energyCost, energySaveNote: energyProc ? `${energyProc.card.name}: -${Math.round(energySave * 100)}% energy cost` : '' };
   });
 
-  sbx.activeRun = { runs, readyIndices, allDone: false, timer: null };
+  sbx.activeRun = { runs, readyIndices, startWall: startTime, allDone: false, timer: null };
   sbx.activeRun.timer = setInterval(runTick, 300);
 
   buildRunSkeleton();
+}
+
+function getRunSceneForEncounter(enc) {
+  if (!enc) return { key:'travel', icon:'🌙', label:'On the move' };
+  if (enc.type === 'battle' || enc.type === 'pvp-battle') {
+    if (enc.friendly || enc.charmed || enc.npcAlly) return { key:'friend', icon:'🤝', label:'Making contact' };
+    if (enc.avoided || enc.allyAssist) return { key:'travel', icon:'💨', label:'Slipping through' };
+    return { key:'fight', icon:'⚔', label:'Trouble ahead' };
+  }
+  if (enc.type === 'friend-win' || enc.type === 'friend-lose') return { key:'friend', icon:enc.icon || '🤝', label:'Social encounter' };
+  if (enc.type === 'persist-bonus') return { key:'find', icon:'🌆', label:'Checking the street' };
+  return { key:'find', icon:'✨', label:'Searching' };
+}
+
+function getRunPixelState(runs) {
+  let latest = null;
+  (runs || []).forEach(run => {
+    (run.encounters || []).forEach(enc => {
+      if (enc.revealed) latest = enc;
+    });
+  });
+  return getRunSceneForEncounter(latest);
+}
+
+function buildRunPixelStageHtml(runs) {
+  const scene = getRunPixelState(runs);
+  const cats = (runs || []).slice(0, 5).map((run, ri) => {
+    const cs = sbx.cats[run.catIdx] || {};
+    return `<span class="run-pixel-cat" style="--lane:${ri}">
+      ${renderCatFaceHtml(cs.breed, { mood:80, hunger:80, energy:80, isResting:false }, run.catIdx)}
+    </span>`;
+  }).join('');
+  return `<div class="run-pixel-stage" id="run-pixel-stage" data-scene="${scene.key}" style="--run-progress:0">
+    <div class="run-pixel-sky"></div>
+    <div class="run-pixel-moon"></div>
+    <div class="run-pixel-city"></div>
+    <div class="run-pixel-road"></div>
+    ${cats}
+    <div class="run-pixel-beat" id="run-pixel-beat"><span class="run-pixel-beat-icon">${scene.icon}</span><span>${scene.label}</span></div>
+    <div class="run-pixel-prog"><span></span></div>
+  </div>`;
+}
+
+function updateRunPixelStage(now, runs) {
+  const stage = document.getElementById('run-pixel-stage');
+  if (!stage || !runs || !runs.length) return;
+  const minStart = sbx.activeRun?.startWall || now;
+  const maxEnd = Math.max(...runs.map(r => r.endWall));
+  const progress = maxEnd > minStart ? Math.min(100, Math.max(0, ((now - minStart) / (maxEnd - minStart)) * 100)) : 100;
+  stage.style.setProperty('--run-progress', progress.toFixed(1));
+  const scene = getRunPixelState(runs);
+  stage.dataset.scene = scene.key;
+  const beat = document.getElementById('run-pixel-beat');
+  if (beat) beat.innerHTML = `<span class="run-pixel-beat-icon">${scene.icon}</span><span>${scene.label}</span>`;
 }
 
 function buildRunSkeleton() {
@@ -4030,6 +4110,7 @@ function buildRunSkeleton() {
       <span class="run-speed-note">10× sandbox speed</span>
     </div>
   </div>
+  ${buildRunPixelStageHtml(runs)}
   <button class="run-skip-btn" id="run-skip-btn" onclick="skipRun()">⏭ Skip — show all results</button>`;
   runs.forEach((run, ri) => {
     if (runs.length > 1) html += `<div class="run-cat-lbl">🐱 ${run.name}</div>`;
@@ -4049,6 +4130,7 @@ function runTick() {
   const rem_s = Math.max(0, Math.ceil((maxEnd - now) / 1000));
   const timerEl = document.getElementById('run-timer-val');
   if (timerEl) timerEl.textContent = String(Math.floor(rem_s/60)).padStart(2,'0') + ':' + String(rem_s%60).padStart(2,'0');
+  updateRunPixelStage(now, runs);
 
   // Reveal events
   runs.forEach((run, ri) => {
@@ -4097,6 +4179,7 @@ function skipRun() {
     });
     run.done = true;
   });
+  updateRunPixelStage(Date.now(), sbx.activeRun.runs);
   sbx.activeRun.allDone = true;
   finishRun();
 }
@@ -5166,6 +5249,9 @@ function renderCatFaceHtml(breed, state, index) {
   const mood = getCatFaceMood(state);
   return `<span class="gh-cat-face ${mood}" style="--cat-fur:${getCatFaceColor(breed, index)}">
     <span class="gh-cat-face-tail"></span>
+    <span class="gh-cat-face-body"></span>
+    <span class="gh-cat-face-paw p1"></span>
+    <span class="gh-cat-face-paw p2"></span>
     <span class="gh-cat-face-head">
       <span class="gh-cat-face-eye l"></span>
       <span class="gh-cat-face-eye r"></span>
