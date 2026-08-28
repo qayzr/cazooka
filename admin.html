@@ -112,6 +112,32 @@
   .studio-search:focus{border-color:var(--acc)}
   .studio-filter{padding:8px 10px;background:var(--s2);border:1px solid var(--bd);border-radius:var(--r-sm);color:var(--t1);font-size:12px;outline:none;cursor:pointer}
 
+  /* ── Outside Run Studio ── */
+  .run-studio-grid{display:grid;grid-template-columns:minmax(280px,360px) 1fr;gap:18px;align-items:start}
+  .run-panel{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);overflow:hidden}
+  .run-panel-head{padding:14px 16px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .run-panel-title{font-size:13px;font-weight:700}
+  .run-panel-sub{font-size:11px;color:var(--t3);margin-top:2px}
+  .run-panel-body{padding:14px 16px}
+  .run-template-list{display:flex;flex-direction:column;gap:8px;max-height:640px;overflow:auto;padding-right:2px}
+  .run-template-row{width:100%;text-align:left;background:var(--s2);border:1px solid var(--bd);border-radius:var(--r-sm);padding:10px 12px;color:var(--t1);cursor:pointer;transition:border-color .15s,background .15s}
+  .run-template-row:hover{border-color:var(--acc)}
+  .run-template-row.active{border-color:var(--acc);background:var(--acc-dim)}
+  .run-template-row.off{opacity:.55}
+  .run-template-top{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+  .run-template-icon{font-size:17px}
+  .run-template-kind{font-family:var(--fm);font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--acc);flex:1}
+  .run-template-weight{font-family:var(--fm);font-size:10px;color:var(--yellow)}
+  .run-template-body{font-size:12px;color:var(--t2);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .run-editor-empty{padding:80px 20px;text-align:center;color:var(--t3);font-size:13px}
+  .run-editor-actions{display:flex;gap:10px;justify-content:flex-end;border-top:1px solid var(--bd);padding-top:14px;margin-top:14px}
+  .run-help{font-size:12px;color:var(--t3);line-height:1.55;background:var(--s2);border:1px solid var(--bd);border-radius:var(--r-sm);padding:12px;margin-top:14px}
+  .run-help code{font-family:var(--fm);font-size:11px;color:var(--acc2)}
+  .run-status{font-size:12px;border-radius:var(--r-sm);padding:8px 10px;margin-bottom:12px;display:none}
+  .run-status.ok{display:block;color:var(--green);background:var(--green-dim);border:1px solid rgba(63,185,80,.25)}
+  .run-status.err{display:block;color:var(--red);background:var(--red-dim);border:1px solid rgba(248,81,73,.25)}
+  @media(max-width:900px){.run-studio-grid{grid-template-columns:1fr}.run-template-list{max-height:360px}}
+
   .card-grid{display:flex;flex-wrap:wrap;gap:14px}
   .card-grid-item{position:relative}
   .card-grid-item .cv{cursor:pointer;transition:transform .12s,box-shadow .12s}
@@ -269,6 +295,9 @@
       <button class="nav-item active" data-page="studio" onclick="navTo('studio')">
         <span class="nav-icon">🃏</span> Card Studio
       </button>
+      <button class="nav-item" data-page="runs" onclick="navTo('runs')">
+        <span class="nav-icon">🐾</span> Outside Runs
+      </button>
       <button class="nav-item" data-page="players" onclick="navTo('players')">
         <span class="nav-icon">👤</span> Players
       </button>
@@ -304,6 +333,59 @@
         <div style="font-size:12px;color:var(--t3);margin-bottom:16px" id="studio-count"></div>
         <div class="card-grid" id="card-grid">
           <div style="grid-column:1/-1" class="empty"><span class="spinner"></span></div>
+        </div>
+      </div>
+
+      <!-- Outside Run Studio -->
+      <div class="page" id="page-runs">
+        <div class="page-title">Outside Run Studio</div>
+        <div class="page-sub">Edit encounter copy, weights, and active states used by Supabase when cats go outside.</div>
+
+        <div class="studio-toolbar">
+          <input class="studio-search" id="run-search" placeholder="Search encounter copy..." oninput="filterRunTemplates()">
+          <select class="studio-filter" id="run-kind-filter" onchange="filterRunTemplates()">
+            <option value="">All kinds</option>
+            <option value="observe">Observe</option>
+            <option value="find">Find</option>
+            <option value="friend-win">Friend Win</option>
+            <option value="friend-lose">Friend Lose</option>
+            <option value="battle">Battle</option>
+          </select>
+          <select class="studio-filter" id="run-active-filter" onchange="filterRunTemplates()">
+            <option value="">All states</option>
+            <option value="true">Active</option>
+            <option value="false">Inactive</option>
+          </select>
+          <button class="btn btn-primary" onclick="newRunTemplate()">+ New Template</button>
+        </div>
+
+        <div class="run-studio-grid">
+          <div class="run-panel">
+            <div class="run-panel-head">
+              <div>
+                <div class="run-panel-title">Templates</div>
+                <div class="run-panel-sub" id="run-template-count">0 templates</div>
+              </div>
+              <button class="btn btn-ghost btn-sm" onclick="loadRunTemplates()">Refresh</button>
+            </div>
+            <div class="run-panel-body">
+              <div class="run-template-list" id="run-template-list">
+                <div class="empty"><span class="spinner"></span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="run-panel">
+            <div class="run-panel-head">
+              <div>
+                <div class="run-panel-title" id="run-editor-title">Template Editor</div>
+                <div class="run-panel-sub">Use <code>%CAT%</code> where the cat name should appear.</div>
+              </div>
+            </div>
+            <div class="run-panel-body" id="run-template-editor">
+              <div class="run-editor-empty">Select a template or create a new one.</div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -628,6 +710,8 @@ const db = window.supabase ? window.supabase.createClient(SUPA_URL, SUPA_KEY) : 
 let ADMIN_USER = null;
 let ALL_CARDS  = [];
 let EDITING_ID = null;
+let RUN_TEMPLATES = [];
+let EDITING_RUN_TEMPLATE_ID = null;
 
 const CAT_STATS = ['weight','strength','stamina','loyalty','affection','amicability','intelligence','speed','agility','stealth'];
 const TYPE_LABELS = {cat_breed:'Cat Breed',battle_gear:'Battle Gear',home_item:'Home Item',special_ability:'Special Ability',home:'Home'};
@@ -1073,6 +1157,7 @@ function navTo(page) {
   document.querySelector('[data-page="' + page + '"]').classList.add('active');
   if (page === 'players') loadPlayers();
   if (page === 'studio') loadCards();
+  if (page === 'runs') loadRunTemplates();
 }
 
 /* ── Card Studio ── */
@@ -1741,6 +1826,187 @@ async function deleteCardById(id) {
   const { error } = await db.from('cards').delete().eq('id', id);
   if (error) { alert('Delete failed: ' + error.message); return; }
   await loadCards();
+}
+
+/* ── Outside Run Studio ── */
+const RUN_KIND_META = {
+  observe: { label:'Observe', icon:'👀' },
+  find: { label:'Find', icon:'✨' },
+  'friend-win': { label:'Friend Win', icon:'🤝' },
+  'friend-lose': { label:'Friend Lose', icon:'🙂' },
+  battle: { label:'Battle', icon:'⚔' }
+};
+
+function runStatus(msg, ok = true) {
+  const el = document.getElementById('run-editor-status');
+  if (!el) return;
+  el.className = 'run-status ' + (ok ? 'ok' : 'err');
+  el.textContent = msg;
+}
+
+async function loadRunTemplates() {
+  const list = document.getElementById('run-template-list');
+  if (!list) return;
+  list.innerHTML = '<div class="empty"><span class="spinner"></span></div>';
+  const { data, error } = await db.from('outside_interaction_templates')
+    .select('*')
+    .order('kind', { ascending:true })
+    .order('created_at', { ascending:true });
+  if (error) {
+    list.innerHTML = `<div class="empty">Could not load outside run templates.<br>${esc(error.message)}</div>`;
+    return;
+  }
+  RUN_TEMPLATES = data || [];
+  filterRunTemplates();
+  if (EDITING_RUN_TEMPLATE_ID && !RUN_TEMPLATES.some(t => t.id === EDITING_RUN_TEMPLATE_ID)) {
+    EDITING_RUN_TEMPLATE_ID = null;
+    renderRunTemplateEditor(null);
+  }
+}
+
+function filterRunTemplates() {
+  const q = (document.getElementById('run-search')?.value || '').toLowerCase();
+  const kind = document.getElementById('run-kind-filter')?.value || '';
+  const active = document.getElementById('run-active-filter')?.value || '';
+  const filtered = RUN_TEMPLATES.filter(t =>
+    (!q || (t.body || '').toLowerCase().includes(q) || (t.kind || '').toLowerCase().includes(q)) &&
+    (!kind || t.kind === kind) &&
+    (!active || String(!!t.active) === active)
+  );
+  renderRunTemplateList(filtered);
+}
+
+function renderRunTemplateList(templates) {
+  const list = document.getElementById('run-template-list');
+  const count = document.getElementById('run-template-count');
+  if (count) count.textContent = `${templates.length} of ${RUN_TEMPLATES.length} templates`;
+  if (!list) return;
+  if (!templates.length) {
+    list.innerHTML = '<div class="empty">No templates match the filters.</div>';
+    return;
+  }
+  list.innerHTML = templates.map(t => {
+    const meta = RUN_KIND_META[t.kind] || { label:t.kind || 'Unknown', icon:t.icon || '✨' };
+    return `<button class="run-template-row ${t.id === EDITING_RUN_TEMPLATE_ID ? 'active' : ''} ${t.active ? '' : 'off'}" onclick="editRunTemplate('${esc(t.id)}')">
+      <span class="run-template-top">
+        <span class="run-template-icon">${esc(t.icon || meta.icon)}</span>
+        <span class="run-template-kind">${esc(meta.label)}</span>
+        <span class="run-template-weight">x${t.weight || 1}</span>
+      </span>
+      <span class="run-template-body">${esc(t.body)}</span>
+    </button>`;
+  }).join('');
+}
+
+function editRunTemplate(id) {
+  EDITING_RUN_TEMPLATE_ID = id;
+  const tmpl = RUN_TEMPLATES.find(t => t.id === id);
+  renderRunTemplateEditor(tmpl || null);
+  filterRunTemplates();
+}
+
+function newRunTemplate() {
+  EDITING_RUN_TEMPLATE_ID = '__new__';
+  renderRunTemplateEditor({
+    id: '__new__',
+    kind: 'observe',
+    icon: RUN_KIND_META.observe.icon,
+    body: '%CAT% checks the street and decides what kind of trouble today deserves.',
+    weight: 1,
+    active: true
+  });
+  filterRunTemplates();
+}
+
+function runKindOptions(selected) {
+  return Object.entries(RUN_KIND_META).map(([kind, meta]) =>
+    `<option value="${kind}"${kind === selected ? ' selected' : ''}>${meta.label}</option>`
+  ).join('');
+}
+
+function renderRunTemplateEditor(tmpl) {
+  const editor = document.getElementById('run-template-editor');
+  const title = document.getElementById('run-editor-title');
+  if (!editor) return;
+  if (!tmpl) {
+    if (title) title.textContent = 'Template Editor';
+    editor.innerHTML = '<div class="run-editor-empty">Select a template or create a new one.</div>';
+    return;
+  }
+  if (title) title.textContent = tmpl.id === '__new__' ? 'New Template' : 'Edit Template';
+  editor.innerHTML = `
+    <div class="run-status" id="run-editor-status"></div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-lbl">Kind</label>
+        <select class="form-select" id="run-f-kind" onchange="syncRunKindIcon()">${runKindOptions(tmpl.kind)}</select>
+      </div>
+      <div class="form-group">
+        <label class="form-lbl">Icon</label>
+        <input class="form-input" id="run-f-icon" value="${esc(tmpl.icon || '')}" maxlength="8">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-lbl">Weight</label>
+        <input class="form-input" id="run-f-weight" type="number" min="1" max="100" value="${tmpl.weight || 1}">
+      </div>
+      <div class="form-group">
+        <label class="form-lbl">State</label>
+        <label class="form-check" style="padding:10px 0"><input type="checkbox" id="run-f-active" ${tmpl.active ? 'checked' : ''}> Active in generator</label>
+      </div>
+    </div>
+    <div class="form-row full">
+      <div class="form-group">
+        <label class="form-lbl">Bubble Copy</label>
+        <textarea class="form-textarea" id="run-f-body" style="min-height:140px">${esc(tmpl.body || '')}</textarea>
+      </div>
+    </div>
+    <div class="run-help">
+      <div><code>%CAT%</code> becomes the cat name when Supabase creates the run.</div>
+      <div>Higher weight means this template appears more often among templates with the same kind.</div>
+    </div>
+    <div class="run-editor-actions">
+      ${tmpl.id !== '__new__' ? `<button class="btn btn-danger" onclick="deleteRunTemplate('${esc(tmpl.id)}')">Delete</button>` : ''}
+      <button class="btn btn-ghost" onclick="renderRunTemplateEditor(null);EDITING_RUN_TEMPLATE_ID=null;filterRunTemplates()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveRunTemplate()">Save Template</button>
+    </div>`;
+}
+
+function syncRunKindIcon() {
+  const kind = document.getElementById('run-f-kind')?.value;
+  const icon = document.getElementById('run-f-icon');
+  if (icon && RUN_KIND_META[kind]) icon.value = RUN_KIND_META[kind].icon;
+}
+
+async function saveRunTemplate() {
+  const kind = document.getElementById('run-f-kind')?.value || 'observe';
+  const icon = (document.getElementById('run-f-icon')?.value || RUN_KIND_META[kind]?.icon || '✨').trim();
+  const body = (document.getElementById('run-f-body')?.value || '').trim();
+  const weight = Math.max(1, Math.min(100, parseInt(document.getElementById('run-f-weight')?.value || '1') || 1));
+  const active = !!document.getElementById('run-f-active')?.checked;
+  if (!body) { runStatus('Bubble copy is required.', false); return; }
+  const payload = { kind, icon, body, weight, active };
+  let error;
+  if (EDITING_RUN_TEMPLATE_ID === '__new__') {
+    ({ error } = await db.from('outside_interaction_templates').insert(payload));
+  } else {
+    ({ error } = await db.from('outside_interaction_templates').update(payload).eq('id', EDITING_RUN_TEMPLATE_ID));
+  }
+  if (error) { runStatus(error.message, false); return; }
+  runStatus('Saved. Future outside runs will use this template pool.', true);
+  EDITING_RUN_TEMPLATE_ID = null;
+  await loadRunTemplates();
+  renderRunTemplateEditor(null);
+}
+
+async function deleteRunTemplate(id) {
+  if (!confirm('Delete this outside run template?')) return;
+  const { error } = await db.from('outside_interaction_templates').delete().eq('id', id);
+  if (error) { runStatus(error.message, false); return; }
+  EDITING_RUN_TEMPLATE_ID = null;
+  await loadRunTemplates();
+  renderRunTemplateEditor(null);
 }
 
 /* ── Players ── */

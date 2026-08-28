@@ -90,6 +90,7 @@ declare
   cat jsonb;
   breed jsonb;
   stats jsonb;
+  stat_bonuses jsonb;
   ci integer;
   cat_name text;
   stamina numeric;
@@ -133,7 +134,11 @@ begin
 
     breed := cat->'breed';
     stats := coalesce(breed->'data'->'stats', '{}'::jsonb);
-    cat_name := coalesce(breed->>'name', 'Cat');
+    stat_bonuses := coalesce(cat->'permanent_stat_bonuses', '{}'::jsonb);
+    stats := jsonb_set(stats, '{loyalty}', to_jsonb(
+      greatest(1, coalesce((stats->>'loyalty')::numeric, 10) + coalesce((stat_bonuses->>'loyalty')::numeric, 0))
+    ));
+    cat_name := regexp_replace(coalesce(nullif(cat->>'name', ''), breed->>'name', 'Cat'), '[<>&"'']', '', 'g');
     stamina := coalesce((stats->>'stamina')::numeric, 10);
     speed := coalesce((stats->>'speed')::numeric, 10);
     agility := coalesce((stats->>'agility')::numeric, 10);

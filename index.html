@@ -778,6 +778,12 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .gh-ally-owner{font-family:var(--fm);font-size:8.5px;color:var(--t3);letter-spacing:.03em}
 .gh-ally-rep{font-family:var(--fm);font-size:9px;color:#fbbf24;flex-shrink:0}
 .gh-allies-empty{font-family:var(--fb);font-size:11px;color:var(--t3);font-style:italic;padding:4px 0}
+.gh-cat-name-row{display:flex;align-items:center;gap:8px;min-width:0}
+.gh-cat-name-card{cursor:pointer;transition:color .15s ease}
+.gh-cat-name-card:hover{color:var(--acc2)}
+.gh-nick-btn{border:1px solid var(--bd);background:var(--s2);color:var(--acc2);border-radius:999px;padding:3px 8px;font-family:var(--fm);font-size:8px;text-transform:uppercase;letter-spacing:.06em;cursor:pointer;white-space:nowrap}
+.gh-nick-btn:hover{border-color:var(--acc);color:var(--acc)}
+.gh-nick-bonus{font-family:var(--fm);font-size:8px;color:#34d399;margin-left:4px}
 .gh-needs{display:flex;flex-direction:column;gap:9px}
 .gh-need-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:3px}
 .gh-need-lbl{font-family:var(--fm);font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--t3)}
@@ -835,7 +841,6 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .gh-home-cat-emoji{font-size:22px;flex-shrink:0}
 .gh-home-cat-info{flex:1;min-width:0}
 .gh-home-cat-name{font-family:var(--fd);font-size:12px;color:var(--t1);display:flex;align-items:center;gap:5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.gh-home-cat-breed{font-family:var(--fm);font-size:9px;color:var(--t3);margin-top:1px}
 .gh-home-cat-bars{display:flex;flex-direction:column;gap:3px;width:70px;flex-shrink:0}
 .gh-home-cat-bar{height:4px;background:var(--s3);border-radius:2px;overflow:hidden}
 .gh-home-cat-bar-fill{height:100%;border-radius:2px;transition:width .6s ease}
@@ -2689,7 +2694,7 @@ function renderCarePanel() {
       <div class="ccc-hdr">
         <span class="ccc-avatar">${emoji}</span>
         <div class="ccc-info">
-          <div class="ccc-name">${cs.breed.name}</div>
+          <div class="ccc-name">${escapeAttr(getCatDisplayName(cs))}</div>
           <div class="ccc-pnote">${traits.note}</div>
         </div>
         <span class="ccc-pbadge">${traits.type}</span>
@@ -3238,6 +3243,12 @@ function computeHomeDev(catSetup, homeItems) {
 
 function getEffectiveStats(catSetup, homeItems, catIdx) {
   const stats = {...catSetup.breed.data.stats};
+
+  if (catSetup.permanent_stat_bonuses) {
+    Object.entries(catSetup.permanent_stat_bonuses).forEach(([stat, val]) => {
+      if (stats[stat] !== undefined) stats[stat] = Math.max(1, stats[stat] + (parseInt(val) || 0));
+    });
+  }
 
   // Apply permanent home development gains (floored to whole numbers)
   const devGains = computeHomeDev(catSetup, homeItems || []);
@@ -4974,7 +4985,9 @@ function renderGameHome() {
     cats.forEach((cs, ci) => {
       const state   = getLiveCatState(ci, cs);
       const traits  = getTraits(cs.breed);
-      const name    = cs.breed ? cs.breed.name : 'Cat';
+      const name    = getCatDisplayName(cs);
+      const nameHtml = escapeAttr(name);
+      const breedIdHtml = escapeAttr(cs.breed.id);
       const hPct    = Math.round(state.hunger);
       const mPct    = Math.round(state.mood);
       const ePct    = Math.round(state.energy);
@@ -5025,7 +5038,7 @@ function renderGameHome() {
       const abilityEquippedIds   = (cs.abilities || []).map(a => typeof a === 'string' ? a : a?.id).filter(Boolean);
       const abilityEquippedCards = abilityEquippedIds.map(id => getCard(id)).filter(Boolean);
       // Dynamic memory slots: base = floor(effectiveINT+LOY / 15) ≥ 1, plus gear memory_slots bonuses
-      const _baseStats = (cs.breed && cs.breed.data && cs.breed.data.stats) ? cs.breed.data.stats : {};
+      const _baseStats = getEffectiveStats({...cs, gear: [], abilities: []}, [], ci);
       const _effIntLoy = equippedCards.reduce((sum, g) => {
         return sum + (g.data?.effects || []).reduce((d, e) => {
           return (e.stat === 'intelligence' || e.stat === 'loyalty') ? d + (parseInt(e.modifier) || 0) : d;
@@ -5143,7 +5156,8 @@ function renderGameHome() {
             <span class="zzz-z zzz-2">z</span>
             <span class="zzz-z zzz-3">z</span>
           </div>
-          <div class="gh-sleep-name">${name}</div>
+          <div class="gh-sleep-name gh-cat-name-card" onclick="event.stopPropagation();openCardModal('${breedIdHtml}')">${nameHtml}</div>
+          <button class="gh-nick-btn" onclick="event.stopPropagation();ghNicknameCat(${ci})">${cs.name ? 'Nickname' : '+ Nickname'}</button>
           <div class="gh-needs gh-sleep-needs">
             <div class="gh-need-block" data-need="energy"><div class="gh-need-row"><span class="gh-need-lbl">Stamina</span><span class="gh-need-pct">${ePct}%</span></div><div class="gh-need-bar">${barFill(ePct,eFrom,eCol)}</div></div>
           </div>
@@ -5152,8 +5166,11 @@ function renderGameHome() {
         <div class="gh-cat-top">
           ${renderCatFaceHtml(cs.breed, state, ci)}
           <div class="gh-cat-info">
-            <div class="gh-cat-name">${name}</div>
-            <div class="gh-cat-breed">${traits.type} · #${String(ci+1).padStart(2,'0')}</div>
+            <div class="gh-cat-name-row">
+              <div class="gh-cat-name gh-cat-name-card" onclick="openCardModal('${breedIdHtml}')">${nameHtml}</div>
+              <button class="gh-nick-btn" onclick="event.stopPropagation();ghNicknameCat(${ci})">${cs.name ? 'Nickname' : '+ Nickname'}</button>
+            </div>
+            <div class="gh-cat-breed">${traits.type} · #${String(ci+1).padStart(2,'0')}${cs.nickname_loyalty_awarded ? '<span class="gh-nick-bonus">+3 LOY bond</span>' : ''}</div>
             <div class="gh-cat-rep">⭐ <span class="gh-cat-rep-val">${cs.rep || 100}</span> REP</div>
           </div>
         </div>
@@ -5313,8 +5330,7 @@ function renderGameHome() {
         const _mPct = Math.round(Math.min(100, _care.mood));
         const _ePct = Math.round(Math.min(100, _care.energy));
         const _emoji = (cs.breed && cs.breed.data && cs.breed.data.emoji) ? cs.breed.data.emoji : '🐱';
-        const _breed = (cs.breed && cs.breed.name) ? cs.breed.name : 'Cat';
-        const _catName = cs.name || _breed;
+        const _catNameHtml = escapeAttr(getCatDisplayName(cs));
         const breedTraits = (cs.breed && cs.breed.data && cs.breed.data.home_dev_traits) || {};
         const traitLabel = breedTraits.label || '';
         const rates = computeEffectiveDevRates(cs, currentHomeItems);
@@ -5350,8 +5366,7 @@ function renderGameHome() {
         return `<div class="gh-home-cat-row clickable" onclick="openCardModal('${cs.breed.id}')">
           <div class="gh-home-cat-emoji">${_emoji}</div>
           <div class="gh-home-cat-info">
-            <div class="gh-home-cat-name">${_catName}${traitLabel ? ` <span class="gh-dev-cat-trait">${traitLabel}</span>` : ''}${gearModStr ? `<span style="margin-left:4px;display:flex;gap:3px">${gearModStr}</span>` : ''}</div>
-            <div class="gh-home-cat-breed">${cs.name ? _breed : ''}</div>
+            <div class="gh-home-cat-name">${_catNameHtml}${traitLabel ? ` <span class="gh-dev-cat-trait">${traitLabel}</span>` : ''}${gearModStr ? `<span style="margin-left:4px;display:flex;gap:3px">${gearModStr}</span>` : ''}</div>
             ${rateChips ? `<div class="gh-dev-rates">${rateChips}</div>` : ''}
             ${gainChips ? `<div class="gh-dev-gains">${gainChips}</div>` : ''}
             ${elapsedStr ? `<div class="gh-dev-elapsed">⏱ ${elapsedStr}</div>` : ''}
@@ -5715,6 +5730,40 @@ function ghToggleCat(ci) {
   renderGameHome();
 }
 
+function getCatDisplayName(cs) {
+  return (cs && cs.name) || (cs && cs.breed && cs.breed.name) || 'Cat';
+}
+
+function getCatBreedName(cs) {
+  return (cs && cs.breed && cs.breed.name) || 'Cat';
+}
+
+function cleanCatNickname(name) {
+  return String(name || '').replace(/[<>&"']/g, '').trim().replace(/\s+/g, ' ').slice(0, 28);
+}
+
+function ghNicknameCat(ci) {
+  const cs = sbx.cats[ci]; if (!cs) return;
+  const current = cs.name || '';
+  const breedName = getCatBreedName(cs);
+  const entered = prompt(`Nickname ${breedName}`, current);
+  if (entered === null) return;
+  const nickname = cleanCatNickname(entered);
+  if (!nickname) return;
+  const awardLoyalty = !cs.nickname_loyalty_awarded;
+  cs.name = nickname;
+  if (awardLoyalty) {
+    cs.permanent_stat_bonuses = {...(cs.permanent_stat_bonuses || {})};
+    cs.permanent_stat_bonuses.loyalty = (parseInt(cs.permanent_stat_bonuses.loyalty) || 0) + 3;
+    cs.nickname_loyalty_awarded = true;
+    showCareToast(`${nickname} bonded with you. +3 LOY`);
+  } else {
+    showCareToast(`${breedName} is now ${nickname}.`);
+  }
+  savePlayer();
+  renderGameHomeKeepScroll();
+}
+
 function ghSwitchHome(idx) {
   const player = PLAYER || {};
   const deckIds = (player.deckIds) || sbx.deck || [];
@@ -6009,7 +6058,7 @@ function ghFeedWith(ci, consId) {
   const data = item.data || {};
   const traits = getTraits(cs.breed);
   if (traits.food_pref === 'premium' && item.id !== 'cons-002' && item.id !== 'cons-005') {
-    showCareToast(`${cs.breed.name} only eats premium food! 😤`);
+    showCareToast(`${getCatDisplayName(cs)} only eats premium food! 😤`);
     return;
   }
   const state = getLiveCatState(ci, cs);
@@ -6026,7 +6075,7 @@ function ghFeedWith(ci, consId) {
   consumeCardUse(consId);
   if (PLAYER) { PLAYER.inventory = inv; savePlayer(); }
   GH_OPEN_FEED.delete(ci);
-  showCareToast(`Fed ${cs.breed.name} with ${item.name}! 🍽`);
+  showCareToast(`Fed ${getCatDisplayName(cs)} with ${item.name}! 🍽`);
   renderAndAnimateCareAction();
 }
 function ghPlay(ci) {
@@ -6075,7 +6124,7 @@ function ghGroomWith(ci, consId) {
   consumeCardUse(consId);
   if (PLAYER) { PLAYER.inventory = inv; savePlayer(); }
   GH_OPEN_GROOM.delete(ci);
-  showCareToast(`Groomed ${cs.breed.name} with ${item.name}! ✨`);
+  showCareToast(`Groomed ${getCatDisplayName(cs)} with ${item.name}! ✨`);
   // Animate radar polygon for stat change
   const _oldPoly = document.getElementById(`gh-radar-poly-${ci}`);
   const _oldPts  = _oldPoly ? _parsePolyPts(_oldPoly.getAttribute('points') || '') : null;
@@ -6220,6 +6269,7 @@ function renderOutingPicker() {
     const selected = OUTING_SELECTED.has(ci);
     const traits = getTraits(cs.breed);
     const emoji = getCatEmoji(cs.breed);
+    const displayName = escapeAttr(getCatDisplayName(cs));
     const h = Math.round(state.hunger);
     const m = Math.round(state.mood);
     const e = Math.round(state.energy);
@@ -6233,7 +6283,7 @@ function renderOutingPicker() {
       <span class="outing-cat-check">${selected ? '✓' : ''}</span>
       <span class="outing-cat-avatar">${emoji}</span>
       <span class="outing-cat-main">
-        <span class="outing-cat-name">${cs.name || (cs.breed && cs.breed.name) || 'Cat'}</span>
+        <span class="outing-cat-name">${displayName}</span>
         <span class="outing-cat-meta">${meta}</span>
       </span>
       <span class="outing-cat-bars" aria-hidden="true">
