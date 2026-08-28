@@ -3313,93 +3313,7 @@ function renderHomeSummary() {
 ══════════════════════════════════════════ */
 const SBX_SPEED = 10; // sandbox runs 10× faster than real time
 
-const ENEMY_NAMES = ['Tabby','Maine Coon','Siamese','Persian','Ragdoll','Calico','Tuxedo','Ginger Tom','Scottish Fold','Burmese','Sphynx','Tortoiseshell'];
-
-/* ══ PLAYER OPPONENT POOL ══
-   Simulated "other players" cats — spread across rep tiers.
-   Each has a full stat profile so the new combat engine uses all stats. */
-const PLAYER_OPPONENTS = [
-  { ownerName:'Amy',    catName:'Biscuit', rep:85,
-    stats:{strength:8,  speed:10, agility:9,  stamina:14, intelligence:11, stealth:7,  loyalty:12, affection:16, amicability:18, weight:9  }},
-  { ownerName:'Ravi',   catName:'Pepper',  rep:98,
-    stats:{strength:12, speed:11, agility:8,  stamina:15, intelligence:9,  stealth:6,  loyalty:14, affection:10, amicability:12, weight:11 }},
-  { ownerName:'Lena',   catName:'Shadow',  rep:132,
-    stats:{strength:15, speed:14, agility:16, stamina:13, intelligence:14, stealth:18, loyalty:10, affection:8,  amicability:7,  weight:8  }},
-  { ownerName:'Daniel', catName:'Tank',    rep:148,
-    stats:{strength:20, speed:9,  agility:7,  stamina:22, intelligence:10, stealth:5,  loyalty:18, affection:9,  amicability:11, weight:20 }},
-  { ownerName:'Sofia',  catName:'Duchess', rep:162,
-    stats:{strength:13, speed:16, agility:15, stamina:16, intelligence:18, stealth:12, loyalty:15, affection:14, amicability:20, weight:10 }},
-  { ownerName:'Marcus', catName:'Venom',   rep:178,
-    stats:{strength:22, speed:18, agility:20, stamina:18, intelligence:15, stealth:22, loyalty:14, affection:6,  amicability:5,  weight:12 }},
-  { ownerName:'Priya',  catName:'Lotus',   rep:195,
-    stats:{strength:14, speed:20, agility:22, stamina:17, intelligence:22, stealth:14, loyalty:16, affection:20, amicability:22, weight:9  }},
-  { ownerName:'Kevin',  catName:'Rumble',  rep:218,
-    stats:{strength:25, speed:15, agility:12, stamina:25, intelligence:12, stealth:8,  loyalty:22, affection:10, amicability:9,  weight:24 }},
-  { ownerName:'Zara',   catName:'Ghost',   rep:255,
-    stats:{strength:20, speed:26, agility:28, stamina:20, intelligence:24, stealth:30, loyalty:18, affection:8,  amicability:7,  weight:8  }},
-  { ownerName:'Felix',  catName:'Storm',   rep:282,
-    stats:{strength:28, speed:24, agility:22, stamina:26, intelligence:20, stealth:18, loyalty:24, affection:12, amicability:10, weight:16 }},
-];
-
-function generatePlayerOpponent(myRep) {
-  const nearby = PLAYER_OPPONENTS.filter(o => Math.abs(o.rep - myRep) <= 45);
-  const pool   = nearby.length >= 2 ? nearby : PLAYER_OPPONENTS;
-  return pool[Math.floor(Math.random() * pool.length)];
-}
-const FIGHT_INTROS = [
-  (n,e) => `${n} crossed paths with a scrappy ${e} claiming the same stretch of alley.`,
-  (n,e) => `A territorial ${e} blocked ${n}'s route through the shortcut.`,
-  (n,e) => `${n} found a ${e} rifling through the good trash bins and wasn't about to let it slide.`,
-  (n,e) => `${n} spotted a ${e} lurking near the usual spot. Words were had. Then paws.`,
-];
-const FIGHT_WIN_TEXTS = [
-  'Three quick strikes and it was over.',
-  'Dodged the first hit and countered hard. Clean victory.',
-  'A short, decisive tussle. Walked away without a scratch.',
-  'Outmanoeuvred at every turn. The opponent left in a hurry.',
-];
-const FIGHT_LOSE_TEXTS = [
-  'Gave it everything but had to retreat empty-pawed.',
-  'Underestimated the opponent. Made a tactical withdrawal.',
-  'Too well-equipped to take on today. Lived to try another day.',
-];
-const FRIEND_INTROS = [
-  n => `${n} wandered into an unexpectedly friendly corner of the neighbourhood.`,
-  n => `${n} paused to investigate a curious scent and found company instead.`,
-  n => `${n} took the scenic route and bumped into someone new.`,
-];
-const FRIEND_WIN_TEXTS = [
-  'A quick sniff, a slow blink, and an instant connection. Got a little something in return.',
-  'Shared a sunny patch for a while. They parted with a gift.',
-  'Made a new friend. The neighbourhood got a little warmer.',
-];
-const FRIEND_LOSE_TEXTS = [
-  'The other cat was friendly but cautious. Parted on good terms, nothing exchanged.',
-  "Good energy but the vibe wasn't quite right. Just a wave and a nod.",
-];
-const FIND_INTROS = [
-  n => `${n} was poking around the rooftops when something caught the light.`,
-  n => `${n} investigated a suspicious pile near the corner shop.`,
-  n => `${n} took the long way home and found something tucked behind the bins.`,
-  () => `A patch of overgrown garden turned out to be hiding something.`,
-];
-
 function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
-
-function rollRarity(intelligence) {
-  const r = Math.random() * 100;
-  if (intelligence >= 80 && r < 8) return 'epic';
-  if (intelligence >= 55 && r < 22) return 'rare';
-  if (intelligence >= 30 && r < 50) return 'uncommon';
-  return 'common';
-}
-
-function pickLoot(rarity) {
-  const lootTypes = new Set(['home_item','battle_gear','consumable']);
-  const pool = getLibrary().filter(c => lootTypes.has(c.type) && c.rarity===rarity);
-  if (pool.length) return pick(pool);
-  return pick(getLibrary().filter(c => lootTypes.has(c.type)));
-}
 
 /* ── Limited-edition drops ──
    A small chance per cat, per outside run, to bring back a numbered copy
@@ -3443,7 +3357,7 @@ async function tryLimitedCardDrop(runs) {
   }
 }
 
-/* ── BATTLE ENGINE ── */
+/* ── RUN SUPPORT HELPERS ── */
 
 function getGearSpecials(gearCards) {
   const specials = new Set();
@@ -3479,446 +3393,6 @@ function rollAbilityProc(abilityCards, effectType, state, scope = 'default') {
   return null;
 }
 
-function upgradeRarity(rarity) {
-  const order = ['common','uncommon','rare','epic','legendary'];
-  const idx = order.indexOf(rarity);
-  return idx >= 0 && idx < order.length - 1 ? order[idx + 1] : rarity;
-}
-
-function pickLootWithAbilities(rarity, abilityCards, abilityState, scope) {
-  let rolledRarity = rarity;
-  const notes = [];
-  const rarityProc = rollAbilityProc(abilityCards, 'loot_rarity_up', abilityState, scope);
-  if (rarityProc) {
-    rolledRarity = upgradeRarity(rolledRarity);
-    notes.push(`${rarityProc.card.name}: loot upgraded`);
-  }
-  const loot = pickLoot(rolledRarity);
-  const extraLoot = [];
-  const bonusProc = rollAbilityProc(abilityCards, 'bonus_loot', abilityState, scope);
-  if (bonusProc) {
-    extraLoot.push(pickLoot(rolledRarity));
-    notes.push(`${bonusProc.card.name}: bonus loot`);
-  }
-  return { loot, extraLoot, notes };
-}
-
-function hasPersistenceBoost(homeItems) {
-  return (homeItems||[]).some(i => i.data && i.data.special_properties === 'persistence_boost');
-}
-
-function calcPersistence(stats, remainingHp, maxHp, gearSpecials, homeBoost, fightCount) {
-  const staPct = maxHp > 0 ? remainingHp / maxHp : 0;
-  const base = staPct * 40
-             + (stats.loyalty  || 0) * 0.35
-             + (stats.stamina  || 0) * 0.20
-             + (stats.strength || 0) * 0.10;
-  const recovery  = (gearSpecials.postFightRecovery || 0) * 0.8;
-  const homeBonus = homeBoost ? 16 : 0;
-  const fatigue   = fightCount * 12;
-  return Math.min(100, Math.max(0, base + recovery + homeBonus - fatigue));
-}
-
-/* narrative text banks */
-const BTL_OPEN = [
-  (n,e) => `${n} and the ${e} locked eyes across the alley. Neither blinked. The flies didn't care.`,
-  (n,e) => `A ${e} stepped into ${n}'s path with the energy of someone making a very poor life choice.`,
-  (n,e) => `${n} was minding their own business when the ${e} decided today was the day. It was not the day.`,
-  (n,e) => `The ${e} puffed up to look intimidating. ${n} tilted their head slightly. The ${e} puffed up more.`,
-  (n,e) => `${n} spotted the ${e} first. A moment of silent mutual assessment. Then: paws.`,
-  (n,e) => `The ${e} had territorial claims. ${n} had an opinion on those claims. The alley waited.`,
-];
-const BTL_HIT_CAT = [
-  (n,d) => `${n} lands a devastating paw combo — ${d} damage. The opponent winces visibly.`,
-  (n,d) => `${n} goes in low and scores a clean hit for ${d}. Textbook.`,
-  (n,d) => `A precise shoulder charge from ${n} — ${d} damage. The impact echoes off the alley wall.`,
-  (n,d) => `${n} channels pure spite into a single swipe. ${d} damage. Personal.`,
-  (n,d) => `${n} connects mid-lunge. ${d} damage. The opponent's dignity takes the worst of it.`,
-  (n,d) => `${n} finds a gap in the defence — ${d} clean damage. Right on schedule.`,
-];
-const BTL_DODGE_CAT = [
-  n => `${n} sidesteps with the calm of someone who does this professionally.`,
-  n => `${n} sees it coming a mile away and is somewhere else entirely when it arrives.`,
-  n => `The attack finds nothing but air and mild embarrassment.`,
-  n => `${n} ducks under the swing and doesn't even bother turning around.`,
-];
-const BTL_HIT_ENEMY = [
-  (e,d) => `The ${e} clips home — ${d} STA drained. That one had barbs.`,
-  (e,d) => `${d} stamina gone. The ${e} got lucky with a wild swing that somehow connected.`,
-  (e,d) => `The ${e} lunges and connects — ${d} damage. It hurt. Moving on.`,
-  (e,d) => `The ${e} gets a glancing hit in for ${d} STA. Rude but effective.`,
-  (e,d) => `A sneaky low sweep from the ${e} — ${d} damage. That was almost impressive.`,
-];
-const BTL_DODGE_ENEMY = [
-  e => `The ${e} scrambles out of the way. Lucky, but not graceful.`,
-  e => `${e} dodges! Barely. Tripped a little on the way out.`,
-  e => `The ${e} somehow avoids the hit. It looked like an accident.`,
-];
-const BTL_LOW_STA_CAT = [
-  n => `${n} is breathing harder now. Still defiant. Mostly.`,
-  n => `${n} shakes it off, just slower this time. The fight's still on.`,
-];
-const BTL_ENEMY_WEAKENING = [
-  e => `The ${e} is running out of confidence. The swagger has officially left the building.`,
-  e => `${e} takes a step back, reconsidering several major life decisions.`,
-  e => `The ${e} is flagging — eyes darting for the exit.`,
-];
-const BTL_WIN_OUTRO = [
-  (n,e) => `The ${e} turns and walks — then runs — away at impressive speed. ${n} watches, unimpressed.`,
-  (n,e) => `${e} has decided this neighbourhood isn't for them. ${n} gets back to business.`,
-  (n,e) => `The ${e} concedes with a hiss and a strategic retreat. ${n} 1, ${e} 0.`,
-  (n,e) => `Final position: ${n} standing, the ${e} a distant blur in the fog. Clean win.`,
-];
-const BTL_LOSE_OUTRO = [
-  (n,e) => `${n} makes a tactical withdrawal. Very tactical. Stop asking questions.`,
-  (n,e) => `The ${e} presses the advantage and ${n} decides this alley wasn't worth it anyway.`,
-  (n,e) => `${n} backs away with dignity. The slight limp is 100% intentional.`,
-  (n,e) => `${n} recalculates. Retreat is an offensive strategy in the wrong direction.`,
-];
-const BTL_CHARM_TEXTS = [
-  (n,e) => `${n} fixed the ${e} with an unblinking stare of pure warmth and mild pity. The ${e} blinked first — then handed over something and left quietly.`,
-  (n,e) => `The ${e} took one look at ${n}'s extremely non-threatening face and reconsidered the whole situation. Left something behind on the way out.`,
-  (n,e) => `${n} simply sat down and started grooming. The ${e} found this so disarming it forgot why it was angry, dropped something, and wandered off.`,
-];
-const BTL_FLEE_TEXTS = [
-  (n,e) => `${n} read the situation, deployed a smoke bomb, and vanished. The ${e} stood alone in a cloud of catnip mist, baffled.`,
-  (n,e) => `Smoke. Flash. Gone. The ${e} blinked twice. ${n} was already three blocks away.`,
-  (n,e) => `${n} assessed the odds, quietly disagreed with them, and exited via smoke bomb. No shame. Maximum efficiency.`,
-];
-const BTL_PERSIST_YES = [
-  n => `${n} dusts off, surveys the street. Still plenty of day left — this was just a warm-up.`,
-  n => `That was fine. ${n} has had worse mornings. The neighbourhood isn't done with them yet.`,
-  n => `${n} stretches it out and keeps going. Still some runway left today.`,
-];
-const BTL_PERSIST_NO = [
-  n => `${n} has given what they had. The sofa is calling. Home it is.`,
-  n => `Enough adventure for one day. ${n} sets course for the nearest nap.`,
-  n => `${n} evaluates their remaining stamina. The number is not inspiring. Time to head back.`,
-];
-
-/* ══ PVP COMBAT ENGINE ══════════════════════════════════════
-   Full-stat fight simulation used for player-vs-player encounters.
-   All 10 stats contribute — see formula comments inline.
-════════════════════════════════════════════════════════════ */
-
-// Per-strike resolution. Returns { damage, dodged, crit }.
-function strikeCalc(attacker, defender, round) {
-  // Dodge: agility × 1.5% chance, capped at 55%
-  const dodgeChance = Math.min(55, (defender.agility || 0) * 1.5);
-  if (Math.random() * 100 < dodgeChance) return { damage:0, dodged:true, crit:false };
-
-  // Crit: (speed + agility)/2 × 1.5% − defender.stealth × 0.5%, capped 0–35%
-  const critChance = Math.max(0, Math.min(35,
-    ((attacker.speed||0) + (attacker.agility||0)) / 2 * 1.5 - (defender.stealth||0) * 0.5
-  ));
-  const isCrit = Math.random() * 100 < critChance;
-
-  // Base: strength × 2 ± (strength / 2) random spread
-  let dmg = (attacker.strength||0) * 2 + (Math.random() - 0.5) * (attacker.strength||0);
-  if (isCrit) dmg *= 1.75;
-
-  // Reductions: weight absorbs blunt force, intelligence reads the hit
-  dmg -= (defender.weight||0) * 0.3;
-  dmg -= (defender.intelligence||0) * 0.2;
-
-  // Fatigue (past round 8, low-stamina cats lose output)
-  if (round > 8) {
-    const fatigue = Math.max(0.5, 1 - (round - 8) * 0.04 * (15 / Math.max(1, attacker.stamina||1)));
-    dmg *= fatigue;
-  }
-
-  return { damage: Math.max(1, Math.round(dmg)), dodged:false, crit:isCrit };
-}
-
-// Full PvP fight. HP = stamina × 10. Returns { outcome, winner, hpA, hpB, log }.
-function simulatePvPBattle(myStats, oppStats, catName, oppName) {
-  const log = [];
-
-  // 1. Pre-fight: high mutual amicability vs low aggressor threat → peaceful
-  const deEscalate = (myStats.amicability + oppStats.amicability) / 2
-    - ((myStats.stealth||0) + (myStats.strength||0)) / 4;
-  if (deEscalate > 20 && Math.random() < 0.6) {
-    log.push({cls:'charm', text:`${catName} and ${oppName} size each other up. Mutual respect. They go their separate ways.`});
-    return { outcome:'friendly', winner:null, hpA:myStats.stamina*10, hpB:oppStats.stamina*10, log };
-  }
-
-  const maxHpA = (myStats.stamina||10) * 10;
-  const maxHpB = (oppStats.stamina||10) * 10;
-  let hpA = maxHpA, hpB = maxHpB;
-
-  // 2. Stealth surprise round: high stealth vs low (speed + INT) → free first strike
-  const surpriseScore = (myStats.stealth||0) - ((oppStats.speed||0) + (oppStats.intelligence||0)) / 2;
-  if (surpriseScore > 5 && Math.random() * 100 < Math.min(50, surpriseScore * 3)) {
-    const hit = strikeCalc(myStats, oppStats, 0);
-    hpB = Math.max(0, hpB - hit.damage);
-    log.push({cls: hit.crit ? 'hit' : 'atk',
-      text:`${catName} darts in from the shadows before ${oppName} can react — ${hit.damage} dmg${hit.crit?' — CRIT!':'.'}`});
-  }
-
-  // 3. Combat rounds (max 12)
-  for (let r = 0; r < 12 && hpA > 0 && hpB > 0; r++) {
-    const aFirst  = (myStats.speed||0) >= (oppStats.speed||0);
-    const aDouble = (myStats.speed||0) > (oppStats.speed||0) * 1.5; // 50% speed gap = double strike
-    const bDouble = (oppStats.speed||0) > (myStats.speed||0) * 1.5;
-
-    const order = aFirst ? ['A','B'] : ['B','A'];
-    if (aDouble) order.splice(1, 0, 'A');
-    if (bDouble) order.splice(0, 0, 'B');
-
-    for (const striker of order) {
-      if (hpA <= 0 || hpB <= 0) break;
-      const narrate = r < 4; // only narrate first 4 rounds to keep log readable
-
-      if (striker === 'A') {
-        // Loyalty: when below 40% HP, digs in for bonus damage
-        const loyBonus = hpA < maxHpA * 0.4 ? 1 + (myStats.loyalty||0) * 0.01 : 1;
-        const hit = strikeCalc(myStats, oppStats, r);
-        const dmg = Math.max(1, Math.round(hit.damage * loyBonus));
-        hpB = Math.max(0, hpB - dmg);
-        if (narrate || hit.crit || hit.dodged) {
-          log.push({ cls: hit.dodged?'dodge':hit.crit?'hit':'atk',
-            text: hit.dodged
-              ? `${oppName} sidesteps ${catName}'s attack.`
-              : hit.crit
-              ? `${catName} lands a critical hit on ${oppName} for ${dmg}!`
-              : `${catName} strikes ${oppName} for ${dmg}.` });
-        }
-      } else {
-        const loyBonus = hpB < maxHpB * 0.4 ? 1 + (oppStats.loyalty||0) * 0.01 : 1;
-        const hit = strikeCalc(oppStats, myStats, r);
-        const dmg = Math.max(1, Math.round(hit.damage * loyBonus));
-        hpA = Math.max(0, hpA - dmg);
-        if (narrate || hit.crit || hit.dodged) {
-          log.push({ cls: hit.dodged?'dodge':hit.crit?'hit':'atk',
-            text: hit.dodged
-              ? `${catName} evades ${oppName}'s strike.`
-              : hit.crit
-              ? `${oppName} lands a critical hit on ${catName} for ${dmg}!`
-              : `${oppName} hits back for ${dmg}.` });
-        }
-      }
-    }
-  }
-
-  const winner = hpA > hpB ? 'A' : hpB > hpA ? 'B' : null;
-  // Affection: a kind winner might accept submission instead of dominance → potential ally
-  const winnerStats = winner === 'A' ? myStats : oppStats;
-  let outcome = winner === null ? 'draw' : 'dominance';
-  if (winner !== null && (winnerStats.affection||0) > 15 && Math.random() < 0.4) outcome = 'submission';
-
-  log.push({ cls: winner==='A'?'win':winner==='B'?'lose':'flavor',
-    text: winner==='A' ? `${catName} stands their ground. ${oppName} backs off.`
-        : winner==='B' ? `${oppName} wins this round. ${catName} retreats.`
-        : `Neither cat blinks. A hard-fought draw.` });
-
-  return { outcome, winner, hpA:Math.max(0,hpA), hpB:Math.max(0,hpB), log };
-}
-
-// Rep delta: beating a higher-rep cat earns more; losing to a lower-rep cat costs more.
-function calcRepDelta(won, myRep, oppRep) {
-  const diff = oppRep - myRep;
-  if (won)  return  Math.max(1, Math.round(10 + Math.max(0,  diff) / 5));
-  else      return -Math.max(1, Math.round( 8 + Math.max(0, -diff) / 5));
-}
-
-// Coins earned on a PvP win, scaled by rep differential.
-function calcCoinsFromPvP(won, myRep, oppRep) {
-  if (!won) return 0;
-  return Math.round(5 + Math.max(0, (oppRep - myRep) / 10));
-}
-
-function resolveBattle(catName, stats, catHp, maxHp, gearCards, fightCount, homeBoost, abilityCards = [], abilityState = {}) {
-  const enemyName = pick(ENEMY_NAMES);
-  const enemy = {
-    name: enemyName,
-    str: 8  + Math.floor(Math.random() * 28),
-    agi: 5  + Math.floor(Math.random() * 20),
-    hp:  28 + Math.floor(Math.random() * 42)
-  };
-  const gs  = getGearSpecials(gearCards);
-  const log = [];
-
-  /* ── charm disarm ── */
-  if ((stats.amicability || 0) >= 12) {
-    let chance = ((stats.amicability || 0) - 12) / 48;
-    if (gs.specials.has('charm_disarm')) chance = Math.min(0.82, chance + 0.28);
-    if (Math.random() < chance) {
-      log.push({cls:'charm', text: pick(BTL_CHARM_TEXTS)(catName, enemyName)});
-      const lootRoll = pickLootWithAbilities(rollRarity(stats.amicability || 0), abilityCards, abilityState, `charm-${fightCount}`);
-      lootRoll.notes.forEach(note => log.push({cls:'charm', text:note}));
-      const ps   = calcPersistence(stats, catHp, maxHp, gs, homeBoost, fightCount);
-      return {
-        won:true, charmed:true, avoided:false, enemy:enemyName, log, loot:lootRoll.loot, extraLoot:lootRoll.extraLoot,
-        remainingHp:catHp, persistAfter:ps > 52,
-        persistText: ps > 52 ? pick(BTL_PERSIST_YES)(catName) : pick(BTL_PERSIST_NO)(catName)
-      };
-    }
-  }
-
-  /* ── smoke escape ── */
-  if (gs.specials.has('free_escape') && gs.smokeUses > 0) {
-    const catPow   = (stats.strength||0) * 1.4 + (stats.agility||0) * 0.7;
-    const enemyPow = enemy.str * 1.4 + enemy.agi * 0.7;
-    if (enemyPow > catPow * 0.85) {
-      gs.smokeUses--;
-      log.push({cls:'flee', text: pick(BTL_FLEE_TEXTS)(catName, enemyName)});
-      const ps = calcPersistence(stats, catHp, maxHp, gs, homeBoost, fightCount);
-      return {
-        won:false, charmed:false, avoided:true, enemy:enemyName, log, loot:null,
-        remainingHp:catHp, persistAfter:ps > 52,
-        persistText: ps > 52 ? pick(BTL_PERSIST_YES)(catName) : pick(BTL_PERSIST_NO)(catName)
-      };
-    }
-  }
-
-  /* ── fight ── */
-  log.push({cls:'open', text: pick(BTL_OPEN)(catName, enemyName)});
-
-  let enemyAgi = enemy.agi;
-  let enemyStr = enemy.str;
-  let damageBoost = 1;
-  let damageReduce = 1;
-  let firstDodge = false;
-  let forceCrit = false;
-  if (gs.specials.has('aoe_confusion')) {
-    enemyAgi = Math.max(1, enemy.agi - 10);
-    log.push({cls:'charm', text:`${catName} deploys the catnip grenade. The ${enemyName} is philosophically confused (−10 AGI).`});
-  }
-  const confuseProc = rollAbilityProc(abilityCards, 'confuse', abilityState, `fight-${fightCount}`);
-  if (confuseProc) {
-    const pct = confuseProc.value || 20;
-    enemyAgi = Math.max(1, Math.round(enemyAgi * (1 - pct / 100)));
-    enemyStr = Math.max(1, Math.round(enemyStr * (1 - pct / 100)));
-    log.push({cls:'charm', text:`${confuseProc.card.name} triggers: ${enemyName} is confused (${pct}% weaker).`});
-  }
-  const boostProc = rollAbilityProc(abilityCards, 'damage_boost', abilityState, `fight-${fightCount}`);
-  if (boostProc) {
-    damageBoost += (boostProc.value || 20) / 100;
-    log.push({cls:'hit', text:`${boostProc.card.name} triggers: outgoing damage is boosted.`});
-  }
-  const reduceProc = rollAbilityProc(abilityCards, 'damage_reduce', abilityState, `fight-${fightCount}`);
-  if (reduceProc) {
-    damageReduce -= Math.min(80, reduceProc.value || 20) / 100;
-    log.push({cls:'heal', text:`${reduceProc.card.name} triggers: incoming damage is reduced.`});
-  }
-  const dodgeProc = rollAbilityProc(abilityCards, 'first_dodge', abilityState, `fight-${fightCount}`);
-  if (dodgeProc) {
-    firstDodge = true;
-    log.push({cls:'dodge', text:`${dodgeProc.card.name} triggers: ${catName} is ready to dodge the first hit.`});
-  }
-  const critProc = rollAbilityProc(abilityCards, 'crit_chance', abilityState, `fight-${fightCount}`);
-  if (critProc) {
-    forceCrit = true;
-    log.push({cls:'hit', text:`${critProc.card.name} triggers: the first clean strike will crit.`});
-  }
-  let catFirst  = (stats.agility||0) + (stats.speed||0)*0.4 >= enemy.agi * 1.2 + 5;
-  if (gs.specials.has('first_strike')) catFirst = true;
-  let ranged    = gs.specials.has('ranged_attack');
-  const pierce  = gs.specials.has('armor_pierce');
-
-  let catHpCurr   = catHp;
-  let enemyHpCurr = enemy.hp;
-  let shown = 0;
-  const openingProc = rollAbilityProc(abilityCards, 'opening_hit', abilityState, `fight-${fightCount}`);
-  if (openingProc) {
-    const openingDmg = Math.max(4, openingProc.value || Math.round((stats.agility || stats.strength || 10) * 0.7));
-    enemyHpCurr = Math.max(0, enemyHpCurr - openingDmg);
-    log.push({cls:'hit', text:`${openingProc.card.name} triggers: ${catName} lands an opening hit for ${openingDmg}.`});
-  }
-
-  for (let r = 0; r < 5 && catHpCurr > 0 && enemyHpCurr > 0; r++) {
-    /* cat attacks */
-    const catAtk  = Math.floor((stats.strength||0)*0.72 + Math.random()*11 + 2);
-    const eDodge  = (ranged && r===0) ? 0 : Math.floor(enemyAgi*0.5 + Math.random()*5);
-    ranged = false;
-    const effDodge = pierce ? Math.floor(eDodge*0.45) : eDodge;
-    let dmgE       = Math.max(1, catAtk - effDodge);
-    if (forceCrit) {
-      dmgE = Math.round(dmgE * 1.75);
-      forceCrit = false;
-    }
-    dmgE = Math.max(1, Math.round(dmgE * damageBoost));
-    enemyHpCurr   -= dmgE;
-
-    /* enemy attacks */
-    const eAtk   = Math.floor(enemyStr*0.72 + Math.random()*9 + 2);
-    const cDodge = Math.floor((stats.agility||0)*0.55 + (stats.stealth||0)*0.15 + Math.random()*6);
-    let dmgC     = firstDodge ? 0 : Math.max(0, eAtk - cDodge);
-    firstDodge = false;
-    dmgC = Math.max(0, Math.round(dmgC * damageReduce));
-    if (dmgC > 0) catHpCurr = Math.max(0, catHpCurr - dmgC);
-
-    if (shown < 4) {
-      if (catFirst) {
-        log.push(dmgE >= 4
-          ? {cls:'hit',  text: pick(BTL_HIT_CAT)(catName, dmgE)}
-          : {cls:'dodge',text: pick(BTL_DODGE_ENEMY)(enemyName)});
-        if (dmgC > 3)
-          log.push({cls:'atk', text: pick(BTL_HIT_ENEMY)(enemyName, dmgC)});
-        else if (dmgC === 0 && Math.random() < 0.45)
-          log.push({cls:'dodge', text: pick(BTL_DODGE_CAT)(catName)});
-      } else {
-        if (dmgC > 3)
-          log.push({cls:'atk', text: pick(BTL_HIT_ENEMY)(enemyName, dmgC)});
-        log.push(dmgE >= 4
-          ? {cls:'hit',  text: pick(BTL_HIT_CAT)(catName, dmgE)}
-          : {cls:'dodge',text: pick(BTL_DODGE_ENEMY)(enemyName)});
-      }
-      shown++;
-      if (enemyHpCurr > 0 && enemyHpCurr < enemy.hp * 0.38 && Math.random() < 0.65)
-        log.push({cls:'flavor', text: pick(BTL_ENEMY_WEAKENING)(enemyName)});
-      if (catHpCurr > 0 && catHpCurr < catHp * 0.38 && Math.random() < 0.6)
-        log.push({cls:'flavor', text: pick(BTL_LOW_STA_CAT)(catName)});
-    }
-  }
-
-  let won = enemyHpCurr <= 0;
-  let finalHp = Math.max(0, catHpCurr);
-  if (!won) {
-    const escapeProc = rollAbilityProc(abilityCards, 'escape', abilityState, `fight-${fightCount}`);
-    if (escapeProc) {
-      finalHp = Math.max(1, finalHp);
-      log.push({cls:'flee', text:`${escapeProc.card.name} triggers: ${catName} escapes the losing fight.`});
-      const ps = calcPersistence(stats, finalHp, maxHp, gs, homeBoost, fightCount);
-      return {
-        won:false, charmed:false, avoided:true, enemy:enemyName, log, loot:null, extraLoot:[],
-        remainingHp: finalHp, persistAfter: ps > 52,
-        persistText: ps > 52 ? pick(BTL_PERSIST_YES)(catName) : pick(BTL_PERSIST_NO)(catName)
-      };
-    }
-  }
-
-  if (won && gs.specials.has('post_win_rally')) {
-    finalHp = Math.min(maxHp, finalHp + 22);
-    log.push({cls:'heal', text:`${catName}'s Rally Wrap kicks in. +22 STA restored. The adrenaline is real.`});
-  }
-  if (gs.postFightRecovery > 0) {
-    finalHp = Math.min(maxHp, finalHp + gs.postFightRecovery);
-    log.push({cls:'heal', text:`Patchwork Bandage does its thing. +${gs.postFightRecovery} STA patched back up.`});
-  }
-  const healProc = rollAbilityProc(abilityCards, 'post_fight_heal', abilityState, `fight-${fightCount}`);
-  if (healProc) {
-    const heal = healProc.value || 12;
-    finalHp = Math.min(maxHp, finalHp + heal);
-    log.push({cls:'heal', text:`${healProc.card.name} triggers: +${heal} STA recovered.`});
-  }
-
-  log.push({
-    cls: won ? 'win' : 'lose',
-    text: won ? pick(BTL_WIN_OUTRO)(catName, enemyName) : pick(BTL_LOSE_OUTRO)(catName, enemyName)
-  });
-
-  const lootRoll = won ? pickLootWithAbilities(rollRarity(stats.intelligence || 0), abilityCards, abilityState, `battle-${fightCount}`) : { loot:null, extraLoot:[], notes:[] };
-  lootRoll.notes.forEach(note => log.push({cls:'charm', text:note}));
-  const ps   = calcPersistence(stats, finalHp, maxHp, gs, homeBoost, fightCount);
-
-  return {
-    won, charmed:false, avoided:false, enemy:enemyName, log, loot:lootRoll.loot, extraLoot:lootRoll.extraLoot,
-    remainingHp: finalHp, persistAfter: ps > 52,
-    persistText: ps > 52 ? pick(BTL_PERSIST_YES)(catName) : pick(BTL_PERSIST_NO)(catName)
-  };
-}
-
 /* ── ALLY SLOTS: driven by AMI + AFF, calibrated for 0–100 stat scale ──
    1 base + 1 per 40 combined points, hard-capped at 5.
    Early game (~20+20=40)  → 2 slots
@@ -3929,125 +3403,52 @@ function getAllySlots(ami, aff) {
   return Math.min(5, Math.max(1, 1 + Math.floor((ami + aff) / 40)));
 }
 
-function generateEncounters(catName, stats, numEnc, gearCards, homeItems, catRep, catAllies, abilityRefs) {
-  const encounters = [];
-  let fightCount = 0;
-  const maxHp  = 20 + (stats.stamina || 0);
-  let catHp    = maxHp;
-  let liveCatRep = catRep || 100; // track rep changes across encounters this trip
-  const homeBoost = hasPersistenceBoost(homeItems || []);
-  const allies = catAllies || [];
-  const abilityCards = getEquippedAbilityCards(abilityRefs);
-  const abilityState = {};
-
-  for (let i = 0; i < numEnc; i++) {
-    const fightW  = (stats.strength  || 0) + (stats.agility     || 0);
-    const friendW = ((stats.affection || 0) + (stats.amicability || 0)) * 1.8;
-    const findW   = (stats.intelligence || 0) * 2.2;
-    const total   = fightW + friendW + findW;
-    const roll    = Math.random() * total;
-
-    if (roll < fightW && catHp > 8) {
-      /* ── battle: 40% chance it's a real player cat ── */
-      if (Math.random() < 0.40) {
-        const opp    = generatePlayerOpponent(liveCatRep);
-        let pvp    = simulatePvPBattle(stats, opp.stats, catName, opp.catName);
-        let won    = pvp.winner === 'A';
-        const draw   = pvp.winner === null;
-        const friendly = pvp.outcome === 'friendly';
-
-        // ── Ally Assist: loyalty-driven chance (25–55% across 0–100 loyalty scale) ──
-        const assistChance = Math.min(0.55, 0.25 + (stats.loyalty || 0) / 100 * 0.30);
-        let allyAssist = null;
-        if (!won && !draw && !friendly && allies.length > 0 && Math.random() < assistChance) {
-          allyAssist = allies[Math.floor(Math.random() * allies.length)];
-          // Ally tips the balance to a draw
-          pvp = { ...pvp, winner: null, outcome: 'ally-assisted',
-            log: [...pvp.log, { cls:'charm',
-              text:`${allyAssist.catName} (${allyAssist.ownerName}) shows up out of nowhere and backs you up — ${opp.catName} backs off.` }] };
-          won = false; // draw, not a win
-        }
-
-        const repDelta = friendly ? 1 : (allyAssist ? 0 : draw ? 0 : calcRepDelta(won, liveCatRep, opp.rep));
-        const coins    = calcCoinsFromPvP(won, liveCatRep, opp.rep);
-        liveCatRep = Math.max(0, liveCatRep + repDelta);
-        // Translate HP loss back to the catHp scale
-        const hpLossFrac = Math.max(0, 1 - pvp.hpA / ((stats.stamina||10) * 10));
-        if (!friendly && !allyAssist) catHp = Math.max(0, catHp - Math.round(hpLossFrac * maxHp * 0.7));
-        const lootRoll = (won && !friendly)
-          ? pickLootWithAbilities(rollRarity(stats.intelligence || 0), abilityCards, abilityState, `pvp-${i}`)
-          : { loot:null, extraLoot:[], notes:[] };
-
-        // ── Befriending: friendly encounter OR submission outcome triggers alliance ──
-        // amicFactor: 0.0–1.0 linear across the 0–100 stat range.
-        // Friendly:   15% floor → 85% ceiling  (at AMI 20 → ~29%, at AMI 50 → ~50%, at 100 → ~85%)
-        // Submission: 10% floor → 65% ceiling  (lower — submission is a tenser reconciliation)
-        const amicFactor = (stats.amicability || 0) / 100;
-        const allyProc = rollAbilityProc(abilityCards, 'befriend_chance', abilityState, `social-${i}`);
-        const allyBonus = allyProc ? (allyProc.value || 25) / 100 : 0;
-        const befriendable = (friendly && Math.random() < Math.min(0.95, 0.15 + amicFactor * 0.70 + allyBonus))
-          || (pvp.outcome === 'submission' && Math.random() < Math.min(0.8, 0.10 + amicFactor * 0.55 + allyBonus));
-        if (allyProc) pvp.log.push({ cls:'charm', text:`${allyProc.card.name} triggers: ally chance increased.` });
-        lootRoll.notes.forEach(note => pvp.log.push({ cls:'charm', text:note }));
-
-        encounters.push({
-          type:'pvp-battle', icon: friendly?'🤜': allyAssist?'🤝': won?'🏆': draw?'🤝':'💨',
-          opponent:opp, won, draw: draw || !!allyAssist, friendly, pvpResult:pvp,
-          repDelta, coins, loot:lootRoll.loot, extraLoot:lootRoll.extraLoot, befriendable, allyAssist
-        });
-        continue;
-      }
-
-      /* ── NPC battle (existing logic) ── */
-      const result = resolveBattle(catName, stats, catHp, maxHp, gearCards || [], fightCount, homeBoost, abilityCards, abilityState);
-      fightCount++;
-      catHp = result.remainingHp;
-      encounters.push({
-        type:'battle',
-        icon: result.charmed ? '😻' : result.avoided ? '💨' : (result.won ? '⚔' : '💨'),
-        enemy: result.enemy,
-        won: result.won, charmed: result.charmed, avoided: result.avoided,
-        battleLog: result.log,
-        loot: result.loot,
-        extraLoot: result.extraLoot || [],
-        persistAfter: result.persistAfter,
-        persistText: result.persistText
-      });
-      /* bonus forage if cat stays on the street */
-      if (result.persistAfter) {
-        const bonusLootRoll = Math.random() < 0.55 ? pickLootWithAbilities(rollRarity(stats.intelligence || 0), abilityCards, abilityState, `persist-${i}`) : { loot:null, extraLoot:[], notes:[] };
-        encounters.push({type:'persist-bonus', icon:'🌆', catName, loot: bonusLootRoll.loot, extraLoot: bonusLootRoll.extraLoot, abilityNotes: bonusLootRoll.notes});
-      }
-    } else if (roll < fightW + friendW || catHp <= 8) {
-      /* ── social ── */
-      const friendPow = ((stats.affection || 0) + (stats.amicability || 0)) / 2;
-      const success   = Math.random() < Math.min(0.92, friendPow / 30);
-      const intro     = pick(FRIEND_INTROS)(catName);
-      if (success) {
-        const lootRoll = pickLootWithAbilities((stats.affection || 0) >= 20 ? 'uncommon' : 'common', abilityCards, abilityState, `friend-${i}`);
-        const marketCat = getCard(MARKETPLACE_CAT_ID);
-        const hasMarketAlly = allies.some(a => a.cardId === MARKETPLACE_CAT_ID) || hasNpcAlly(MARKETPLACE_CAT_ID);
-        const marketCatChance = Math.min(0.35, 0.08 + ((stats.amicability || 0) + (stats.affection || 0)) / 500);
-        const npcAlly = marketCat && !hasMarketAlly && Math.random() < marketCatChance ? marketCat : null;
-        const outcome = npcAlly
-          ? `${catName} met ${npcAlly.name} near the market stalls. A useful friendship started.`
-          : pick(FRIEND_WIN_TEXTS);
-        encounters.push({type:'friend-win', icon:npcAlly?'🏪':'🤝', intro, outcome, loot: lootRoll.loot, extraLoot: lootRoll.extraLoot, abilityNotes: lootRoll.notes, npcAlly});
-      } else {
-        encounters.push({type:'friend-lose', icon:'🙂', intro, outcome: pick(FRIEND_LOSE_TEXTS), loot: null});
-      }
-    } else {
-      /* ── find ── */
-      const lootRoll = pickLootWithAbilities(rollRarity(stats.intelligence || 0), abilityCards, abilityState, `find-${i}`);
-      const intro = pick(FIND_INTROS)(catName);
-      encounters.push({type:'find', icon:'✨', intro, outcome:'', loot: lootRoll.loot, extraLoot: lootRoll.extraLoot, abilityNotes: lootRoll.notes});
-    }
-  }
-  return encounters;
+function scheduleRunEncounters(run, startTime) {
+  const encounters = run.encounters || [];
+  const duration = run.duration_ms || ((run.dur_min || 3) * 60 * 1000 / SBX_SPEED);
+  const pacedCount = Math.max(0, encounters.length - 1);
+  run.endWall = startTime + duration;
+  run.done = false;
+  encounters.forEach((enc, i) => {
+    enc.revealAtWall = i === 0 ? startTime : startTime + (i/(pacedCount+1)) * duration;
+    enc.revealed = false;
+  });
+  return run;
 }
 
-function startRun(selectedCatIndices) {
-  if (!sbx.cats.length) return;
+async function createServerOutsideRuns(readyIndices, startTime) {
+  if (!db) {
+    showCareToast('Supabase is required to start outside runs.');
+    return [];
+  }
+  if (!CZ_USER) {
+    showCareToast('Sign in to send cats outside.');
+    return [];
+  }
+  try {
+    await savePlayerToCloud();
+    const { data, error } = await db.rpc('start_outside_run', { p_selected_cat_indices: readyIndices });
+    if (error || !data || !Array.isArray(data.runs)) {
+      console.warn('Server outside run unavailable', error);
+      showCareToast('Could not start a server run. Please try again.');
+      return [];
+    }
+    return data.runs.map(run => scheduleRunEncounters({
+      ...run,
+      catIdx: Number(run.catIdx),
+      encounters: Array.isArray(run.encounters) ? run.encounters : [],
+      energyCost: Math.max(0, Number(run.energyCost || 0)),
+      energySaveNote: run.energySaveNote || ''
+    }, startTime));
+  } catch(e) {
+    console.warn('Server outside run failed', e);
+    showCareToast('Could not start a server run. Please try again.');
+    return [];
+  }
+}
+
+async function startRun(selectedCatIndices) {
+  if (!sbx.cats.length) return false;
   if (sbx.activeRun && sbx.activeRun.timer) clearInterval(sbx.activeRun.timer);
 
   // Filter to cats that have enough energy, optionally narrowed by the picker.
@@ -4058,49 +3459,34 @@ function startRun(selectedCatIndices) {
   if (!readyIndices.length) {
     const { reason } = canCatGoOutside(0, sbx.cats[0]);
     showCareToast('😴 ' + (reason || 'Select at least one ready cat'));
-    return;
+    return false;
   }
 
   const startTime = Date.now();
-  const runs = readyIndices.map(ci => {
-    const catSetup = sbx.cats[ci];
-    const stats    = getEffectiveStats(catSetup, sbx.homeItems);
-    const abilityCards = getEquippedAbilityCards(catSetup.abilities || []);
-    const runAbilityState = {};
-
-    // Low-energy penalty: if energy < 60, stamina is reduced proportionally
-    const state = getLiveCatState(ci, catSetup);
-    if (state.energy < 60) {
-      const penalty = Math.floor((60 - state.energy) * 0.45);
-      stats.stamina = Math.max(1, (stats.stamina || 0) - penalty);
-    }
-
-    const dur_min  = 3 + (stats.stamina/100)*12 + (stats.speed/100)*5;
-    const numEnc   = Math.floor(2 + (stats.agility/100)*3 + (stats.speed/100)*2);
-    const dur_wall = dur_min * 60 * 1000 / SBX_SPEED;
-    const encounters = generateEncounters(catSetup.breed.name, stats, numEnc, catSetup.gear || [], sbx.homeItems || [], catSetup.rep || 100, catSetup.allies || [], catSetup.abilities || []);
-    encounters.forEach((enc, i) => {
-      enc.revealAtWall = startTime + ((i+1)/(encounters.length+1)) * dur_wall;
-      enc.revealed = false;
-    });
-
-    // Deduct energy on departure — harder runs cost more
-    const energyProc = rollAbilityProc(abilityCards, 'energy_cost_reduce', runAbilityState, `run-${ci}`);
-    const energySave = energyProc ? Math.min(80, energyProc.value || 15) / 100 : 0;
-    const energyCost = Math.min(state.energy - 2, Math.round((20 + numEnc * 7) * (1 - energySave)));
-    setCatCare(ci, catSetup, { energy: Math.max(0, state.energy - energyCost), isResting: false });
-
-    return { catIdx: ci, name: catSetup.breed.name, stats, dur_min, endWall: startTime + dur_wall, encounters, done: false, energyCost, energySaveNote: energyProc ? `${energyProc.card.name}: -${Math.round(energySave * 100)}% energy cost` : '' };
+  const runs = await createServerOutsideRuns(readyIndices, startTime);
+  if (!runs.length) return false;
+  runs.forEach(run => {
+    const cs = sbx.cats[run.catIdx];
+    if (!cs) return;
+    const state = getLiveCatState(run.catIdx, cs);
+    const energyCost = Math.min(state.energy - 2, Math.round(run.energyCost || 0));
+    run.energyCost = energyCost;
+    setCatCare(run.catIdx, cs, { energy: Math.max(0, state.energy - energyCost), isResting: false });
   });
 
   sbx.activeRun = { runs, readyIndices, startWall: startTime, allDone: false, timer: null };
   sbx.activeRun.timer = setInterval(runTick, 300);
 
+  document.getElementById('game-home').style.display = 'none';
+  document.getElementById('run-ov').style.display = 'flex';
   buildRunSkeleton();
+  runTick();
+  return true;
 }
 
 function getRunSceneForEncounter(enc) {
   if (!enc) return { key:'travel', icon:'🌙', label:'On the move', thing:'escape' };
+  if (enc.type === 'observe') return { key:'travel', icon:'👀', label:'Observing surroundings', thing:'escape' };
   if (enc.type === 'battle' || enc.type === 'pvp-battle') {
     if (enc.friendly || enc.charmed || enc.npcAlly) return { key:'friend', icon:'🤝', label:'Making contact', thing:enc.npcAlly ? 'market' : 'friend' };
     if (enc.avoided || enc.allyAssist) return { key:'travel', icon:'💨', label:'Slipping through', thing:'escape' };
@@ -4368,6 +3754,12 @@ function buildPvPBattleHtml(enc) {
 }
 
 function buildEventHtml(enc) {
+  if (enc.type === 'observe') {
+    return `<div class="ev-ico ev-find">${enc.icon}</div>
+      <div class="ev-body">
+        <div class="ev-detail">${enc.intro}</div>
+      </div>`;
+  }
   if (enc.type === 'pvp-battle')    return buildPvPBattleHtml(enc);
   if (enc.type === 'battle')        return buildBattleEventHtml(enc);
   if (enc.type === 'persist-bonus') return buildPersistBonusHtml(enc);
@@ -6895,16 +6287,13 @@ function toggleOutingCat(ci) {
   renderOutingPicker();
 }
 
-function confirmOutingSelection() {
+async function confirmOutingSelection() {
   const selected = [...OUTING_SELECTED].filter(ci => sbx.cats[ci] && canCatGoOutside(ci, sbx.cats[ci]).canGo);
   if (!selected.length) {
     showCareToast('Select at least one ready cat');
     renderOutingPicker();
     return;
   }
-  closeOutingPicker();
-  document.getElementById('game-home').style.display = 'none';
-  if (GAME_CARE_TIMER) { clearInterval(GAME_CARE_TIMER); GAME_CARE_TIMER = null; }
   if (PLAYER) {
     sbx.deck  = [...(PLAYER.deckIds || [])];
     sbx.coins = PLAYER.coins;
@@ -6917,8 +6306,10 @@ function confirmOutingSelection() {
     gear: (cs.gear || []).map(g => typeof g === 'string' ? getCard(g) : g).filter(Boolean)
   }));
 
-  document.getElementById('run-ov').style.display = 'flex';
-  startRun(selected);
+  const started = await startRun(selected);
+  if (!started) return;
+  closeOutingPicker();
+  if (GAME_CARE_TIMER) { clearInterval(GAME_CARE_TIMER); GAME_CARE_TIMER = null; }
 }
 
 function ghSendOutside() {
