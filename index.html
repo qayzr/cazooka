@@ -673,7 +673,29 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .gh-cat{border:1px solid rgba(255,255,255,0.09);border-radius:0;padding:20px;display:flex;flex-direction:column;gap:14px;background:rgba(10,14,20,0.76);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
 
 .gh-cat-top{display:flex;align-items:center;gap:12px}
-.gh-cat-emoji{font-size:38px;line-height:1;filter:drop-shadow(0 0 10px rgba(255,200,96,.2))}
+.gh-cat-face{--cat-fur:#d8b36a;position:relative;width:48px;height:48px;flex:0 0 48px;display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 0 10px rgba(255,200,96,.16));animation:cat-face-bob 3.8s ease-in-out infinite}
+.gh-cat-face-head{position:relative;width:34px;height:31px;background:var(--cat-fur);border-radius:4px;box-shadow:0 4px 0 rgba(0,0,0,.18),0 0 0 2px rgba(255,255,255,.08) inset;image-rendering:pixelated}
+.gh-cat-face-head:before,.gh-cat-face-head:after{content:"";position:absolute;top:-9px;width:13px;height:13px;background:var(--cat-fur);clip-path:polygon(50% 0,0 100%,100% 100%)}
+.gh-cat-face-head:before{left:2px}.gh-cat-face-head:after{right:2px}
+.gh-cat-face-eye{position:absolute;top:11px;width:5px;height:6px;background:#0b111a;border-radius:1px;transition:height .22s,top .22s,transform .22s}
+.gh-cat-face-eye.l{left:8px}.gh-cat-face-eye.r{right:8px}
+.gh-cat-face-nose{position:absolute;left:15px;top:19px;width:4px;height:3px;background:#5c3041;border-radius:1px}
+.gh-cat-face-mouth{position:absolute;left:14px;top:24px;width:7px;height:3px;border-bottom:2px solid #0b111a;border-radius:0 0 8px 8px;transition:all .22s}
+.gh-cat-face-tail{position:absolute;right:2px;bottom:8px;width:12px;height:5px;background:var(--cat-fur);border-radius:0 5px 5px 0;box-shadow:4px -4px 0 -1px var(--cat-fur);opacity:.9}
+.gh-cat-face.happy .gh-cat-face-eye{height:3px;top:13px;border-radius:999px}
+.gh-cat-face.happy .gh-cat-face-mouth{height:5px;border-bottom-width:2px}
+.gh-cat-face.ok .gh-cat-face-mouth{width:8px;height:1px;border-bottom-width:2px;border-radius:0;top:25px}
+.gh-cat-face.sad .gh-cat-face-eye{height:5px;transform:translateY(1px)}
+.gh-cat-face.sad .gh-cat-face-mouth{top:26px;height:5px;border-bottom:none;border-top:2px solid #0b111a;border-radius:8px 8px 0 0}
+.gh-cat-face.hungry .gh-cat-face-mouth{left:15px;width:5px;height:5px;border:2px solid #0b111a;border-radius:50%}
+.gh-cat-face.tired .gh-cat-face-eye{height:2px;top:14px}
+.gh-cat-face.sleeping{animation:cat-face-sleep 4.8s ease-in-out infinite}
+.gh-cat-face.sleeping .gh-cat-face-eye{height:2px;top:14px}
+.gh-cat-face.sleeping .gh-cat-face-mouth{left:16px;width:4px;height:4px;border:2px solid #0b111a;border-radius:50%}
+.gh-cat-face.sleeping:after{content:"Z";position:absolute;right:-1px;top:0;font-family:var(--fm);font-size:10px;color:#60a5fa;animation:cat-face-zzz 2.2s ease-in-out infinite}
+@keyframes cat-face-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
+@keyframes cat-face-sleep{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(2px) rotate(1deg)}}
+@keyframes cat-face-zzz{0%{opacity:0;transform:translate(0,5px)}35%{opacity:1}100%{opacity:0;transform:translate(7px,-12px)}}
 .gh-cat-info{flex:1}
 .gh-cat-name{font-family:var(--fd);font-size:15px;font-weight:700;color:var(--t1)}
 .gh-cat-breed{font-family:var(--fm);font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--t3);margin-top:1px}
@@ -750,6 +772,7 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .gh-cat.gh-cat-sleeping{border-color:rgba(96,165,250,0.1);background:rgba(8,11,18,0.92)}
 .gh-sleep-body{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:40px 20px;cursor:pointer;user-select:none}
 .gh-sleep-emoji{font-size:56px;line-height:1;filter:drop-shadow(0 0 14px rgba(96,165,250,.28));animation:sleep-pulse 3.5s ease-in-out infinite}
+.gh-sleep-emoji .gh-cat-face{width:62px;height:62px;transform:scale(1.18)}
 @keyframes sleep-pulse{0%,100%{filter:drop-shadow(0 0 12px rgba(96,165,250,.22))}50%{filter:drop-shadow(0 0 24px rgba(96,165,250,.5))}}
 .gh-sleep-zzz{position:relative;width:76px;height:54px}
 .zzz-z{position:absolute;font-family:var(--fd);font-weight:800;color:var(--acc2);opacity:0;animation:zzz-float 2.6s ease-in-out infinite;bottom:0}
@@ -808,125 +831,13 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .gh-food-name{font-family:var(--fb);font-size:12px;color:var(--t1)}
 .gh-food-qty{font-family:var(--fm);font-size:10px;color:var(--acc2);font-weight:700}
 .gh-food-empty{font-family:var(--fb);font-size:12px;color:var(--t3);padding:8px 0}
-/* Cats tab — room engine + horizontal scroll */
-.gh-cats-tab{display:grid;grid-template-rows:clamp(230px,38vh,360px) minmax(0,1fr) auto;height:100%;overflow:hidden;position:relative;background:#080d13}
-.gh-room-engine{position:relative;overflow:hidden;border-bottom:1px solid rgba(255,255,255,.09);isolation:isolate;background:#10161f}
-.gh-room-stage{position:absolute;inset:0;perspective:900px}
-.gh-room-wall{position:absolute;inset:0 0 28%;background:linear-gradient(180deg,#17202d 0%,#101823 100%)}
-.gh-room-floor{position:absolute;left:-8%;right:-8%;bottom:-18%;height:48%;background:linear-gradient(160deg,#28303b 0%,#111820 72%);transform:rotateX(58deg);transform-origin:50% 100%;box-shadow:0 -1px 0 rgba(255,255,255,.08) inset}
-.gh-room-floor:after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,rgba(255,255,255,.045) 0 1px,transparent 1px 72px),linear-gradient(180deg,rgba(255,255,255,.06),transparent 42%);opacity:.55}
-.gh-room-window{position:absolute;right:9%;top:12%;width:96px;height:70px;border:4px solid rgba(226,232,240,.72);border-radius:4px;background:linear-gradient(180deg,#284566,#16273d);box-shadow:0 12px 30px rgba(0,0,0,.28),0 0 0 1px rgba(255,255,255,.08) inset}
-.gh-room-window:before{content:"";position:absolute;left:50%;top:0;bottom:0;width:3px;background:rgba(226,232,240,.7)}
-.gh-room-window:after{content:"";position:absolute;left:0;right:0;top:50%;height:3px;background:rgba(226,232,240,.7)}
-.gh-room-rug{position:absolute;left:28%;right:22%;bottom:10%;height:24%;border-radius:50%;background:radial-gradient(ellipse at center,rgba(240,160,48,.28),rgba(240,160,48,.04) 66%,transparent 68%);transform:rotateX(62deg);transform-origin:50% 100%;filter:blur(.2px)}
-.gh-room-shelf{position:absolute;left:8%;top:22%;width:150px;height:10px;border-radius:999px;background:rgba(226,232,240,.22);box-shadow:0 10px 0 rgba(0,0,0,.13)}
-.gh-room-home-card{position:absolute;left:18px;top:16px;z-index:12;max-width:min(44%,260px);border:1px solid rgba(255,255,255,.16);background:rgba(8,13,19,.7);color:var(--t1);border-radius:var(--r-md);padding:8px 11px;display:flex;align-items:center;gap:8px;cursor:pointer;text-align:left;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
-.gh-room-home-card:hover{border-color:var(--acc);color:var(--acc2)}
-.gh-room-home-icon{font-size:19px;line-height:1}
-.gh-room-home-title{font-family:var(--fd);font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.gh-room-home-meta{font-family:var(--fm);font-size:8px;letter-spacing:.08em;text-transform:uppercase;color:var(--t3);margin-top:1px}
-.gh-room-object,.gh-room-cat-avatar{position:absolute;left:calc(var(--x)*1%);top:calc(var(--y)*1%);z-index:var(--z);transform:translate(-50%,-50%) scale(var(--scale));border:none;background:transparent;color:var(--t1);padding:0;cursor:pointer;filter:drop-shadow(0 18px 18px rgba(0,0,0,.38));animation:room-idle 4.8s ease-in-out infinite;animation-delay:var(--delay)}
-.gh-room-object:hover,.gh-room-cat-avatar:hover{z-index:30}
-.gh-room-object-base{min-width:68px;height:40px;padding:6px 9px;border-radius:10px 10px 13px 13px;background:linear-gradient(180deg,rgba(52,64,83,.98),rgba(25,33,44,.98));border:1px solid rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;box-shadow:0 12px 0 rgba(0,0,0,.16)}
-.gh-room-sprite{display:block;max-width:78px;max-height:78px;image-rendering:pixelated;image-rendering:crisp-edges;object-fit:contain}
-.gh-room-cat-sprite{display:block;width:56px;height:56px;image-rendering:pixelated;image-rendering:crisp-edges;object-fit:contain}
-.gh-room-object-label,.gh-room-cat-label{position:absolute;left:50%;top:100%;transform:translate(-50%,7px);max-width:126px;padding:3px 7px;border-radius:999px;background:rgba(7,11,17,.72);border:1px solid rgba(255,255,255,.12);font-family:var(--fm);font-size:7.5px;color:var(--t2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:.84;pointer-events:none}
-.gh-room-cat-avatar{width:58px;height:62px;border-radius:48% 48% 42% 42%;background:linear-gradient(180deg,#334155,#141b27);border:1px solid rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;box-shadow:0 14px 0 rgba(0,0,0,.14)}
-.gh-room-cat-emoji{font-size:34px;line-height:1;transform:translateY(-2px)}
-.gh-room-cat-resting{opacity:.72;filter:drop-shadow(0 18px 18px rgba(0,0,0,.28)) saturate(.78)}
-.gh-pixel-cat{position:relative;width:38px;height:34px;background:var(--cat-fur,#d8b36a);border-radius:4px;box-shadow:0 -8px 0 -2px var(--cat-fur,#d8b36a),0 5px 0 rgba(0,0,0,.18);image-rendering:pixelated}
-.gh-pixel-cat:before,.gh-pixel-cat:after{content:"";position:absolute;top:-10px;width:14px;height:14px;background:var(--cat-fur,#d8b36a);clip-path:polygon(50% 0,0 100%,100% 100%)}
-.gh-pixel-cat:before{left:2px}.gh-pixel-cat:after{right:2px}
-.gh-pixel-eye{position:absolute;top:12px;width:5px;height:5px;background:#10141d;border-radius:1px;box-shadow:0 1px 0 rgba(255,255,255,.35)}
-.gh-pixel-eye.l{left:9px}.gh-pixel-eye.r{right:9px}
-.gh-pixel-nose{position:absolute;left:17px;top:20px;width:4px;height:3px;background:#5a3340;border-radius:1px}
-.gh-pixel-tail{position:absolute;right:-12px;bottom:5px;width:13px;height:6px;background:var(--cat-fur,#d8b36a);border-radius:0 5px 5px 0;box-shadow:4px -4px 0 -1px var(--cat-fur,#d8b36a)}
-.gh-pixel-item{position:relative;display:block;width:42px;height:34px;image-rendering:pixelated}
-.gh-pixel-item:before,.gh-pixel-item:after{content:"";position:absolute;display:block}
-.gh-pixel-box{background:#9c6b3e;border-radius:2px;box-shadow:0 4px 0 #654023,8px 0 0 -3px #c28a54,-8px 0 0 -3px #704728}
-.gh-pixel-box:before{left:12px;top:0;width:18px;height:34px;background:rgba(255,224,166,.18)}
-.gh-pixel-food{height:20px;margin-top:11px;border-radius:2px 2px 11px 11px;background:#b8854e;box-shadow:0 4px 0 #654023}
-.gh-pixel-food:before{left:8px;top:-7px;width:26px;height:10px;border-radius:50%;background:#e8c27a;box-shadow:0 3px 0 #7a5630 inset}
-.gh-pixel-play{width:36px;height:36px;border-radius:50%;background:#e94b5f;box-shadow:0 4px 0 #8c2938}
-.gh-pixel-play:before{left:15px;top:-8px;width:6px;height:18px;background:#ffcf5f;box-shadow:0 -4px 0 #fff1a8}
-.gh-pixel-scratch{width:18px;height:46px;margin-top:-8px;margin-left:12px;background:#b07b4b;box-shadow:0 4px 0 #6a4427,12px 39px 0 7px #6a4427,-12px 39px 0 7px #6a4427}
-.gh-pixel-scratch:before{left:-4px;top:6px;width:26px;height:5px;background:#e0b171;box-shadow:0 10px 0 #e0b171,0 20px 0 #e0b171}
-.gh-pixel-study{width:44px;height:28px;margin-top:4px;background:#26364d;border-radius:2px;box-shadow:0 4px 0 #111925}
-.gh-pixel-study:before{left:6px;top:5px;width:32px;height:14px;background:#55b7c8;box-shadow:0 0 0 3px #151d2b inset}
-.gh-pixel-rest{width:48px;height:24px;margin-top:9px;background:#6f5f8f;border-radius:3px;box-shadow:0 5px 0 #352f49}
-.gh-pixel-rest:before{left:4px;top:-7px;width:17px;height:10px;background:#d7c8f2;border-radius:2px}
-.gh-pixel-care{width:12px;height:42px;margin-left:15px;margin-top:-4px;background:#d5b28d;border-radius:2px;box-shadow:0 4px 0 #735139}
-.gh-pixel-care:before{left:-8px;top:4px;width:28px;height:6px;background:#f0d0aa;box-shadow:0 8px 0 #f0d0aa,0 16px 0 #f0d0aa,0 24px 0 #f0d0aa}
-.gh-pixel-plant{width:18px;height:18px;margin-left:12px;margin-top:18px;background:#8a5836;box-shadow:0 4px 0 #4b3324}
-.gh-pixel-plant:before{left:-8px;top:-19px;width:14px;height:22px;background:#3fa35a;border-radius:50% 50% 0 50%;box-shadow:12px -3px 0 #55b96c,23px 1px 0 #367d49,6px 7px 0 #2f8d4a}
-.gh-room-status-mini{position:absolute;left:50%;bottom:-19px;transform:translateX(-50%);width:54px;display:flex;gap:2px}
-.gh-room-status-mini span{height:3px;flex:1;border-radius:999px;background:var(--s3);overflow:hidden}
-.gh-room-status-mini b{display:block;height:100%;border-radius:999px}
-.gh-room-empty{position:absolute;left:50%;top:62%;transform:translate(-50%,-50%);font-family:var(--fm);font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--t3);opacity:.65}
-.gh-room-engine.room-forest .gh-room-wall{background:linear-gradient(180deg,#183524 0%,#0d1914 100%)}
-.gh-room-engine.room-forest .gh-room-floor{background:linear-gradient(160deg,#314229 0%,#121b15 74%)}
-.gh-room-engine.room-forest .gh-room-window{background:linear-gradient(180deg,#2f6f61,#123227)}
-.gh-room-engine.room-estate .gh-room-wall{background:linear-gradient(180deg,#2a2432 0%,#15131b 100%)}
-.gh-room-engine.room-estate .gh-room-floor{background:linear-gradient(160deg,#3a3440 0%,#17141c 74%)}
-.gh-room-engine.room-studio .gh-room-wall{background:linear-gradient(180deg,#253238 0%,#10191d 100%)}
-.gh-room-engine.room-studio .gh-room-floor{background:linear-gradient(160deg,#314049 0%,#111a20 74%)}
-.gh-room-engine.room-urban .gh-room-wall{background:linear-gradient(180deg,#202938 0%,#101721 100%)}
-.gh-room-engine{--room-wall-a:#17202d;--room-wall-b:#101823;--room-floor-a:#28303b;--room-floor-b:#111820;--room-window-a:#284566;--room-window-b:#16273d;--room-accent:rgba(240,160,48,.28)}
-.gh-room-engine .gh-room-wall{background:linear-gradient(180deg,var(--room-wall-a) 0%,var(--room-wall-b) 100%)}
-.gh-room-engine .gh-room-floor{background:linear-gradient(160deg,var(--room-floor-a) 0%,var(--room-floor-b) 72%)}
-.gh-room-engine .gh-room-window{background:linear-gradient(180deg,var(--room-window-a),var(--room-window-b))}
-.gh-room-engine .gh-room-rug{background:radial-gradient(ellipse at center,var(--room-accent),rgba(240,160,48,.04) 66%,transparent 68%)}
-.gh-room-engine.room-forest{--room-wall-a:#183524;--room-wall-b:#0d1914;--room-floor-a:#314229;--room-floor-b:#121b15;--room-window-a:#2f6f61;--room-window-b:#123227;--room-accent:rgba(74,222,128,.2)}
-.gh-room-engine.room-estate{--room-wall-a:#2a2432;--room-wall-b:#15131b;--room-floor-a:#3a3440;--room-floor-b:#17141c;--room-window-a:#51446a;--room-window-b:#201a2d;--room-accent:rgba(216,180,254,.2)}
-.gh-room-engine.room-studio{--room-wall-a:#253238;--room-wall-b:#10191d;--room-floor-a:#314049;--room-floor-b:#111a20;--room-window-a:#3b6670;--room-window-b:#17303a;--room-accent:rgba(45,212,191,.18)}
-.gh-room-engine.room-urban{--room-wall-a:#202938;--room-wall-b:#101721;--room-floor-a:#28303b;--room-floor-b:#111820;--room-window-a:#284566;--room-window-b:#16273d;--room-accent:rgba(240,160,48,.24)}
-.gh-room-engine.room-pixel .gh-room-stage{background-image:var(--room-bg);background-size:cover;background-position:center bottom;background-repeat:no-repeat;image-rendering:pixelated;image-rendering:crisp-edges}
-.gh-room-engine.room-pixel.room-urban{--room-bg:url("assets/rooms/pixel-room-urban.png")}
-.gh-room-engine.room-pixel.room-forest{--room-bg:url("assets/rooms/pixel-room-forest.png")}
-.gh-room-engine.room-pixel.room-estate{--room-bg:url("assets/rooms/pixel-room-estate.png")}
-.gh-room-engine.room-pixel.room-studio{--room-bg:url("assets/rooms/pixel-room-studio.png")}
-.gh-room-engine.room-pixel .gh-room-wall,.gh-room-engine.room-pixel .gh-room-floor,.gh-room-engine.room-pixel .gh-room-window,.gh-room-engine.room-pixel .gh-room-shelf,.gh-room-engine.room-pixel .gh-room-rug{display:none}
-.gh-room-zone{position:absolute;border:1px solid rgba(255,255,255,.055);background:rgba(255,255,255,.025);border-radius:999px;transform:rotateX(62deg);transform-origin:50% 50%;pointer-events:none;opacity:.72}
-.gh-room-zone-food{left:9%;bottom:13%;width:19%;height:13%}
-.gh-room-zone-play{right:9%;bottom:14%;width:23%;height:14%}
-.gh-room-zone-rest{left:35%;bottom:9%;width:30%;height:15%}
-.gh-room-zone-study{right:15%;top:34%;width:22%;height:12%;transform:rotateX(52deg)}
-.gh-room-object-base{transition:transform .18s,border-color .18s,background .18s}
-.gh-room-object:hover .gh-room-object-base{transform:translateY(-3px);border-color:var(--acc)}
-.gh-room-engine.room-pixel .gh-room-object,.gh-room-engine.room-pixel .gh-room-cat-avatar{filter:drop-shadow(0 10px 0 rgba(0,0,0,.18)) drop-shadow(0 20px 16px rgba(0,0,0,.32))}
-.gh-room-engine.room-pixel .gh-room-object-base{border-radius:3px;background:rgba(23,31,44,.94);box-shadow:0 4px 0 rgba(0,0,0,.28),0 0 0 2px rgba(255,255,255,.045) inset}
-.gh-room-engine.room-pixel .gh-room-cat-avatar{border-radius:6px;background:rgba(20,27,39,.94);box-shadow:0 5px 0 rgba(0,0,0,.28),0 0 0 2px rgba(255,255,255,.045) inset}
-.gh-room-engine.room-pixel .gh-room-object-label,.gh-room-engine.room-pixel .gh-room-cat-label{border-radius:3px;background:rgba(7,11,17,.82)}
-.gh-room-object[data-size="small"] .gh-room-object-base{min-width:54px;height:34px}
-.gh-room-object[data-size="wide"] .gh-room-object-base{min-width:92px;height:38px}
-.gh-room-object[data-size="tall"] .gh-room-object-base{min-width:58px;height:58px;border-radius:14px}
-.gh-room-object[data-zone="food"] .gh-room-object-base{background:linear-gradient(180deg,rgba(87,71,50,.98),rgba(33,27,21,.98))}
-.gh-room-object[data-zone="play"] .gh-room-object-base{background:linear-gradient(180deg,rgba(54,67,100,.98),rgba(24,31,54,.98))}
-.gh-room-object[data-zone="rest"] .gh-room-object-base{background:linear-gradient(180deg,rgba(66,61,78,.98),rgba(28,25,38,.98))}
-.gh-room-object[data-zone="study"] .gh-room-object-base{background:linear-gradient(180deg,rgba(39,78,85,.98),rgba(16,37,44,.98))}
-.gh-room-cat-avatar{transition:left .55s ease,top .55s ease,transform .18s,border-color .18s}
-.gh-room-cat-avatar:hover{border-color:var(--acc);transform:translate(-50%,-50%) scale(calc(var(--scale) * 1.06))}
-.gh-room-cat-avatar[data-state="hungry"]{border-color:rgba(240,160,48,.45)}
-.gh-room-cat-avatar[data-state="playful"]{border-color:rgba(96,165,250,.45)}
-.gh-room-cat-avatar[data-state="resting"],.gh-room-cat-avatar[data-state="sleepy"]{animation:room-sleep 5.5s ease-in-out infinite}
-.gh-room-cat-avatar[data-state="social"]{border-color:rgba(52,211,153,.42)}
-.gh-room-cat-state{position:absolute;right:-7px;top:-8px;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(7,11,17,.78);border:1px solid rgba(255,255,255,.12);font-size:11px;line-height:1}
-@keyframes room-sleep{0%,100%{translate:0 0;filter:drop-shadow(0 18px 18px rgba(0,0,0,.28)) saturate(.78)}50%{translate:0 2px;filter:drop-shadow(0 14px 14px rgba(0,0,0,.24)) saturate(.7)}}
-@keyframes room-idle{0%,100%{translate:0 0}50%{translate:0 -3px}}
-.gh-cats-scroll{display:flex;flex-direction:row;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;gap:0;padding:0;flex:1;scrollbar-width:none;align-items:stretch;position:relative;z-index:1;min-height:0}
+/* Cats tab — horizontal scroll */
+.gh-cats-tab{display:flex;flex-direction:column;height:100%;overflow:hidden;position:relative}
+.gh-cats-scroll{display:flex;flex-direction:row;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;gap:0;padding:0;flex:1;scrollbar-width:none;align-items:stretch;position:relative;z-index:1}
 .gh-cats-scroll::-webkit-scrollbar{display:none}
 .gh-cat-dots{display:flex;justify-content:center;align-items:center;gap:5px;padding:0 0 8px;flex-shrink:0;position:relative;z-index:1}
 .gh-cat-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.3);transition:all .25s;flex-shrink:0}
 .gh-cat-dot.active{background:rgba(255,255,255,0.9);width:20px;border-radius:3px}
-@media(max-width:560px){
-  .gh-cats-tab{grid-template-rows:clamp(210px,34vh,300px) minmax(0,1fr) auto}
-  .gh-room-home-card{left:12px;top:12px;max-width:56%;padding:7px 9px}
-  .gh-room-window{right:7%;top:16%;width:72px;height:54px}
-  .gh-room-shelf{width:104px}
-  .gh-room-object-label,.gh-room-cat-label{display:none}
-  .gh-room-cat-avatar{width:50px;height:54px}
-  .gh-room-cat-emoji{font-size:30px}
-}
 /* Sticky send-outside footer */
 .gh-cats-footer{flex-shrink:0;padding:10px 20px;background:var(--bg);border-top:1px solid var(--bd)}
 .gh-send-outside-btn{width:100%;padding:14px;font-family:var(--fd);font-size:14px;font-weight:700;border-radius:var(--r-lg);border:none;background:var(--acc);color:#0D1117;cursor:pointer;transition:all .18s;letter-spacing:.01em}
@@ -5235,204 +5146,33 @@ function getHomeEnvProfile(homeCard) {
   return { kind:'urban', icon:'🏙️', name:'Urban' };
 }
 
-function getRoomItemVisual(card) {
-  const defined = card?.data?.room_object;
-  if (defined) return {
-    icon: defined.icon || card.icon || '📦',
-    sprite: defined.sprite || '',
-    pixel: defined.pixel || '',
-    label: defined.label || defined.zone || 'item',
-    zone: defined.zone || 'floor',
-    size: defined.size || 'medium',
-  };
-  const key = `${card?.id || ''} ${card?.name || ''} ${card?.data?.special_properties || ''}`.toLowerCase();
-  if (key.includes('laser')) return { pixel:'play', label:'toy', zone:'play', size:'small' };
-  if (key.includes('scratch')) return { pixel:'scratch', label:'scratch', zone:'play', size:'tall' };
-  if (key.includes('feeder') || key.includes('food')) return { pixel:'food', label:'food', zone:'food', size:'wide' };
-  if (key.includes('comb') || key.includes('brush') || key.includes('groom')) return { pixel:'care', label:'groom', zone:'care', size:'small' };
-  if (key.includes('puzzle')) return { pixel:'study', label:'puzzle', zone:'study', size:'wide' };
-  if (key.includes('laptop') || key.includes('screen')) return { pixel:'study', label:'tech', zone:'study', size:'wide' };
-  if (key.includes('bed') || key.includes('cushion') || key.includes('blanket')) return { pixel:'rest', label:'rest', zone:'rest', size:'wide' };
-  if (key.includes('plant') || key.includes('garden')) return { pixel:'plant', label:'plant', zone:'wall', size:'tall' };
-  return { pixel:'box', label:'item', zone:'floor', size:'medium' };
+function getCatFaceMood(state) {
+  if (state.isResting) return 'sleeping';
+  if (state.energy < 35) return 'tired';
+  if (state.hunger < 35) return 'hungry';
+  if (state.mood < 45) return 'sad';
+  if (state.mood >= 72 && state.energy >= 45 && state.hunger >= 45) return 'happy';
+  return 'ok';
 }
 
-function getRoomProfile(homeCard) {
-  const env = getHomeEnvProfile(homeCard);
-  const profile = homeCard?.data?.room_profile || {};
-  return {
-    ...env,
-    density: profile.density || (homeCard?.data?.max_occupants >= 4 ? 'large' : 'cozy'),
-    window: profile.window || (env.kind === 'forest' ? 'wide' : env.kind === 'estate' ? 'arched' : 'city'),
-    zones: profile.zones || ['food', 'play', 'rest', 'study', 'floor', 'wall'],
-  };
-}
-
-function roomProfileStyle(profile) {
-  const p = profile?.palette || {};
-  const vars = [
-    ['--room-bg', profile?.background ? `url("${profile.background}")` : null],
-    ['--room-wall-a', p.wallA],
-    ['--room-wall-b', p.wallB],
-    ['--room-floor-a', p.floorA],
-    ['--room-floor-b', p.floorB],
-    ['--room-window-a', p.windowA],
-    ['--room-window-b', p.windowB],
-    ['--room-accent', p.accent],
-  ].filter(([, value]) => value);
-  return vars.map(([key, value]) => `${key}:${value}`).join(';');
-}
-
-function getRoomSlotStyle(index, kind, zone = 'floor') {
-  const zoneItemSlots = {
-    food: [
-      { x:16, y:70, z:6, scale:.92 }, { x:25, y:74, z:7, scale:.84 },
-    ],
-    play: [
-      { x:78, y:72, z:8, scale:.96 }, { x:66, y:64, z:7, scale:.82 },
-    ],
-    rest: [
-      { x:46, y:72, z:5, scale:1.02 }, { x:56, y:68, z:6, scale:.92 },
-    ],
-    study: [
-      { x:72, y:48, z:4, scale:.72 }, { x:61, y:52, z:4, scale:.66 },
-    ],
-    care: [
-      { x:31, y:57, z:5, scale:.72 }, { x:39, y:61, z:6, scale:.66 },
-    ],
-    wall: [
-      { x:20, y:42, z:3, scale:.68 }, { x:34, y:36, z:3, scale:.62 },
-    ],
-    floor: [
-      { x:38, y:62, z:5, scale:.82 }, { x:60, y:66, z:7, scale:.9 }, { x:28, y:49, z:3, scale:.66 },
-    ],
-  };
-  const fallbackItemSlots = [
-    { x:18, y:70, z:6, scale:.92 },
-    { x:38, y:62, z:5, scale:.82 },
-    { x:60, y:66, z:7, scale:.9 },
-    { x:79, y:73, z:8, scale:.96 },
-    { x:28, y:49, z:3, scale:.66 },
-    { x:70, y:48, z:3, scale:.68 },
-  ];
-  const zoneCatSlots = {
-    food: [
-      { x:24, y:80, z:14, scale:1 }, { x:34, y:76, z:13, scale:.9 },
-    ],
-    play: [
-      { x:73, y:83, z:16, scale:.98 }, { x:63, y:74, z:15, scale:.9 },
-    ],
-    rest: [
-      { x:49, y:80, z:15, scale:1.08 }, { x:58, y:77, z:14, scale:.95 },
-    ],
-    study: [
-      { x:65, y:68, z:13, scale:.86 }, { x:74, y:65, z:13, scale:.78 },
-    ],
-    social: [
-      { x:43, y:76, z:15, scale:1.04 }, { x:55, y:77, z:16, scale:1.02 },
-    ],
-    floor: [
-      { x:27, y:79, z:14, scale:1 }, { x:52, y:76, z:15, scale:1.08 }, { x:74, y:82, z:16, scale:.98 },
-    ],
-  };
-  const fallbackCatSlots = [
-    { x:27, y:79, z:14, scale:1 },
-    { x:52, y:76, z:15, scale:1.08 },
-    { x:74, y:82, z:16, scale:.98 },
-    { x:39, y:68, z:12, scale:.84 },
-    { x:63, y:66, z:12, scale:.86 },
-  ];
-  const slots = kind === 'cat'
-    ? (zoneCatSlots[zone] || fallbackCatSlots)
-    : (zoneItemSlots[zone] || fallbackItemSlots);
-  const slot = slots[index % slots.length];
-  const row = Math.floor(index / slots.length);
-  const x = Math.min(86, slot.x + row * 4);
-  const y = Math.min(86, slot.y + row * 3);
-  const scale = Math.max(.62, slot.scale - row * .06);
-  return `--x:${x};--y:${y};--z:${slot.z + row};--scale:${scale};--delay:${(index % 5) * .35}s`;
-}
-
-function getRoomCatState(cs, state, homeItems, index) {
-  const visuals = (homeItems || []).map(getRoomItemVisual);
-  const hasZone = zone => visuals.some(v => v.zone === zone);
-  if (state.isResting) return { key:'resting', icon:'💤', zone:hasZone('rest') ? 'rest' : 'floor' };
-  if (state.energy < 32) return { key:'sleepy', icon:'💤', zone:hasZone('rest') ? 'rest' : 'floor' };
-  if (state.hunger < 38 && hasZone('food')) return { key:'hungry', icon:'🍽️', zone:'food' };
-  if (state.mood < 48 && hasZone('play')) return { key:'playful', icon:'✨', zone:'play' };
-  const stats = cs?.breed?.data?.stats || {};
-  if ((stats.intelligence || 0) >= 20 && hasZone('study')) return { key:'curious', icon:'?', zone:'study' };
-  if (((stats.amicability || 0) + (stats.affection || 0)) >= 36) return { key:'social', icon:'♡', zone:'social' };
-  return { key:'wander', icon:'•', zone:index % 2 ? 'play' : 'floor' };
-}
-
-function getRoomCatColor(breed, index) {
+function getCatFaceColor(breed, index) {
   const colors = ['#d8b36a', '#c9c2b8', '#8f8173', '#f1d7a5', '#9ea7b3', '#c07a4a', '#2f3440'];
   const key = `${breed?.id || ''}${breed?.name || ''}`;
   const seed = [...key].reduce((sum, ch) => sum + ch.charCodeAt(0), index || 0);
   return colors[seed % colors.length];
 }
 
-function renderRoomEngineHtml(homeCard, cats, homeItems) {
-  const env = getRoomProfile(homeCard);
-  const homeId = homeCard?.id;
-  const homeName = homeCard?.name || 'Your Home';
-  const styleAttr = roomProfileStyle(homeCard?.data?.room_profile);
-  const itemHtml = (homeItems || []).map((card, i) => {
-    const visual = getRoomItemVisual(card);
-    const zone = env.zones.includes(visual.zone) ? visual.zone : 'floor';
-    const itemFace = visual.sprite
-      ? `<img class="gh-room-sprite" src="${escapeAttr(visual.sprite)}" alt="">`
-      : `<span class="gh-pixel-item gh-pixel-${escapeAttr(visual.pixel || 'box')}"></span>`;
-    return `<button class="gh-room-object" data-zone="${escapeAttr(zone)}" data-size="${escapeAttr(visual.size)}" style="${getRoomSlotStyle(i, 'item', zone)}" onclick="openCardModal('${card.id}')" title="${escapeAttr(card.name)}">
-      <span class="gh-room-object-base">${itemFace}</span>
-      <span class="gh-room-object-label">${card.name}</span>
-    </button>`;
-  }).join('');
-  const catHtml = (cats || []).map((cs, i) => {
-    const state = getLiveCatState(i, cs);
-    const breed = cs.breed || {};
-    const name = cs.name || breed.name || 'Cat';
-    const hPct = Math.round(Math.min(100, state.hunger));
-    const mPct = Math.round(Math.min(100, state.mood));
-    const ePct = Math.round(Math.min(100, state.energy));
-    const resting = state.isResting ? ' gh-room-cat-resting' : '';
-    const roomState = getRoomCatState(cs, state, homeItems, i);
-    const zone = env.zones.includes(roomState.zone) || roomState.zone === 'social' ? roomState.zone : 'floor';
-    const catSprite = breed.data?.room_sprite;
-    const catFace = catSprite
-      ? `<img class="gh-room-cat-sprite" src="${escapeAttr(catSprite)}" alt="">`
-      : `<span class="gh-pixel-cat" style="--cat-fur:${getRoomCatColor(breed, i)}"><span class="gh-pixel-tail"></span><span class="gh-pixel-eye l"></span><span class="gh-pixel-eye r"></span><span class="gh-pixel-nose"></span></span>`;
-    return `<button class="gh-room-cat-avatar${resting}" data-state="${roomState.key}" style="${getRoomSlotStyle(i, 'cat', zone)}" onclick="openCardModal('${breed.id}')" title="${escapeAttr(name)}">
-      ${catFace}
-      <span class="gh-room-cat-state">${roomState.icon}</span>
-      <span class="gh-room-cat-label">${name}</span>
-      <span class="gh-room-status-mini">
-        <span><b style="width:${hPct}%;background:#60a5fa"></b></span>
-        <span><b style="width:${mPct}%;background:#a78bfa"></b></span>
-        <span><b style="width:${ePct}%;background:#34d399"></b></span>
-      </span>
-    </button>`;
-  }).join('');
-  return `<section class="gh-room-engine room-pixel room-${env.kind}"${styleAttr ? ` style="${escapeAttr(styleAttr)}"` : ''}>
-    <div class="gh-room-stage">
-      <div class="gh-room-wall"></div>
-      <div class="gh-room-window"></div>
-      <div class="gh-room-shelf"></div>
-      <div class="gh-room-floor"></div>
-      <div class="gh-room-rug"></div>
-      ${env.zones.includes('food') ? '<div class="gh-room-zone gh-room-zone-food"></div>' : ''}
-      ${env.zones.includes('play') ? '<div class="gh-room-zone gh-room-zone-play"></div>' : ''}
-      ${env.zones.includes('rest') ? '<div class="gh-room-zone gh-room-zone-rest"></div>' : ''}
-      ${env.zones.includes('study') ? '<div class="gh-room-zone gh-room-zone-study"></div>' : ''}
-      ${homeId ? `<button class="gh-room-home-card" onclick="openCardModal('${homeId}')" title="${escapeAttr(homeName)}">
-        <span class="gh-room-home-icon">${env.icon}</span>
-        <span><span class="gh-room-home-title">${homeName}</span><span class="gh-room-home-meta">${env.name}</span></span>
-      </button>` : ''}
-      ${itemHtml}
-      ${catHtml || '<div class="gh-room-empty">No cats home</div>'}
-    </div>
-  </section>`;
+function renderCatFaceHtml(breed, state, index) {
+  const mood = getCatFaceMood(state);
+  return `<span class="gh-cat-face ${mood}" style="--cat-fur:${getCatFaceColor(breed, index)}">
+    <span class="gh-cat-face-tail"></span>
+    <span class="gh-cat-face-head">
+      <span class="gh-cat-face-eye l"></span>
+      <span class="gh-cat-face-eye r"></span>
+      <span class="gh-cat-face-nose"></span>
+      <span class="gh-cat-face-mouth"></span>
+    </span>
+  </span>`;
 }
 
 function getHomeUsageCounts() {
@@ -5664,7 +5404,6 @@ function renderGameHome() {
     cats.forEach((cs, ci) => {
       const state   = getLiveCatState(ci, cs);
       const traits  = getTraits(cs.breed);
-      const emoji   = getCatEmoji(cs.breed);
       const name    = cs.breed ? cs.breed.name : 'Cat';
       const hPct    = Math.round(state.hunger);
       const mPct    = Math.round(state.mood);
@@ -5828,7 +5567,7 @@ function renderGameHome() {
       <div class="gh-cat${state.isResting ? ' gh-cat-sleeping' : ''}">
         ${state.isResting ? `
         <div class="gh-sleep-body" onclick="ghConfirmWake(${ci})">
-          <div class="gh-sleep-emoji">${emoji}</div>
+          <div class="gh-sleep-emoji">${renderCatFaceHtml(cs.breed, state, ci)}</div>
           <div class="gh-sleep-zzz">
             <span class="zzz-z zzz-1">Z</span>
             <span class="zzz-z zzz-2">z</span>
@@ -5838,7 +5577,7 @@ function renderGameHome() {
           <div class="gh-sleep-hint">Tap to wake up · scroll to browse</div>
         </div>` : `
         <div class="gh-cat-top">
-          <div class="gh-cat-emoji">${emoji}</div>
+          ${renderCatFaceHtml(cs.breed, state, ci)}
           <div class="gh-cat-info">
             <div class="gh-cat-name">${name}</div>
             <div class="gh-cat-breed">${traits.type} · #${String(ci+1).padStart(2,'0')}</div>
@@ -5941,7 +5680,6 @@ function renderGameHome() {
     ? `<div class="gh-cat-dots" id="gh-cat-dots">${Array.from({length:catCount},(_,i)=>`<div class="gh-cat-dot${i===0?' active':''}" data-idx="${i}"></div>`).join('')}</div>`
     : '';
   const catsTabHtml = `<div class="gh-cats-tab">
-    ${renderRoomEngineHtml(homeCard, cats, currentHomeItems)}
     <div class="gh-cats-scroll" id="gh-cats-scroll" onscroll="ghUpdateCatDots(this)">${catCardsHtml}</div>
     ${dotsHtml}
   </div>`;
