@@ -286,12 +286,21 @@
   .dot-chip{border:1px solid var(--bd);background:var(--s2);color:var(--t2);border-radius:999px;padding:6px 10px;font-size:11px;cursor:pointer}
   .dot-chip.active{border-color:var(--acc);background:var(--acc-dim);color:var(--acc)}
   .dot-mini-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .dot-draw-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .dot-draw-card{background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);padding:12px;display:flex;flex-direction:column;gap:10px;min-width:0}
+  .dot-draw-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .dot-draw-title{font-size:12px;font-weight:700;color:var(--t1)}
+  .dot-draw-sub{font-family:var(--fm);font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em}
+  .dot-draw-canvas{width:100%;aspect-ratio:1.6;background:#05080c;border:1px solid #172033;border-radius:6px;image-rendering:pixelated;cursor:crosshair;touch-action:none}
+  .dot-tool-row{display:grid;grid-template-columns:1fr 44px;gap:8px;align-items:center}
+  .dot-tool-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .dot-preview-grid{display:grid;grid-template-columns:1fr;gap:14px}
   .dot-note{font-size:12px;color:var(--t3);line-height:1.55;background:var(--s2);border:1px solid var(--bd);border-radius:var(--r-sm);padding:12px}
   .dot-spec-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
   .dot-spec{background:var(--s2);border:1px solid var(--bd);border-radius:var(--r-sm);padding:12px}
   .dot-spec-k{font-family:var(--fm);font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--t3);margin-bottom:5px}
   .dot-spec-v{font-size:16px;font-weight:800;color:var(--t1)}
-  @media(max-width:1180px){.dot-lab{grid-template-columns:1fr 1fr}.dot-panel.preview{grid-column:1/-1}}
+  @media(max-width:1180px){.dot-lab{grid-template-columns:1fr 1fr}.dot-panel.preview{grid-column:1/-1}.dot-draw-grid{grid-template-columns:1fr}}
   @media(max-width:760px){.dot-lab{grid-template-columns:1fr}.dot-panel.preview{grid-column:auto}.dot-spec-grid,.dot-mini-grid{grid-template-columns:1fr}}
 
   a.game-link{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--acc);text-decoration:none}
@@ -437,13 +446,13 @@
         <div class="dot-lab">
           <div class="dot-panel">
             <div class="dot-panel-head">
-              <div class="dot-panel-title">Run Event</div>
-              <div class="dot-panel-sub">Model what happened when the cat went outside.</div>
+              <div class="dot-panel-title">Scenario</div>
+              <div class="dot-panel-sub">Choose the outside-run moment and cat reaction.</div>
             </div>
             <div class="dot-panel-body">
               <div class="dot-controls">
                 <label class="dot-control">
-                  <span class="dot-lbl">Event Type</span>
+                  <span class="dot-lbl">Encounter Type</span>
                   <select class="dot-select" id="dot-event" onchange="dotMatrixUsePreset(this.value)">
                     <option value="observe">Observe surroundings</option>
                     <option value="find">Find loot</option>
@@ -452,11 +461,31 @@
                     <option value="battle-win">Win fight</option>
                     <option value="battle-lose">Lose fight</option>
                     <option value="avoid">Avoid trouble</option>
+                    <option value="pvp-battle">PvP battle</option>
+                    <option value="ally-assist">Ally assist</option>
                     <option value="market">Marketplace ally</option>
+                    <option value="return">Return home</option>
+                    <option value="sleep">Sleep recovery</option>
                   </select>
                 </label>
                 <label class="dot-control">
-                  <span class="dot-lbl">Environment</span>
+                  <span class="dot-lbl">Cat Reaction</span>
+                  <select class="dot-select" id="dot-reaction" onchange="dotMatrixApplyControls()">
+                    <option value="observe">Observe</option>
+                    <option value="advance">Go forward</option>
+                    <option value="back-away">Back away</option>
+                    <option value="jump">Jump</option>
+                    <option value="crouch">Crouch</option>
+                    <option value="surround">Surround</option>
+                    <option value="chase">Chase</option>
+                    <option value="celebrate">Celebrate</option>
+                    <option value="inspect">Inspect</option>
+                    <option value="slow-blink">Slow blink</option>
+                    <option value="rest">Rest</option>
+                  </select>
+                </label>
+                <label class="dot-control">
+                  <span class="dot-lbl">Environment Template</span>
                   <select class="dot-select" id="dot-environment" onchange="dotMatrixApplyControls()">
                     <option value="alley">Back Alley</option>
                     <option value="forest">Forest Path</option>
@@ -484,19 +513,6 @@
                     </select>
                   </label>
                 </div>
-                <label class="dot-control">
-                  <span class="dot-lbl">Encounter Object</span>
-                  <select class="dot-select" id="dot-object" onchange="dotMatrixApplyControls()">
-                    <option value="crate">Crate</option>
-                    <option value="fish">Fish</option>
-                    <option value="bug">Bug</option>
-                    <option value="sign">Sign</option>
-                    <option value="coin">Coin</option>
-                    <option value="npc-cat">NPC Cat</option>
-                    <option value="threat">Threat</option>
-                    <option value="bed">Bed</option>
-                  </select>
-                </label>
                 <label class="dot-control">
                   <span class="dot-lbl">Bubble Copy</span>
                   <textarea class="dot-textarea" id="dot-copy" oninput="dotMatrixApplyControls()">Cazooka studies the street before making a move.</textarea>
@@ -557,6 +573,21 @@
                   </label>
                 </div>
                 <label class="dot-control">
+                  <span class="dot-lbl">Encounter Drawing</span>
+                  <select class="dot-select" id="dot-object" onchange="dotMatrixApplyControls()">
+                    <option value="crate">Loot crate</option>
+                    <option value="fish">Food / treat</option>
+                    <option value="bug">Tiny discovery</option>
+                    <option value="sign">Odd landmark</option>
+                    <option value="coin">Coins</option>
+                    <option value="npc-cat">NPC cat</option>
+                    <option value="market-cat">Marketplace cat</option>
+                    <option value="threat">Fight threat</option>
+                    <option value="door">Home door</option>
+                    <option value="bed">Bed</option>
+                  </select>
+                </label>
+                <label class="dot-control">
                   <span class="dot-lbl">Dot Size</span>
                   <span class="dot-control-row">
                     <input class="dot-range" id="dot-size" type="range" min="3" max="10" value="6" oninput="dotMatrixApplyControls()">
@@ -609,6 +640,61 @@
                 <textarea class="dot-textarea" id="dot-config-output" readonly style="min-height:150px"></textarea>
               </label>
             </div>
+          </div>
+        </div>
+
+        <div class="dot-panel" style="margin-top:18px">
+          <div class="dot-panel-head">
+            <div class="dot-panel-title">Drawing Canvases</div>
+            <div class="dot-panel-sub">Paint the environment, cat sprite, and encounter object separately. The preview combines them with the selected reaction.</div>
+          </div>
+          <div class="dot-panel-body">
+            <div class="dot-mini-grid">
+              <label class="dot-control">
+                <span class="dot-lbl">Brush Color</span>
+                  <input class="dot-color" id="dot-brush" type="color" value="#ffc860" oninput="dotMatrixApplyControls()">
+              </label>
+              <label class="dot-control">
+                <span class="dot-lbl">Brush Size</span>
+                <span class="dot-control-row">
+                  <input class="dot-range" id="dot-brush-size" type="range" min="1" max="3" value="1" oninput="dotMatrixApplyControls()">
+                  <span class="dot-value" id="dot-brush-size-val">1</span>
+                </span>
+              </label>
+            </div>
+            <div class="dot-draw-grid">
+              <div class="dot-draw-card">
+                <div class="dot-draw-head">
+                  <div><div class="dot-draw-title">Environment Canvas</div><div class="dot-draw-sub" id="dot-env-template-label">Alley</div></div>
+                </div>
+                <canvas class="dot-draw-canvas" id="dot-draw-environment" width="320" height="200"></canvas>
+                <div class="dot-tool-actions">
+                  <button class="dot-toggle" onclick="dotMatrixResetLayer('environment')">Reset</button>
+                  <button class="dot-toggle" onclick="dotMatrixClearLayer('environment')">Clear</button>
+                </div>
+              </div>
+              <div class="dot-draw-card">
+                <div class="dot-draw-head">
+                  <div><div class="dot-draw-title">Cat Canvas</div><div class="dot-draw-sub" id="dot-cat-template-label">Gold cat</div></div>
+                </div>
+                <canvas class="dot-draw-canvas" id="dot-draw-cat" width="320" height="200"></canvas>
+                <div class="dot-tool-actions">
+                  <button class="dot-toggle" onclick="dotMatrixResetLayer('cat')">Reset</button>
+                  <button class="dot-toggle" onclick="dotMatrixClearLayer('cat')">Clear</button>
+                </div>
+              </div>
+              <div class="dot-draw-card">
+                <div class="dot-draw-head">
+                  <div><div class="dot-draw-title">Encounter Canvas</div><div class="dot-draw-sub" id="dot-object-template-label">Crate</div></div>
+                </div>
+                <canvas class="dot-draw-canvas" id="dot-draw-encounter" width="320" height="200"></canvas>
+                <div class="dot-tool-actions">
+                  <button class="dot-toggle" onclick="dotMatrixResetLayer('encounter')">Reset</button>
+                  <button class="dot-toggle" onclick="dotMatrixClearLayer('encounter')">Clear</button>
+                </div>
+              </div>
+            </div>
+            <div class="dot-note">Draw with the mouse or trackpad. Right click, Control-click, or paint with transparent black to erase a dot.</div>
           </div>
         </div>
       </div>
@@ -941,9 +1027,14 @@ let DOT_MATRIX_STARTED_AT = 0;
 let DOT_MATRIX_STATE = {
   event:'observe', environment:'alley', weather:'clear', time:'night', object:'crate',
   mood:'happy', catCount:1, furPreset:'gold', accentColor:'#ffc860',
+  reaction:'observe',
   palette:'cool', dotSize:6, speed:7, glow:4, motion:true, grid:true, bubble:true, fx:true,
   copy:'Cazooka studies the street before making a move.'
 };
+const DOT_DRAW = { cols:32, rows:20, brush:'#ffc860', brushSize:1, active:false };
+let DOT_LAYERS = { environment:null, cat:null, encounter:null };
+let DOT_LAST_TEMPLATES = { environment:null, furPreset:null, object:null };
+let DOT_DRAW_BOUND = false;
 
 const CAT_STATS = ['weight','strength','stamina','loyalty','affection','amicability','intelligence','speed','agility','stealth'];
 const TYPE_LABELS = {cat_breed:'Cat Breed',battle_gear:'Battle Gear',home_item:'Home Item',special_ability:'Special Ability',home:'Home'};
@@ -1384,36 +1475,52 @@ async function checkSession() {
 /* ── Dot Matrix Lab ── */
 const DOT_EVENT_PRESETS = {
   observe: {
-    label:'Observe', environment:'alley', weather:'clear', time:'night', object:'sign', mood:'neutral',
+    label:'Observe', environment:'alley', weather:'clear', time:'night', object:'sign', mood:'neutral', reaction:'observe',
     copy:'Cazooka studies the street before making a move.'
   },
   find: {
-    label:'Find Loot', environment:'forest', weather:'spark', time:'dusk', object:'crate', mood:'happy',
+    label:'Find Loot', environment:'forest', weather:'spark', time:'dusk', object:'crate', mood:'happy', reaction:'inspect',
     copy:'Cazooka spots something useful tucked under the leaves.'
   },
   'friend-win': {
-    label:'Befriend', environment:'market', weather:'clear', time:'night', object:'npc-cat', mood:'happy',
+    label:'Befriend', environment:'market', weather:'clear', time:'night', object:'npc-cat', mood:'happy', reaction:'slow-blink',
     copy:'Cazooka slow-blinks. A new ally accepts the invitation.'
   },
   'friend-lose': {
-    label:'Rebuffed', environment:'rooftop', weather:'wind', time:'night', object:'npc-cat', mood:'tired',
+    label:'Rebuffed', environment:'rooftop', weather:'wind', time:'night', object:'npc-cat', mood:'tired', reaction:'back-away',
     copy:'Cazooka offers a polite chirp, but the stranger keeps walking.'
   },
   'battle-win': {
-    label:'Win Fight', environment:'alley', weather:'rain', time:'night', object:'threat', mood:'spicy',
+    label:'Win Fight', environment:'alley', weather:'rain', time:'night', object:'threat', mood:'spicy', reaction:'chase',
     copy:'Cazooka stands firm and sends trouble running.'
   },
   'battle-lose': {
-    label:'Lose Fight', environment:'alley', weather:'rain', time:'night', object:'threat', mood:'hurt',
+    label:'Lose Fight', environment:'alley', weather:'rain', time:'night', object:'threat', mood:'hurt', reaction:'back-away',
     copy:'Cazooka retreats with a bruised ego and a lesson learned.'
   },
   avoid: {
-    label:'Avoid', environment:'forest', weather:'wind', time:'day', object:'bug', mood:'neutral',
+    label:'Avoid', environment:'forest', weather:'wind', time:'day', object:'bug', mood:'neutral', reaction:'jump',
     copy:'Cazooka takes the quiet route and avoids a risky encounter.'
   },
+  'pvp-battle': {
+    label:'PvP Battle', environment:'rooftop', weather:'wind', time:'dusk', object:'threat', mood:'spicy', reaction:'surround',
+    copy:'Two patrol routes collide. Cazooka circles carefully.'
+  },
+  'ally-assist': {
+    label:'Ally Assist', environment:'alley', weather:'spark', time:'night', object:'npc-cat', mood:'happy', reaction:'surround',
+    copy:'An ally steps in at exactly the right moment.'
+  },
   market: {
-    label:'Marketplace', environment:'market', weather:'spark', time:'night', object:'fish', mood:'happy',
+    label:'Marketplace', environment:'market', weather:'spark', time:'night', object:'market-cat', mood:'happy', reaction:'advance',
     copy:'The marketplace cat recognizes Cazooka and lowers the price.'
+  },
+  return: {
+    label:'Return', environment:'home', weather:'clear', time:'night', object:'door', mood:'tired', reaction:'advance',
+    copy:'Cazooka returns home with a story and a suspicious prize.'
+  },
+  sleep: {
+    label:'Sleep', environment:'home', weather:'clear', time:'night', object:'bed', mood:'tired', reaction:'rest',
+    copy:'Cazooka curls up and slowly recovers stamina.'
   }
 };
 
@@ -1439,6 +1546,7 @@ function dotMatrixApplyControls() {
   DOT_MATRIX_STATE.weather = getVal('dot-weather') || DOT_MATRIX_STATE.weather;
   DOT_MATRIX_STATE.time = getVal('dot-time') || DOT_MATRIX_STATE.time;
   DOT_MATRIX_STATE.object = getVal('dot-object') || DOT_MATRIX_STATE.object;
+  DOT_MATRIX_STATE.reaction = getVal('dot-reaction') || DOT_MATRIX_STATE.reaction;
   DOT_MATRIX_STATE.mood = getVal('dot-mood') || DOT_MATRIX_STATE.mood;
   DOT_MATRIX_STATE.catCount = parseInt(getVal('dot-cat-count'), 10) || 1;
   DOT_MATRIX_STATE.furPreset = getVal('dot-fur-preset') || DOT_MATRIX_STATE.furPreset;
@@ -1448,7 +1556,11 @@ function dotMatrixApplyControls() {
   DOT_MATRIX_STATE.speed = parseInt(getVal('dot-speed'), 10) || 0;
   DOT_MATRIX_STATE.glow = parseInt(getVal('dot-glow'), 10) || 0;
   DOT_MATRIX_STATE.copy = getVal('dot-copy') || '';
+  DOT_DRAW.brush = getVal('dot-brush') || DOT_DRAW.brush;
+  DOT_DRAW.brushSize = parseInt(getVal('dot-brush-size'), 10) || 1;
+  dotMatrixMaybeResetTemplateLayers();
   dotMatrixSyncLabels();
+  dotMatrixRenderEditors();
   dotMatrixStart();
 }
 
@@ -1459,7 +1571,9 @@ function dotMatrixInit() {
       `<button class="dot-chip${key === DOT_MATRIX_STATE.event ? ' active' : ''}" type="button" onclick="dotMatrixUsePreset('${key}')">${preset.label}</button>`
     )).join('');
   }
+  if (!DOT_DRAW_BOUND) dotMatrixBindDrawing();
   dotMatrixSetFormFromState();
+  dotMatrixMaybeResetTemplateLayers(true);
   dotMatrixApplyControls();
 }
 
@@ -1470,6 +1584,7 @@ function dotMatrixSetFormFromState() {
   setVal('dot-weather', DOT_MATRIX_STATE.weather);
   setVal('dot-time', DOT_MATRIX_STATE.time);
   setVal('dot-object', DOT_MATRIX_STATE.object);
+  setVal('dot-reaction', DOT_MATRIX_STATE.reaction);
   setVal('dot-mood', DOT_MATRIX_STATE.mood);
   setVal('dot-cat-count', DOT_MATRIX_STATE.catCount);
   setVal('dot-fur-preset', DOT_MATRIX_STATE.furPreset);
@@ -1479,6 +1594,8 @@ function dotMatrixSetFormFromState() {
   setVal('dot-speed', DOT_MATRIX_STATE.speed);
   setVal('dot-glow', DOT_MATRIX_STATE.glow);
   setVal('dot-copy', DOT_MATRIX_STATE.copy);
+  setVal('dot-brush', DOT_DRAW.brush);
+  setVal('dot-brush-size', DOT_DRAW.brushSize);
 }
 
 function dotMatrixUsePreset(key) {
@@ -1494,9 +1611,13 @@ function dotMatrixSyncLabels() {
   setText('dot-size-val', `${DOT_MATRIX_STATE.dotSize}px`);
   setText('dot-speed-val', String(DOT_MATRIX_STATE.speed));
   setText('dot-glow-val', String(DOT_MATRIX_STATE.glow));
+  setText('dot-brush-size-val', String(DOT_DRAW.brushSize));
   setText('dot-spec-event', DOT_EVENT_PRESETS[DOT_MATRIX_STATE.event]?.label || DOT_MATRIX_STATE.event);
   setText('dot-spec-env', DOT_MATRIX_STATE.environment.replace(/-/g, ' '));
   setText('dot-spec-object', DOT_MATRIX_STATE.object.replace(/-/g, ' '));
+  setText('dot-env-template-label', DOT_MATRIX_STATE.environment.replace(/-/g, ' '));
+  setText('dot-cat-template-label', `${DOT_MATRIX_STATE.furPreset} ${DOT_MATRIX_STATE.mood}`);
+  setText('dot-object-template-label', DOT_MATRIX_STATE.object.replace(/-/g, ' '));
   document.querySelectorAll('#dot-preset-row .dot-chip').forEach((btn, idx) => {
     const key = Object.keys(DOT_EVENT_PRESETS)[idx];
     btn.classList.toggle('active', key === DOT_MATRIX_STATE.event);
@@ -1512,6 +1633,7 @@ function dotMatrixRecipe() {
     weather: DOT_MATRIX_STATE.weather,
     time: DOT_MATRIX_STATE.time,
     encounter_object: DOT_MATRIX_STATE.object,
+    reaction: DOT_MATRIX_STATE.reaction,
     cat: {
       mood: DOT_MATRIX_STATE.mood,
       count: DOT_MATRIX_STATE.catCount,
@@ -1529,8 +1651,179 @@ function dotMatrixRecipe() {
       fx: DOT_MATRIX_STATE.fx,
       palette: DOT_MATRIX_STATE.palette
     },
+    layers: {
+      environment: dotMatrixSerializeLayer(DOT_LAYERS.environment),
+      cat: dotMatrixSerializeLayer(DOT_LAYERS.cat),
+      encounter: dotMatrixSerializeLayer(DOT_LAYERS.encounter)
+    },
     copy: DOT_MATRIX_STATE.copy
   };
+}
+
+function dotMatrixSerializeLayer(layer) {
+  return (layer || dotMatrixBlankLayer()).map(row => row.map(color => color || null));
+}
+
+function dotMatrixBlankLayer() {
+  return Array.from({ length: DOT_DRAW.rows }, () => Array.from({ length: DOT_DRAW.cols }, () => null));
+}
+
+function dotMatrixPut(layer, x, y, color) {
+  if (!layer || x < 0 || y < 0 || x >= DOT_DRAW.cols || y >= DOT_DRAW.rows) return;
+  layer[y][x] = color;
+}
+
+function dotMatrixRect(layer, x, y, w, h, color) {
+  for (let yy = y; yy < y + h; yy++) for (let xx = x; xx < x + w; xx++) dotMatrixPut(layer, xx, yy, color);
+}
+
+function dotMatrixMap(layer, x, y, rows, palette) {
+  rows.forEach((row, yy) => [...row].forEach((ch, xx) => {
+    if (palette[ch]) dotMatrixPut(layer, x + xx, y + yy, palette[ch]);
+  }));
+}
+
+function dotMatrixEnvironmentTemplate(kind) {
+  const pal = DOT_PALETTES[DOT_MATRIX_STATE.palette] || DOT_PALETTES.cool;
+  const layer = dotMatrixBlankLayer();
+  dotMatrixRect(layer, 0, 17, 32, 3, pal.ground);
+  dotMatrixRect(layer, 0, 19, 32, 1, pal.ground2);
+  if (kind === 'forest') {
+    [4, 12, 21, 28].forEach(x => {
+      dotMatrixRect(layer, x, 11, 1, 6, '#854d0e');
+      dotMatrixMap(layer, x - 2, 7, ['  g  ',' ggg ','ggggg',' ggg '], { g:'#16a34a' });
+    });
+  } else if (kind === 'market') {
+    dotMatrixRect(layer, 5, 7, 18, 2, '#ef4444');
+    dotMatrixRect(layer, 5, 9, 18, 1, '#f8fafc');
+    dotMatrixRect(layer, 7, 10, 14, 7, '#1f2937');
+    dotMatrixMap(layer, 25, 7, [' y ','yyy',' y '], { y:'#facc15' });
+  } else if (kind === 'rooftop') {
+    dotMatrixRect(layer, 0, 15, 32, 2, '#334155');
+    dotMatrixRect(layer, 4, 11, 4, 4, '#1e293b');
+    dotMatrixRect(layer, 12, 9, 6, 6, '#1e293b');
+    dotMatrixRect(layer, 23, 12, 5, 3, '#1e293b');
+  } else if (kind === 'home') {
+    dotMatrixRect(layer, 3, 7, 8, 7, '#334155');
+    dotMatrixRect(layer, 5, 9, 2, 2, '#facc15');
+    dotMatrixRect(layer, 8, 9, 2, 2, '#facc15');
+    dotMatrixRect(layer, 16, 16, 12, 1, '#7c3aed');
+  } else {
+    dotMatrixRect(layer, 2, 9, 26, 7, pal.grid);
+    dotMatrixRect(layer, 6, 12, 5, 1, '#475569');
+    dotMatrixRect(layer, 17, 11, 7, 1, '#475569');
+  }
+  return layer;
+}
+
+function dotMatrixCatTemplate() {
+  const fur = DOT_FURS[DOT_MATRIX_STATE.furPreset] || DOT_FURS.gold;
+  const p = { o:fur.o, s:fur.s, d:fur.d, w:fur.w, e:'#05080c', p:'#f9a8d4', r:'#fb7185' };
+  const layer = dotMatrixBlankLayer();
+  const mouth = DOT_MATRIX_STATE.mood === 'happy' ? 'ooppooo' : DOT_MATRIX_STATE.mood === 'spicy' ? 'oeooeoo' : DOT_MATRIX_STATE.mood === 'hurt' ? 'oereooo' : 'ooeeooo';
+  dotMatrixMap(layer, 6, 10, ['  oo       ',' ooooo  o ','oooooooooo','oooooooooo',' oooooooo ','  s    s  '], p);
+  dotMatrixMap(layer, 12, 6, [' o   o ','ooooooo','oeoeooo', mouth, 'ooooooo',' ooooo '], p);
+  return layer;
+}
+
+function dotMatrixEncounterTemplate(kind) {
+  const layer = dotMatrixBlankLayer();
+  if (kind === 'fish') dotMatrixMap(layer, 12, 10, ['  aa  ','aaaaar','  aa  '], { a:'#67e8f9', r:'#f472b6' });
+  else if (kind === 'bug') dotMatrixMap(layer, 14, 10, [' ee ','eeee',' ee '], { e:'#c084fc' });
+  else if (kind === 'sign') dotMatrixMap(layer, 10, 6, ['yyyyyyyy','y      y','yyyyyyyy','   y    ','   y    ','   y    '], { y:'#ca8a04' });
+  else if (kind === 'coin') dotMatrixMap(layer, 14, 9, [' yy ','yyyy','yyyy',' yy '], { y:'#facc15' });
+  else if (kind === 'npc-cat' || kind === 'market-cat') dotMatrixMap(layer, 11, 7, [' g   g ','ggggggg','gegeggg','ggwgggg',' ggggg ','  g g  '], { g:kind === 'market-cat' ? '#d1a65d' : '#94a3b8', e:'#05080c', w:'#fef3c7' });
+  else if (kind === 'threat') dotMatrixMap(layer, 12, 8, ['  rr  ',' rrrrr','rereer',' rrrr ',' r  r '], { r:'#ef4444', e:'#05080c' });
+  else if (kind === 'door') dotMatrixMap(layer, 12, 7, ['bbbbbbb','byyyyb','byyyyb','bydyyb','bbbbbbb','  bb   '], { b:'#78350f', y:'#fbbf24', d:'#05080c' });
+  else if (kind === 'bed') dotMatrixMap(layer, 9, 11, ['ppppppppp','pbbbbbbbp','pbbbbbbbp','sssssssss'], { p:'#a78bfa', b:'#312e81', s:'#475569' });
+  else dotMatrixMap(layer, 11, 10, ['bbbbbb','bssdsb','bsdsdb','bddssb','bbbbbb'], { b:'#a16207', s:'#d97706', d:'#78350f' });
+  return layer;
+}
+
+function dotMatrixMaybeResetTemplateLayers(force = false) {
+  const environmentKey = `${DOT_MATRIX_STATE.environment}:${DOT_MATRIX_STATE.palette}`;
+  if (force || !DOT_LAYERS.environment || DOT_LAST_TEMPLATES.environment !== environmentKey) {
+    DOT_LAYERS.environment = dotMatrixEnvironmentTemplate(DOT_MATRIX_STATE.environment);
+    DOT_LAST_TEMPLATES.environment = environmentKey;
+  }
+  if (force || !DOT_LAYERS.cat || DOT_LAST_TEMPLATES.furPreset !== `${DOT_MATRIX_STATE.furPreset}:${DOT_MATRIX_STATE.mood}`) {
+    DOT_LAYERS.cat = dotMatrixCatTemplate();
+    DOT_LAST_TEMPLATES.furPreset = `${DOT_MATRIX_STATE.furPreset}:${DOT_MATRIX_STATE.mood}`;
+  }
+  if (force || !DOT_LAYERS.encounter || DOT_LAST_TEMPLATES.object !== DOT_MATRIX_STATE.object) {
+    DOT_LAYERS.encounter = dotMatrixEncounterTemplate(DOT_MATRIX_STATE.object);
+    DOT_LAST_TEMPLATES.object = DOT_MATRIX_STATE.object;
+  }
+}
+
+function dotMatrixLayerCanvas(id, layer) {
+  const canvas = document.getElementById(id);
+  if (!canvas || !layer) return;
+  const ctx = canvas.getContext('2d');
+  const cw = canvas.width / DOT_DRAW.cols;
+  const ch = canvas.height / DOT_DRAW.rows;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = '#05080c';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  if (DOT_MATRIX_STATE.grid) {
+    ctx.strokeStyle = 'rgba(148,163,184,.12)';
+    ctx.lineWidth = 1;
+    for (let x = 0; x <= DOT_DRAW.cols; x++) { ctx.beginPath(); ctx.moveTo(x * cw, 0); ctx.lineTo(x * cw, canvas.height); ctx.stroke(); }
+    for (let y = 0; y <= DOT_DRAW.rows; y++) { ctx.beginPath(); ctx.moveTo(0, y * ch); ctx.lineTo(canvas.width, y * ch); ctx.stroke(); }
+  }
+  layer.forEach((row, y) => row.forEach((color, x) => {
+    if (!color) return;
+    ctx.fillStyle = color;
+    ctx.fillRect(x * cw + 1, y * ch + 1, cw - 2, ch - 2);
+  }));
+}
+
+function dotMatrixRenderEditors() {
+  dotMatrixLayerCanvas('dot-draw-environment', DOT_LAYERS.environment);
+  dotMatrixLayerCanvas('dot-draw-cat', DOT_LAYERS.cat);
+  dotMatrixLayerCanvas('dot-draw-encounter', DOT_LAYERS.encounter);
+}
+
+function dotMatrixBindDrawing() {
+  DOT_DRAW_BOUND = true;
+  [
+    ['dot-draw-environment', 'environment'],
+    ['dot-draw-cat', 'cat'],
+    ['dot-draw-encounter', 'encounter']
+  ].forEach(([id, layerName]) => {
+    const canvas = document.getElementById(id);
+    if (!canvas) return;
+    canvas.addEventListener('contextmenu', e => e.preventDefault());
+    const paint = e => {
+      if (e.buttons === 0 && e.type !== 'pointerdown') return;
+      const rect = canvas.getBoundingClientRect();
+      const x = Math.floor((e.clientX - rect.left) / rect.width * DOT_DRAW.cols);
+      const y = Math.floor((e.clientY - rect.top) / rect.height * DOT_DRAW.rows);
+      const erase = e.button === 2 || e.ctrlKey || DOT_DRAW.brush === '#000000';
+      const layer = DOT_LAYERS[layerName] || dotMatrixBlankLayer();
+      DOT_LAYERS[layerName] = layer;
+      const radius = Math.max(1, DOT_DRAW.brushSize);
+      for (let yy = 0; yy < radius; yy++) for (let xx = 0; xx < radius; xx++) dotMatrixPut(layer, x + xx, y + yy, erase ? null : DOT_DRAW.brush);
+      dotMatrixRenderEditors();
+      dotMatrixStart();
+    };
+    canvas.addEventListener('pointerdown', e => { canvas.setPointerCapture(e.pointerId); paint(e); });
+    canvas.addEventListener('pointermove', paint);
+  });
+}
+
+function dotMatrixResetLayer(layerName) {
+  if (layerName === 'environment') DOT_LAYERS.environment = dotMatrixEnvironmentTemplate(DOT_MATRIX_STATE.environment);
+  if (layerName === 'cat') DOT_LAYERS.cat = dotMatrixCatTemplate();
+  if (layerName === 'encounter') DOT_LAYERS.encounter = dotMatrixEncounterTemplate(DOT_MATRIX_STATE.object);
+  dotMatrixRenderEditors();
+  dotMatrixStart();
+}
+
+function dotMatrixClearLayer(layerName) {
+  DOT_LAYERS[layerName] = dotMatrixBlankLayer();
+  dotMatrixRenderEditors();
+  dotMatrixStart();
 }
 
 function dotMatrixToggleMotion() {
@@ -1598,15 +1891,60 @@ function dotMatrixDraw(now) {
   ctx.fillStyle = pal.bg;
   ctx.fillRect(0, 0, w, h);
   dotSky(ctx, w, h, d, t, pal);
-  dotBackdrop(ctx, w, h, d, t, pal);
-  dotScene(ctx, w, h, d, t, pal);
-  const catY = DOT_MATRIX_STATE.environment === 'home' ? 244 : 238;
-  for (let i = 0; i < DOT_MATRIX_STATE.catCount; i++) {
-    dotCat(ctx, 154 - (i * d * 8), catY + (i % 2) * d * 3 + Math.sin(t * 7 + i) * 2, d, t + i * 0.35, DOT_MATRIX_STATE.mood, i);
-  }
-  dotEncounter(ctx, w, h, d, t, DOT_MATRIX_STATE.object);
+  dotMatrixPreviewLayer(ctx, DOT_LAYERS.environment, 30, 108, Math.max(5, d * 1.25), 0.95);
+  const unit = Math.max(5, d * 1.15);
+  const encounterPos = dotMatrixEncounterPosition(t, unit);
+  dotMatrixPreviewLayer(ctx, DOT_LAYERS.encounter, encounterPos.x, encounterPos.y, unit, 1);
+  const catPositions = dotMatrixCatPositions(t, unit);
+  catPositions.forEach((pos, i) => {
+    dotMatrixPreviewLayer(ctx, DOT_LAYERS.cat, pos.x, pos.y, unit, i === 0 ? 1 : 0.82);
+  });
   if (DOT_MATRIX_STATE.fx) dotEventFx(ctx, w, h, d, t);
   if (DOT_MATRIX_STATE.bubble) dotCaption(ctx, w, h);
+}
+
+function dotMatrixPreviewLayer(ctx, layer, ox, oy, unit, alpha = 1) {
+  if (!layer) return;
+  layer.forEach((row, y) => row.forEach((color, x) => {
+    if (color) dotPixel(ctx, ox + x * unit, oy + y * unit, unit * 0.82, color, alpha);
+  }));
+}
+
+function dotMatrixEncounterPosition(t, unit) {
+  const wobble = DOT_MATRIX_STATE.motion ? Math.sin(t * 1.8) * unit : 0;
+  if (DOT_MATRIX_STATE.reaction === 'chase') return { x:430 + wobble + Math.sin(t * 3) * 18, y:106 };
+  if (DOT_MATRIX_STATE.reaction === 'back-away') return { x:498 + wobble, y:112 };
+  if (DOT_MATRIX_STATE.reaction === 'surround') return { x:420 + wobble, y:108 };
+  if (DOT_MATRIX_STATE.reaction === 'rest') return { x:410, y:120 };
+  return { x:438 + wobble, y:112 };
+}
+
+function dotMatrixCatPositions(t, unit) {
+  const baseY = DOT_MATRIX_STATE.environment === 'home' ? 130 : 124;
+  const bob = DOT_MATRIX_STATE.motion ? Math.sin(t * 7) * unit * 0.4 : 0;
+  const reaction = DOT_MATRIX_STATE.reaction;
+  const count = Math.max(1, Math.min(3, DOT_MATRIX_STATE.catCount));
+  const positions = [];
+  for (let i = 0; i < count; i++) {
+    let x = 98 - i * unit * 7;
+    let y = baseY + i * unit * 2 + bob;
+    if (reaction === 'advance') x += Math.sin(t * 2.6) * unit * 3 + unit * 7;
+    if (reaction === 'back-away') x -= Math.abs(Math.sin(t * 2.2)) * unit * 4;
+    if (reaction === 'jump') y -= Math.abs(Math.sin(t * 3.5)) * unit * 6;
+    if (reaction === 'crouch') y += unit * 3;
+    if (reaction === 'chase') x += Math.abs(Math.sin(t * 3.2)) * unit * 10;
+    if (reaction === 'celebrate') y -= Math.abs(Math.sin(t * 6)) * unit * 4;
+    if (reaction === 'inspect') x += unit * 12 + Math.sin(t * 2) * unit * 1.5;
+    if (reaction === 'slow-blink') x += unit * 7;
+    if (reaction === 'rest') { x += unit * 6; y += unit * 4; }
+    if (reaction === 'surround') {
+      const surround = [{ x:92, y:baseY + unit * 4 }, { x:278, y:baseY + unit }, { x:172, y:baseY - unit * 4 }];
+      x = surround[i]?.x || x;
+      y = surround[i]?.y || y;
+    }
+    positions.push({ x, y });
+  }
+  return positions;
 }
 
 function dotPixel(ctx, x, y, d, color, alpha = 1) {
