@@ -2083,8 +2083,9 @@ function dotMatrixDraw(now) {
   ctx.fillStyle = pal.bg;
   ctx.fillRect(0, 0, w, h);
   dotSky(ctx, w, h, d, t, pal);
-  const envShift = DOT_MATRIX_STATE.envAction === 'scroll' || DOT_MATRIX_STATE.pacing === 'pass'
-    ? -((t * (DOT_MATRIX_STATE.speed + 4) * 4) % Math.max(1, d * 12))
+  const envScrolling = DOT_MATRIX_STATE.envAction === 'scroll' || DOT_MATRIX_STATE.pacing === 'pass';
+  const envShift = envScrolling
+    ? -((t * (DOT_MATRIX_STATE.speed + 4) * 18) % w)
     : 0;
   const envShake = DOT_MATRIX_STATE.envAction === 'shake' ? Math.sin(t * 18) * 5 : 0;
   const envAlpha = DOT_MATRIX_STATE.envAction === 'dim' ? 0.58 : 0.95;
@@ -2092,7 +2093,11 @@ function dotMatrixDraw(now) {
     ctx.fillStyle = `rgba(250,204,21,${0.08 + Math.abs(Math.sin(t * 6)) * 0.08})`;
     ctx.fillRect(0, 0, w, h);
   }
-  dotMatrixPreviewLayerFit(ctx, DOT_LAYERS.environment, envShift + envShake, 108, w, 200, envAlpha);
+  if (envScrolling) {
+    dotMatrixPreviewLayerFitTiled(ctx, DOT_LAYERS.environment, envShift + envShake, 108, w, 200, envAlpha);
+  } else {
+    dotMatrixPreviewLayerFit(ctx, DOT_LAYERS.environment, envShake, 108, w, 200, envAlpha);
+  }
   dotMatrixZoneGuides(ctx, w, h);
   if (DOT_MATRIX_STATE.envAction === 'rain-pulse') dotWeather(ctx, w, h, d, t * 1.6);
   const unit = Math.max(5, d * 1.05);
@@ -2123,6 +2128,15 @@ function dotMatrixPreviewLayerFit(ctx, layer, ox, oy, targetW, targetH, alpha = 
   layer.forEach((row, y) => row.forEach((color, x) => {
     if (color) dotPixel(ctx, ox + x * unitX, oy + y * unitY, size, color, alpha);
   }));
+}
+
+function dotMatrixPreviewLayerFitTiled(ctx, layer, ox, oy, targetW, targetH, alpha = 1) {
+  if (!layer) return;
+  const offset = ((ox % targetW) + targetW) % targetW;
+  const start = offset === 0 ? 0 : offset - targetW;
+  for (let x = start; x < targetW; x += targetW) {
+    dotMatrixPreviewLayerFit(ctx, layer, x, oy, targetW, targetH, alpha);
+  }
 }
 
 function dotMatrixZoneGuides(ctx, w, h) {
