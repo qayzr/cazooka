@@ -285,13 +285,20 @@
   .dot-chip-row{display:flex;flex-wrap:wrap;gap:7px}
   .dot-chip{border:1px solid var(--bd);background:var(--s2);color:var(--t2);border-radius:999px;padding:6px 10px;font-size:11px;cursor:pointer}
   .dot-chip.active{border-color:var(--acc);background:var(--acc-dim);color:var(--acc)}
+  .dot-event-map{display:grid;grid-template-columns:1fr;gap:6px}
+  .dot-event-map-row{display:grid;grid-template-columns:90px 1fr 94px;gap:8px;align-items:center;padding:8px 10px;background:var(--s2);border:1px solid var(--bd);border-radius:var(--r-sm);font-size:11px;color:var(--t2)}
+  .dot-event-map-row.active{border-color:var(--acc);background:var(--acc-dim);color:var(--t1)}
+  .dot-event-map-kind{font-family:var(--fm);font-size:9px;color:var(--acc);text-transform:uppercase;letter-spacing:.07em}
+  .dot-event-map-obj{font-family:var(--fm);font-size:9px;color:var(--yellow)}
   .dot-mini-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-  .dot-draw-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .dot-draw-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
   .dot-draw-card{background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);padding:12px;display:flex;flex-direction:column;gap:10px;min-width:0}
+  .dot-draw-card.env{grid-column:1/-1}
   .dot-draw-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
   .dot-draw-title{font-size:12px;font-weight:700;color:var(--t1)}
   .dot-draw-sub{font-family:var(--fm);font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em}
   .dot-draw-canvas{width:100%;aspect-ratio:1.6;background:#05080c;border:1px solid #172033;border-radius:6px;image-rendering:pixelated;cursor:crosshair;touch-action:none}
+  .dot-draw-card.env .dot-draw-canvas{aspect-ratio:4.8}
   .dot-tool-row{display:grid;grid-template-columns:1fr 44px;gap:8px;align-items:center}
   .dot-tool-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
   .dot-preview-grid{display:grid;grid-template-columns:1fr;gap:14px}
@@ -485,6 +492,25 @@
                   </select>
                 </label>
                 <label class="dot-control">
+                  <span class="dot-lbl">Environment Action</span>
+                  <select class="dot-select" id="dot-env-action" onchange="dotMatrixApplyControls()">
+                    <option value="stop">Stop at encounter</option>
+                    <option value="scroll">Keep scrolling</option>
+                    <option value="shake">Shake</option>
+                    <option value="dim">Dim focus</option>
+                    <option value="flash">Flash discovery</option>
+                    <option value="rain-pulse">Weather pulse</option>
+                  </select>
+                </label>
+                <label class="dot-control">
+                  <span class="dot-lbl">Encounter Pacing</span>
+                  <select class="dot-select" id="dot-pacing" onchange="dotMatrixApplyControls()">
+                    <option value="pause">Pause until next log encounter</option>
+                    <option value="loop">Loop while bubble is open</option>
+                    <option value="pass">Pass by automatically</option>
+                  </select>
+                </label>
+                <label class="dot-control">
                   <span class="dot-lbl">Environment Template</span>
                   <select class="dot-select" id="dot-environment" onchange="dotMatrixApplyControls()">
                     <option value="alley">Back Alley</option>
@@ -518,6 +544,10 @@
                   <textarea class="dot-textarea" id="dot-copy" oninput="dotMatrixApplyControls()">Cazooka studies the street before making a move.</textarea>
                 </label>
                 <div class="dot-chip-row" id="dot-preset-row"></div>
+                <div class="dot-note">
+                  <div class="dot-lbl" style="margin-bottom:8px">Outside Run Alignment</div>
+                  <div class="dot-event-map" id="dot-event-map"></div>
+                </div>
               </div>
             </div>
           </div>
@@ -575,16 +605,17 @@
                 <label class="dot-control">
                   <span class="dot-lbl">Encounter Drawing</span>
                   <select class="dot-select" id="dot-object" onchange="dotMatrixApplyControls()">
-                    <option value="crate">Loot crate</option>
-                    <option value="fish">Food / treat</option>
-                    <option value="bug">Tiny discovery</option>
-                    <option value="sign">Odd landmark</option>
-                    <option value="coin">Coins</option>
-                    <option value="npc-cat">NPC cat</option>
+                    <option value="observe-marker">Observe marker</option>
+                    <option value="loot-card">Find loot card</option>
+                    <option value="friend-cat">Friend NPC cat</option>
+                    <option value="rebuff-cat">Unfriendly NPC cat</option>
+                    <option value="fight-threat">Fight threat</option>
+                    <option value="escape-route">Avoid / escape route</option>
+                    <option value="pvp-rival">PvP rival cat</option>
+                    <option value="ally-cat">Ally assist cat</option>
                     <option value="market-cat">Marketplace cat</option>
-                    <option value="threat">Fight threat</option>
-                    <option value="door">Home door</option>
-                    <option value="bed">Bed</option>
+                    <option value="return-door">Return home door</option>
+                    <option value="sleep-bed">Sleep recovery bed</option>
                   </select>
                 </label>
                 <label class="dot-control">
@@ -617,7 +648,7 @@
                   <button class="dot-toggle active" id="dot-fx-btn" onclick="dotMatrixToggleFx()">FX</button>
                 </div>
               </div>
-              <div class="dot-note">Presets are based on outside-run outcomes: observing, finding cards, making allies, marketplace discounts, fights, avoidance, and returning home tired.</div>
+              <div class="dot-note">Default pacing pauses the cat at each encounter so the game can wait for the next log bubble before moving on.</div>
             </div>
           </div>
 
@@ -667,7 +698,7 @@
                 <div class="dot-draw-head">
                   <div><div class="dot-draw-title">Environment Canvas</div><div class="dot-draw-sub" id="dot-env-template-label">Alley</div></div>
                 </div>
-                <canvas class="dot-draw-canvas" id="dot-draw-environment" width="320" height="200"></canvas>
+                <canvas class="dot-draw-canvas" id="dot-draw-environment" width="960" height="200"></canvas>
                 <div class="dot-tool-actions">
                   <button class="dot-toggle" onclick="dotMatrixResetLayer('environment')">Reset</button>
                   <button class="dot-toggle" onclick="dotMatrixClearLayer('environment')">Clear</button>
@@ -1025,13 +1056,18 @@ let EDITING_RUN_TEMPLATE_ID = null;
 let DOT_MATRIX_FRAME = null;
 let DOT_MATRIX_STARTED_AT = 0;
 let DOT_MATRIX_STATE = {
-  event:'observe', environment:'alley', weather:'clear', time:'night', object:'crate',
+  event:'observe', environment:'alley', weather:'clear', time:'night', object:'observe-marker',
   mood:'happy', catCount:1, furPreset:'gold', accentColor:'#ffc860',
-  reaction:'observe',
+  reaction:'observe', envAction:'stop', pacing:'pause',
   palette:'cool', dotSize:6, speed:7, glow:4, motion:true, grid:true, bubble:true, fx:true,
   copy:'Cazooka studies the street before making a move.'
 };
-const DOT_DRAW = { cols:32, rows:20, brush:'#ffc860', brushSize:1, active:false };
+const DOT_LAYER_SPECS = {
+  environment: { cols:96, rows:20 },
+  cat: { cols:32, rows:20 },
+  encounter: { cols:32, rows:20 }
+};
+const DOT_DRAW = { brush:'#ffc860', brushSize:1, active:false };
 let DOT_LAYERS = { environment:null, cat:null, encounter:null };
 let DOT_LAST_TEMPLATES = { environment:null, furPreset:null, object:null };
 let DOT_DRAW_BOUND = false;
@@ -1475,51 +1511,51 @@ async function checkSession() {
 /* ── Dot Matrix Lab ── */
 const DOT_EVENT_PRESETS = {
   observe: {
-    label:'Observe', environment:'alley', weather:'clear', time:'night', object:'sign', mood:'neutral', reaction:'observe',
+    label:'Observe', environment:'alley', weather:'clear', time:'night', object:'observe-marker', mood:'neutral', reaction:'observe', envAction:'stop', pacing:'pause',
     copy:'Cazooka studies the street before making a move.'
   },
   find: {
-    label:'Find Loot', environment:'forest', weather:'spark', time:'dusk', object:'crate', mood:'happy', reaction:'inspect',
+    label:'Find Loot', environment:'forest', weather:'spark', time:'dusk', object:'loot-card', mood:'happy', reaction:'inspect', envAction:'flash', pacing:'pause',
     copy:'Cazooka spots something useful tucked under the leaves.'
   },
   'friend-win': {
-    label:'Befriend', environment:'market', weather:'clear', time:'night', object:'npc-cat', mood:'happy', reaction:'slow-blink',
+    label:'Befriend', environment:'market', weather:'clear', time:'night', object:'friend-cat', mood:'happy', reaction:'slow-blink', envAction:'stop', pacing:'pause',
     copy:'Cazooka slow-blinks. A new ally accepts the invitation.'
   },
   'friend-lose': {
-    label:'Rebuffed', environment:'rooftop', weather:'wind', time:'night', object:'npc-cat', mood:'tired', reaction:'back-away',
+    label:'Rebuffed', environment:'rooftop', weather:'wind', time:'night', object:'rebuff-cat', mood:'tired', reaction:'back-away', envAction:'dim', pacing:'pause',
     copy:'Cazooka offers a polite chirp, but the stranger keeps walking.'
   },
   'battle-win': {
-    label:'Win Fight', environment:'alley', weather:'rain', time:'night', object:'threat', mood:'spicy', reaction:'chase',
+    label:'Win Fight', environment:'alley', weather:'rain', time:'night', object:'fight-threat', mood:'spicy', reaction:'chase', envAction:'shake', pacing:'pause',
     copy:'Cazooka stands firm and sends trouble running.'
   },
   'battle-lose': {
-    label:'Lose Fight', environment:'alley', weather:'rain', time:'night', object:'threat', mood:'hurt', reaction:'back-away',
+    label:'Lose Fight', environment:'alley', weather:'rain', time:'night', object:'fight-threat', mood:'hurt', reaction:'back-away', envAction:'shake', pacing:'pause',
     copy:'Cazooka retreats with a bruised ego and a lesson learned.'
   },
   avoid: {
-    label:'Avoid', environment:'forest', weather:'wind', time:'day', object:'bug', mood:'neutral', reaction:'jump',
+    label:'Avoid', environment:'forest', weather:'wind', time:'day', object:'escape-route', mood:'neutral', reaction:'jump', envAction:'stop', pacing:'pause',
     copy:'Cazooka takes the quiet route and avoids a risky encounter.'
   },
   'pvp-battle': {
-    label:'PvP Battle', environment:'rooftop', weather:'wind', time:'dusk', object:'threat', mood:'spicy', reaction:'surround',
+    label:'PvP Battle', environment:'rooftop', weather:'wind', time:'dusk', object:'pvp-rival', mood:'spicy', reaction:'surround', envAction:'shake', pacing:'pause',
     copy:'Two patrol routes collide. Cazooka circles carefully.'
   },
   'ally-assist': {
-    label:'Ally Assist', environment:'alley', weather:'spark', time:'night', object:'npc-cat', mood:'happy', reaction:'surround',
+    label:'Ally Assist', environment:'alley', weather:'spark', time:'night', object:'ally-cat', mood:'happy', reaction:'surround', envAction:'flash', pacing:'pause',
     copy:'An ally steps in at exactly the right moment.'
   },
   market: {
-    label:'Marketplace', environment:'market', weather:'spark', time:'night', object:'market-cat', mood:'happy', reaction:'advance',
+    label:'Marketplace', environment:'market', weather:'spark', time:'night', object:'market-cat', mood:'happy', reaction:'advance', envAction:'stop', pacing:'pause',
     copy:'The marketplace cat recognizes Cazooka and lowers the price.'
   },
   return: {
-    label:'Return', environment:'home', weather:'clear', time:'night', object:'door', mood:'tired', reaction:'advance',
+    label:'Return', environment:'home', weather:'clear', time:'night', object:'return-door', mood:'tired', reaction:'advance', envAction:'stop', pacing:'pause',
     copy:'Cazooka returns home with a story and a suspicious prize.'
   },
   sleep: {
-    label:'Sleep', environment:'home', weather:'clear', time:'night', object:'bed', mood:'tired', reaction:'rest',
+    label:'Sleep', environment:'home', weather:'clear', time:'night', object:'sleep-bed', mood:'tired', reaction:'rest', envAction:'dim', pacing:'pause',
     copy:'Cazooka curls up and slowly recovers stamina.'
   }
 };
@@ -1547,6 +1583,8 @@ function dotMatrixApplyControls() {
   DOT_MATRIX_STATE.time = getVal('dot-time') || DOT_MATRIX_STATE.time;
   DOT_MATRIX_STATE.object = getVal('dot-object') || DOT_MATRIX_STATE.object;
   DOT_MATRIX_STATE.reaction = getVal('dot-reaction') || DOT_MATRIX_STATE.reaction;
+  DOT_MATRIX_STATE.envAction = getVal('dot-env-action') || DOT_MATRIX_STATE.envAction;
+  DOT_MATRIX_STATE.pacing = getVal('dot-pacing') || DOT_MATRIX_STATE.pacing;
   DOT_MATRIX_STATE.mood = getVal('dot-mood') || DOT_MATRIX_STATE.mood;
   DOT_MATRIX_STATE.catCount = parseInt(getVal('dot-cat-count'), 10) || 1;
   DOT_MATRIX_STATE.furPreset = getVal('dot-fur-preset') || DOT_MATRIX_STATE.furPreset;
@@ -1585,6 +1623,8 @@ function dotMatrixSetFormFromState() {
   setVal('dot-time', DOT_MATRIX_STATE.time);
   setVal('dot-object', DOT_MATRIX_STATE.object);
   setVal('dot-reaction', DOT_MATRIX_STATE.reaction);
+  setVal('dot-env-action', DOT_MATRIX_STATE.envAction);
+  setVal('dot-pacing', DOT_MATRIX_STATE.pacing);
   setVal('dot-mood', DOT_MATRIX_STATE.mood);
   setVal('dot-cat-count', DOT_MATRIX_STATE.catCount);
   setVal('dot-fur-preset', DOT_MATRIX_STATE.furPreset);
@@ -1622,6 +1662,16 @@ function dotMatrixSyncLabels() {
     const key = Object.keys(DOT_EVENT_PRESETS)[idx];
     btn.classList.toggle('active', key === DOT_MATRIX_STATE.event);
   });
+  const map = document.getElementById('dot-event-map');
+  if (map) {
+    map.innerHTML = Object.entries(DOT_EVENT_PRESETS).map(([key, preset]) => `
+      <div class="dot-event-map-row${key === DOT_MATRIX_STATE.event ? ' active' : ''}" onclick="dotMatrixUsePreset('${key}')">
+        <span class="dot-event-map-kind">${key}</span>
+        <span>${preset.label}</span>
+        <span class="dot-event-map-obj">${preset.object}</span>
+      </div>
+    `).join('');
+  }
   const output = document.getElementById('dot-config-output');
   if (output) output.value = JSON.stringify(dotMatrixRecipe(), null, 2);
 }
@@ -1630,10 +1680,12 @@ function dotMatrixRecipe() {
   return {
     event: DOT_MATRIX_STATE.event,
     environment: DOT_MATRIX_STATE.environment,
+    environment_action: DOT_MATRIX_STATE.envAction,
     weather: DOT_MATRIX_STATE.weather,
     time: DOT_MATRIX_STATE.time,
     encounter_object: DOT_MATRIX_STATE.object,
     reaction: DOT_MATRIX_STATE.reaction,
+    pacing: DOT_MATRIX_STATE.pacing,
     cat: {
       mood: DOT_MATRIX_STATE.mood,
       count: DOT_MATRIX_STATE.catCount,
@@ -1664,12 +1716,15 @@ function dotMatrixSerializeLayer(layer) {
   return (layer || dotMatrixBlankLayer()).map(row => row.map(color => color || null));
 }
 
-function dotMatrixBlankLayer() {
-  return Array.from({ length: DOT_DRAW.rows }, () => Array.from({ length: DOT_DRAW.cols }, () => null));
+function dotMatrixBlankLayer(layerName = 'cat') {
+  const spec = DOT_LAYER_SPECS[layerName] || DOT_LAYER_SPECS.cat;
+  return Array.from({ length: spec.rows }, () => Array.from({ length: spec.cols }, () => null));
 }
 
 function dotMatrixPut(layer, x, y, color) {
-  if (!layer || x < 0 || y < 0 || x >= DOT_DRAW.cols || y >= DOT_DRAW.rows) return;
+  const rows = layer ? layer.length : 0;
+  const cols = rows ? layer[0].length : 0;
+  if (!layer || x < 0 || y < 0 || x >= cols || y >= rows) return;
   layer[y][x] = color;
 }
 
@@ -1685,33 +1740,33 @@ function dotMatrixMap(layer, x, y, rows, palette) {
 
 function dotMatrixEnvironmentTemplate(kind) {
   const pal = DOT_PALETTES[DOT_MATRIX_STATE.palette] || DOT_PALETTES.cool;
-  const layer = dotMatrixBlankLayer();
-  dotMatrixRect(layer, 0, 17, 32, 3, pal.ground);
-  dotMatrixRect(layer, 0, 19, 32, 1, pal.ground2);
+  const layer = dotMatrixBlankLayer('environment');
+  dotMatrixRect(layer, 0, 17, 96, 3, pal.ground);
+  dotMatrixRect(layer, 0, 19, 96, 1, pal.ground2);
   if (kind === 'forest') {
-    [4, 12, 21, 28].forEach(x => {
+    [5, 18, 31, 46, 61, 78, 91].forEach(x => {
       dotMatrixRect(layer, x, 11, 1, 6, '#854d0e');
       dotMatrixMap(layer, x - 2, 7, ['  g  ',' ggg ','ggggg',' ggg '], { g:'#16a34a' });
     });
   } else if (kind === 'market') {
-    dotMatrixRect(layer, 5, 7, 18, 2, '#ef4444');
-    dotMatrixRect(layer, 5, 9, 18, 1, '#f8fafc');
-    dotMatrixRect(layer, 7, 10, 14, 7, '#1f2937');
-    dotMatrixMap(layer, 25, 7, [' y ','yyy',' y '], { y:'#facc15' });
+    [6, 34, 62].forEach(x => {
+      dotMatrixRect(layer, x, 7, 18, 2, '#ef4444');
+      dotMatrixRect(layer, x, 9, 18, 1, '#f8fafc');
+      dotMatrixRect(layer, x + 2, 10, 14, 7, '#1f2937');
+    });
+    [27, 55, 84].forEach(x => dotMatrixMap(layer, x, 7, [' y ','yyy',' y '], { y:'#facc15' }));
   } else if (kind === 'rooftop') {
-    dotMatrixRect(layer, 0, 15, 32, 2, '#334155');
-    dotMatrixRect(layer, 4, 11, 4, 4, '#1e293b');
-    dotMatrixRect(layer, 12, 9, 6, 6, '#1e293b');
-    dotMatrixRect(layer, 23, 12, 5, 3, '#1e293b');
+    dotMatrixRect(layer, 0, 15, 96, 2, '#334155');
+    [4, 18, 33, 52, 74, 88].forEach((x, i) => dotMatrixRect(layer, x, 8 + (i % 4), 5 + (i % 3), 7 - (i % 3), '#1e293b'));
   } else if (kind === 'home') {
     dotMatrixRect(layer, 3, 7, 8, 7, '#334155');
     dotMatrixRect(layer, 5, 9, 2, 2, '#facc15');
     dotMatrixRect(layer, 8, 9, 2, 2, '#facc15');
-    dotMatrixRect(layer, 16, 16, 12, 1, '#7c3aed');
+    dotMatrixRect(layer, 16, 16, 36, 1, '#7c3aed');
+    dotMatrixRect(layer, 60, 8, 10, 9, '#78350f');
   } else {
-    dotMatrixRect(layer, 2, 9, 26, 7, pal.grid);
-    dotMatrixRect(layer, 6, 12, 5, 1, '#475569');
-    dotMatrixRect(layer, 17, 11, 7, 1, '#475569');
+    dotMatrixRect(layer, 2, 9, 90, 7, pal.grid);
+    [6, 24, 43, 62, 81].forEach((x, i) => dotMatrixRect(layer, x, 11 + (i % 2), 7, 1, '#475569'));
   }
   return layer;
 }
@@ -1719,7 +1774,7 @@ function dotMatrixEnvironmentTemplate(kind) {
 function dotMatrixCatTemplate() {
   const fur = DOT_FURS[DOT_MATRIX_STATE.furPreset] || DOT_FURS.gold;
   const p = { o:fur.o, s:fur.s, d:fur.d, w:fur.w, e:'#05080c', p:'#f9a8d4', r:'#fb7185' };
-  const layer = dotMatrixBlankLayer();
+  const layer = dotMatrixBlankLayer('cat');
   const mouth = DOT_MATRIX_STATE.mood === 'happy' ? 'ooppooo' : DOT_MATRIX_STATE.mood === 'spicy' ? 'oeooeoo' : DOT_MATRIX_STATE.mood === 'hurt' ? 'oereooo' : 'ooeeooo';
   dotMatrixMap(layer, 6, 10, ['  oo       ',' ooooo  o ','oooooooooo','oooooooooo',' oooooooo ','  s    s  '], p);
   dotMatrixMap(layer, 12, 6, [' o   o ','ooooooo','oeoeooo', mouth, 'ooooooo',' ooooo '], p);
@@ -1727,16 +1782,14 @@ function dotMatrixCatTemplate() {
 }
 
 function dotMatrixEncounterTemplate(kind) {
-  const layer = dotMatrixBlankLayer();
-  if (kind === 'fish') dotMatrixMap(layer, 12, 10, ['  aa  ','aaaaar','  aa  '], { a:'#67e8f9', r:'#f472b6' });
-  else if (kind === 'bug') dotMatrixMap(layer, 14, 10, [' ee ','eeee',' ee '], { e:'#c084fc' });
-  else if (kind === 'sign') dotMatrixMap(layer, 10, 6, ['yyyyyyyy','y      y','yyyyyyyy','   y    ','   y    ','   y    '], { y:'#ca8a04' });
-  else if (kind === 'coin') dotMatrixMap(layer, 14, 9, [' yy ','yyyy','yyyy',' yy '], { y:'#facc15' });
-  else if (kind === 'npc-cat' || kind === 'market-cat') dotMatrixMap(layer, 11, 7, [' g   g ','ggggggg','gegeggg','ggwgggg',' ggggg ','  g g  '], { g:kind === 'market-cat' ? '#d1a65d' : '#94a3b8', e:'#05080c', w:'#fef3c7' });
-  else if (kind === 'threat') dotMatrixMap(layer, 12, 8, ['  rr  ',' rrrrr','rereer',' rrrr ',' r  r '], { r:'#ef4444', e:'#05080c' });
-  else if (kind === 'door') dotMatrixMap(layer, 12, 7, ['bbbbbbb','byyyyb','byyyyb','bydyyb','bbbbbbb','  bb   '], { b:'#78350f', y:'#fbbf24', d:'#05080c' });
-  else if (kind === 'bed') dotMatrixMap(layer, 9, 11, ['ppppppppp','pbbbbbbbp','pbbbbbbbp','sssssssss'], { p:'#a78bfa', b:'#312e81', s:'#475569' });
-  else dotMatrixMap(layer, 11, 10, ['bbbbbb','bssdsb','bsdsdb','bddssb','bbbbbb'], { b:'#a16207', s:'#d97706', d:'#78350f' });
+  const layer = dotMatrixBlankLayer('encounter');
+  if (kind === 'loot-card') dotMatrixMap(layer, 12, 8, ['bbbbbb','byyyyb','byccyb','byyyyb','bbbbbb'], { b:'#a16207', y:'#facc15', c:'#60a5fa' });
+  else if (kind === 'friend-cat' || kind === 'rebuff-cat' || kind === 'ally-cat' || kind === 'market-cat' || kind === 'pvp-rival') dotMatrixMap(layer, 11, 7, [' g   g ','ggggggg','gegeggg','ggwgggg',' ggggg ','  g g  '], { g:kind === 'market-cat' ? '#d1a65d' : kind === 'pvp-rival' ? '#ef4444' : kind === 'ally-cat' ? '#34d399' : kind === 'rebuff-cat' ? '#64748b' : '#94a3b8', e:'#05080c', w:'#fef3c7' });
+  else if (kind === 'fight-threat') dotMatrixMap(layer, 12, 8, ['  rr  ',' rrrrr','rereer',' rrrr ',' r  r '], { r:'#ef4444', e:'#05080c' });
+  else if (kind === 'escape-route') dotMatrixMap(layer, 10, 9, ['  s     ',' sss    ','ssssssss','   sss  ','    s   '], { s:'#94a3b8' });
+  else if (kind === 'return-door') dotMatrixMap(layer, 12, 7, ['bbbbbbb','byyyyb','byyyyb','bydyyb','bbbbbbb','  bb   '], { b:'#78350f', y:'#fbbf24', d:'#05080c' });
+  else if (kind === 'sleep-bed') dotMatrixMap(layer, 9, 11, ['ppppppppp','pbbbbbbbp','pbbbbbbbp','sssssssss'], { p:'#a78bfa', b:'#312e81', s:'#475569' });
+  else dotMatrixMap(layer, 10, 6, ['yyyyyyyy','y      y','yyyyyyyy','   y    ','   y    ','   y    '], { y:'#ca8a04' });
   return layer;
 }
 
@@ -1760,16 +1813,18 @@ function dotMatrixLayerCanvas(id, layer) {
   const canvas = document.getElementById(id);
   if (!canvas || !layer) return;
   const ctx = canvas.getContext('2d');
-  const cw = canvas.width / DOT_DRAW.cols;
-  const ch = canvas.height / DOT_DRAW.rows;
+  const rows = layer.length;
+  const cols = rows ? layer[0].length : 1;
+  const cw = canvas.width / cols;
+  const ch = canvas.height / rows;
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.fillStyle = '#05080c';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   if (DOT_MATRIX_STATE.grid) {
     ctx.strokeStyle = 'rgba(148,163,184,.12)';
     ctx.lineWidth = 1;
-    for (let x = 0; x <= DOT_DRAW.cols; x++) { ctx.beginPath(); ctx.moveTo(x * cw, 0); ctx.lineTo(x * cw, canvas.height); ctx.stroke(); }
-    for (let y = 0; y <= DOT_DRAW.rows; y++) { ctx.beginPath(); ctx.moveTo(0, y * ch); ctx.lineTo(canvas.width, y * ch); ctx.stroke(); }
+    for (let x = 0; x <= cols; x++) { ctx.beginPath(); ctx.moveTo(x * cw, 0); ctx.lineTo(x * cw, canvas.height); ctx.stroke(); }
+    for (let y = 0; y <= rows; y++) { ctx.beginPath(); ctx.moveTo(0, y * ch); ctx.lineTo(canvas.width, y * ch); ctx.stroke(); }
   }
   layer.forEach((row, y) => row.forEach((color, x) => {
     if (!color) return;
@@ -1797,10 +1852,12 @@ function dotMatrixBindDrawing() {
     const paint = e => {
       if (e.buttons === 0 && e.type !== 'pointerdown') return;
       const rect = canvas.getBoundingClientRect();
-      const x = Math.floor((e.clientX - rect.left) / rect.width * DOT_DRAW.cols);
-      const y = Math.floor((e.clientY - rect.top) / rect.height * DOT_DRAW.rows);
+      const layer = DOT_LAYERS[layerName] || dotMatrixBlankLayer(layerName);
+      const rows = layer.length;
+      const cols = rows ? layer[0].length : 1;
+      const x = Math.floor((e.clientX - rect.left) / rect.width * cols);
+      const y = Math.floor((e.clientY - rect.top) / rect.height * rows);
       const erase = e.button === 2 || e.ctrlKey || DOT_DRAW.brush === '#000000';
-      const layer = DOT_LAYERS[layerName] || dotMatrixBlankLayer();
       DOT_LAYERS[layerName] = layer;
       const radius = Math.max(1, DOT_DRAW.brushSize);
       for (let yy = 0; yy < radius; yy++) for (let xx = 0; xx < radius; xx++) dotMatrixPut(layer, x + xx, y + yy, erase ? null : DOT_DRAW.brush);
@@ -1821,7 +1878,7 @@ function dotMatrixResetLayer(layerName) {
 }
 
 function dotMatrixClearLayer(layerName) {
-  DOT_LAYERS[layerName] = dotMatrixBlankLayer();
+  DOT_LAYERS[layerName] = dotMatrixBlankLayer(layerName);
   dotMatrixRenderEditors();
   dotMatrixStart();
 }
@@ -1891,7 +1948,17 @@ function dotMatrixDraw(now) {
   ctx.fillStyle = pal.bg;
   ctx.fillRect(0, 0, w, h);
   dotSky(ctx, w, h, d, t, pal);
-  dotMatrixPreviewLayer(ctx, DOT_LAYERS.environment, 30, 108, Math.max(5, d * 1.25), 0.95);
+  const envShift = DOT_MATRIX_STATE.envAction === 'scroll' || DOT_MATRIX_STATE.pacing === 'pass'
+    ? -((t * (DOT_MATRIX_STATE.speed + 4) * 4) % Math.max(1, d * 12))
+    : 0;
+  const envShake = DOT_MATRIX_STATE.envAction === 'shake' ? Math.sin(t * 18) * 5 : 0;
+  const envAlpha = DOT_MATRIX_STATE.envAction === 'dim' ? 0.58 : 0.95;
+  if (DOT_MATRIX_STATE.envAction === 'flash') {
+    ctx.fillStyle = `rgba(250,204,21,${0.08 + Math.abs(Math.sin(t * 6)) * 0.08})`;
+    ctx.fillRect(0, 0, w, h);
+  }
+  dotMatrixPreviewLayer(ctx, DOT_LAYERS.environment, -34 + envShift + envShake, 108, Math.max(5, d * 0.86), envAlpha);
+  if (DOT_MATRIX_STATE.envAction === 'rain-pulse') dotWeather(ctx, w, h, d, t * 1.6);
   const unit = Math.max(5, d * 1.15);
   const encounterPos = dotMatrixEncounterPosition(t, unit);
   dotMatrixPreviewLayer(ctx, DOT_LAYERS.encounter, encounterPos.x, encounterPos.y, unit, 1);
@@ -1924,9 +1991,11 @@ function dotMatrixCatPositions(t, unit) {
   const bob = DOT_MATRIX_STATE.motion ? Math.sin(t * 7) * unit * 0.4 : 0;
   const reaction = DOT_MATRIX_STATE.reaction;
   const count = Math.max(1, Math.min(3, DOT_MATRIX_STATE.catCount));
+  const arrival = DOT_MATRIX_STATE.pacing === 'pause' ? Math.min(1, t / 1.4) : 1;
+  const passBy = DOT_MATRIX_STATE.pacing === 'pass' ? ((t * 58) % 620) : 0;
   const positions = [];
   for (let i = 0; i < count; i++) {
-    let x = 98 - i * unit * 7;
+    let x = 74 + arrival * 92 + passBy - i * unit * 7;
     let y = baseY + i * unit * 2 + bob;
     if (reaction === 'advance') x += Math.sin(t * 2.6) * unit * 3 + unit * 7;
     if (reaction === 'back-away') x -= Math.abs(Math.sin(t * 2.2)) * unit * 4;
