@@ -1086,8 +1086,6 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .trd-menu-name{font-family:var(--fd);font-size:16px;font-weight:700;color:var(--t1)}
 .trd-menu-desc{font-family:var(--fb);font-size:12px;color:var(--t2)}
 .trd-pickable{cursor:pointer;position:relative}
-.trd-select-badge{position:absolute;top:6px;left:6px;width:22px;height:22px;border-radius:50%;background:var(--acc);color:#0D1117;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;opacity:0;transition:opacity .12s;pointer-events:none;z-index:2}
-.trd-selected .trd-select-badge{opacity:1}
 .trd-selected .cv{box-shadow:0 0 0 3px var(--bg),0 0 0 6px var(--acc)}
 .trd-bulkbar{flex-shrink:0;display:flex;align-items:center;gap:10px;padding:12px 20px;background:var(--s1);border-top:1px solid var(--bd)}
 .trd-bulk-count{font-family:var(--fm);font-size:11px;color:var(--t2);flex-shrink:0;white-space:nowrap}
@@ -6740,10 +6738,15 @@ function tcCardPickerGridHtml() {
     const sel = TC_SELECTED.has(card.id);
     return `<div class="gh-card-cell trd-pickable${sel?' trd-selected':''}" data-peek-card="${card.id}" onclick="tcToggleSelect('${card.id}')">
       ${buildCardFaceHtml(card, { standardLayout: true })}
-      <div class="trd-select-badge">✓</div>
+      <div class="gh-card-meta">
+        <span class="gh-card-badge ${sel ? 'active' : 'inactive'}">${sel ? '✓ Selected' : 'Tap to select'}</span>
+      </div>
     </div>`;
   }).join('');
-  return `<div class="gh-card-grid">${grid}</div>`;
+  // .gh-cards-tab defines --gh-card-w (the responsive column width the
+  // Cards tab uses) — without this wrapper the grid falls back to one
+  // oversized column per row.
+  return `<div class="gh-cards-tab"><div class="gh-card-grid">${grid}</div></div>`;
 }
 
 function renderTradeCenter() {
@@ -6862,20 +6865,20 @@ function tcRenderBuy() {
   if (!TC_LISTINGS.length) {
     body = `<div class="gh-empty">No listings available right now. Check back later!</div>`;
   } else {
-    body = `<div class="gh-card-grid">${TC_LISTINGS.map(l => {
+    body = `<div class="gh-cards-tab"><div class="gh-card-grid">${TC_LISTINGS.map(l => {
       const card = getCard(l.card_id);
       if (!card) return '';
       const can = coins >= l.price;
       const timeLeft = l.expires_at ? tcFormatTimeLeft(l.expires_at) : '';
       return `<div class="gh-card-cell">
         ${buildCardFaceHtml(card, { standardLayout: true })}
-        <div class="trd-buy-foot">
+        <div class="gh-card-meta trd-buy-foot">
           <span class="trd-buy-price">🪙 ${l.price}</span>
           ${timeLeft ? `<span class="trd-buy-time">${timeLeft}</span>` : ''}
           <button class="mkt-buy-btn"${can ? '' : ' disabled'} onclick="tcBuyListing('${l.id}')">Buy</button>
         </div>
       </div>`;
-    }).join('')}</div>`;
+    }).join('')}</div></div>`;
   }
   return `
     <div class="mkt-hdr">
@@ -7028,7 +7031,7 @@ function tcRenderRespond() {
     </div>
     <div class="mkt-body">
       <div class="gh-cards-title" style="margin-bottom:8px">${escapeAttr(offer.from_callsign)} is offering:</div>
-      <div class="gh-card-grid" style="margin-bottom:16px">${offeredHtml}</div>
+      <div class="gh-cards-tab" style="margin-bottom:16px"><div class="gh-card-grid">${offeredHtml}</div></div>
       <div class="gh-cards-title" style="margin-bottom:8px">Pick cards to offer back:</div>
       ${tcCardPickerToolbarHtml()}
       ${tcCardPickerGridHtml()}
