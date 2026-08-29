@@ -460,13 +460,14 @@
           <div class="dot-panel">
             <div class="dot-panel-head">
               <div class="dot-panel-title">Scenario</div>
-              <div class="dot-panel-sub">Choose the outside-run moment and cat reaction.</div>
+            <div class="dot-panel-sub">Choose the outside-run baseline or encounter reaction.</div>
             </div>
             <div class="dot-panel-body">
               <div class="dot-controls">
                 <label class="dot-control">
-                  <span class="dot-lbl">Encounter Type</span>
+                  <span class="dot-lbl">Run Moment</span>
                   <select class="dot-select" id="dot-event" onchange="dotMatrixUsePreset(this.value)">
+                    <option value="walking">Walking around</option>
                     <option value="observe">Observe surroundings</option>
                     <option value="find">Find loot</option>
                     <option value="friend-win">Befriend NPC</option>
@@ -547,7 +548,7 @@
                 </label>
                 <div class="dot-chip-row" id="dot-preset-row"></div>
                 <div class="dot-note">
-                  <div class="dot-lbl" style="margin-bottom:8px">Outside Run Alignment</div>
+                  <div class="dot-lbl" style="margin-bottom:8px">Outside Run Moments</div>
                   <div class="dot-event-map" id="dot-event-map"></div>
                 </div>
                 <div class="dot-save-row">
@@ -654,7 +655,7 @@
                   <button class="dot-toggle active" id="dot-fx-btn" onclick="dotMatrixToggleFx()">FX</button>
                 </div>
               </div>
-              <div class="dot-note">Default pacing pauses the cat at each encounter so the game can wait for the next log bubble before moving on.</div>
+              <div class="dot-note">Walking loops the Back Alley continuously. Encounter presets pause by default so the game can wait for the next log bubble before moving on.</div>
             </div>
           </div>
 
@@ -1107,11 +1108,11 @@ let EDITING_RUN_TEMPLATE_ID = null;
 let DOT_MATRIX_FRAME = null;
 let DOT_MATRIX_STARTED_AT = 0;
 let DOT_MATRIX_STATE = {
-  event:'observe', environment:'alley', weather:'clear', time:'night', object:'observe-marker',
+  event:'walking', environment:'alley', weather:'clear', time:'night', object:'observe-marker',
   mood:'happy', catCount:1, furPreset:'gold', accentColor:'#ffc860',
-  reaction:'observe', envAction:'stop', pacing:'pause',
+  reaction:'advance', envAction:'scroll', pacing:'loop',
   palette:'cool', dotSize:6, speed:7, glow:4, motion:true, grid:true, bubble:true, fx:true,
-  copy:'Cazooka studies the street before making a move.'
+  copy:'Cazooka pads through the back alley, scanning for the next interesting thing.'
 };
 const DOT_LAYER_SPECS = {
   environment: { cols:96, rows:20 },
@@ -1561,6 +1562,10 @@ async function checkSession() {
 
 /* ── Dot Matrix Lab ── */
 const DOT_EVENT_PRESETS = {
+  walking: {
+    label:'Walking', environment:'alley', weather:'clear', time:'night', object:'observe-marker', mood:'happy', reaction:'advance', envAction:'scroll', pacing:'loop',
+    copy:'Cazooka pads through the back alley, scanning for the next interesting thing.'
+  },
   observe: {
     label:'Observe', environment:'alley', weather:'clear', time:'night', object:'observe-marker', mood:'neutral', reaction:'observe', envAction:'stop', pacing:'pause',
     copy:'Cazooka studies the street before making a move.'
@@ -1815,6 +1820,8 @@ function dotMatrixRecipe() {
       style: 'dot-matrix',
       aspect_ratio: '16:6',
       zones: ['cat', 'travel_space', 'encounter'],
+      baseline_event: 'walking',
+      infinite_environment_loop: DOT_MATRIX_STATE.event === 'walking' || DOT_MATRIX_STATE.envAction === 'scroll',
       dot_size: DOT_MATRIX_STATE.dotSize,
       speed: DOT_MATRIX_STATE.speed,
       glow: DOT_MATRIX_STATE.glow,
@@ -2101,8 +2108,10 @@ function dotMatrixDraw(now) {
   dotMatrixZoneGuides(ctx, w, h);
   if (DOT_MATRIX_STATE.envAction === 'rain-pulse') dotWeather(ctx, w, h, d, t * 1.6);
   const unit = Math.max(5, d * 1.05);
-  const encounterPos = dotMatrixEncounterPosition(t, unit);
-  dotMatrixPreviewLayer(ctx, DOT_LAYERS.encounter, encounterPos.x, encounterPos.y, unit, 1);
+  if (DOT_MATRIX_STATE.event !== 'walking') {
+    const encounterPos = dotMatrixEncounterPosition(t, unit);
+    dotMatrixPreviewLayer(ctx, DOT_LAYERS.encounter, encounterPos.x, encounterPos.y, unit, 1);
+  }
   const catPositions = dotMatrixCatPositions(t, unit);
   catPositions.forEach((pos, i) => {
     dotMatrixPreviewLayer(ctx, DOT_LAYERS.cat, pos.x, pos.y, unit, i === 0 ? 1 : 0.82);
