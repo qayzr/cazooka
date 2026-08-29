@@ -258,7 +258,7 @@
   @media(max-width:900px){.ability-effect-row{grid-template-columns:1fr 1fr}.ability-effect-text{grid-column:1/-1}}
 
   /* ── Dot Matrix Lab ── */
-  .dot-lab{display:grid;grid-template-columns:minmax(280px,360px) 1fr;gap:18px;align-items:start}
+  .dot-lab{display:grid;grid-template-columns:minmax(260px,330px) minmax(260px,330px) 1fr;gap:18px;align-items:start}
   .dot-panel{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);overflow:hidden}
   .dot-panel-head{padding:14px 16px;border-bottom:1px solid var(--bd)}
   .dot-panel-title{font-size:13px;font-weight:700}
@@ -278,12 +278,21 @@
   .dot-toggle-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
   .dot-toggle{padding:9px 10px;background:var(--s2);border:1px solid var(--bd);border-radius:var(--r-sm);color:var(--t2);font-size:12px;cursor:pointer}
   .dot-toggle.active{border-color:var(--acc);background:var(--acc-dim);color:var(--acc)}
+  .dot-color-row{display:grid;grid-template-columns:1fr 44px;gap:8px;align-items:center}
+  .dot-color{width:44px;height:34px;padding:2px;background:var(--s2);border:1px solid var(--bd);border-radius:var(--r-sm);cursor:pointer}
+  .dot-textarea{padding:9px 12px;background:var(--s2);border:1px solid var(--bd);border-radius:var(--r-sm);color:var(--t1);font-size:12px;outline:none;font-family:var(--fm);resize:vertical;width:100%;min-height:70px}
+  .dot-textarea:focus{border-color:var(--acc)}
+  .dot-chip-row{display:flex;flex-wrap:wrap;gap:7px}
+  .dot-chip{border:1px solid var(--bd);background:var(--s2);color:var(--t2);border-radius:999px;padding:6px 10px;font-size:11px;cursor:pointer}
+  .dot-chip.active{border-color:var(--acc);background:var(--acc-dim);color:var(--acc)}
+  .dot-mini-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   .dot-note{font-size:12px;color:var(--t3);line-height:1.55;background:var(--s2);border:1px solid var(--bd);border-radius:var(--r-sm);padding:12px}
   .dot-spec-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
   .dot-spec{background:var(--s2);border:1px solid var(--bd);border-radius:var(--r-sm);padding:12px}
   .dot-spec-k{font-family:var(--fm);font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--t3);margin-bottom:5px}
   .dot-spec-v{font-size:16px;font-weight:800;color:var(--t1)}
-  @media(max-width:900px){.dot-lab{grid-template-columns:1fr}.dot-spec-grid{grid-template-columns:1fr}}
+  @media(max-width:1180px){.dot-lab{grid-template-columns:1fr 1fr}.dot-panel.preview{grid-column:1/-1}}
+  @media(max-width:760px){.dot-lab{grid-template-columns:1fr}.dot-panel.preview{grid-column:auto}.dot-spec-grid,.dot-mini-grid{grid-template-columns:1fr}}
 
   a.game-link{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--acc);text-decoration:none}
   a.game-link:hover{text-decoration:underline}
@@ -423,38 +432,142 @@
       <!-- Dot Matrix Lab -->
       <div class="page" id="page-dot-matrix">
         <div class="page-title">Dot Matrix</div>
-        <div class="page-sub">Experiment with a simpler animated style for cats, items, and outside encounters.</div>
+        <div class="page-sub">Build and tune dot-matrix animation recipes for outside runs before they enter the live game.</div>
 
         <div class="dot-lab">
           <div class="dot-panel">
             <div class="dot-panel-head">
-              <div class="dot-panel-title">Renderer Controls</div>
-              <div class="dot-panel-sub">Tune the dots before we promote this into the game.</div>
+              <div class="dot-panel-title">Run Event</div>
+              <div class="dot-panel-sub">Model what happened when the cat went outside.</div>
             </div>
             <div class="dot-panel-body">
               <div class="dot-controls">
                 <label class="dot-control">
-                  <span class="dot-lbl">Scene</span>
-                  <select class="dot-select" id="dot-scene" onchange="dotMatrixApplyControls()">
-                    <option value="patrol">Outside Patrol</option>
-                    <option value="market">Marketplace Cat</option>
-                    <option value="home">Sleepy Home</option>
+                  <span class="dot-lbl">Event Type</span>
+                  <select class="dot-select" id="dot-event" onchange="dotMatrixUsePreset(this.value)">
+                    <option value="observe">Observe surroundings</option>
+                    <option value="find">Find loot</option>
+                    <option value="friend-win">Befriend NPC</option>
+                    <option value="friend-lose">Failed friendship</option>
+                    <option value="battle-win">Win fight</option>
+                    <option value="battle-lose">Lose fight</option>
+                    <option value="avoid">Avoid trouble</option>
+                    <option value="market">Marketplace ally</option>
                   </select>
                 </label>
                 <label class="dot-control">
-                  <span class="dot-lbl">Mood</span>
-                  <select class="dot-select" id="dot-mood" onchange="dotMatrixApplyControls()">
-                    <option value="happy">Happy</option>
-                    <option value="neutral">Neutral</option>
-                    <option value="tired">Tired</option>
-                    <option value="spicy">Spicy</option>
+                  <span class="dot-lbl">Environment</span>
+                  <select class="dot-select" id="dot-environment" onchange="dotMatrixApplyControls()">
+                    <option value="alley">Back Alley</option>
+                    <option value="forest">Forest Path</option>
+                    <option value="market">Night Market</option>
+                    <option value="rooftop">Rooftop</option>
+                    <option value="home">Home Return</option>
                   </select>
                 </label>
+                <div class="dot-mini-grid">
+                  <label class="dot-control">
+                    <span class="dot-lbl">Weather</span>
+                    <select class="dot-select" id="dot-weather" onchange="dotMatrixApplyControls()">
+                      <option value="clear">Clear</option>
+                      <option value="rain">Rain</option>
+                      <option value="wind">Wind</option>
+                      <option value="spark">Sparkles</option>
+                    </select>
+                  </label>
+                  <label class="dot-control">
+                    <span class="dot-lbl">Time</span>
+                    <select class="dot-select" id="dot-time" onchange="dotMatrixApplyControls()">
+                      <option value="night">Night</option>
+                      <option value="dusk">Dusk</option>
+                      <option value="day">Day</option>
+                    </select>
+                  </label>
+                </div>
+                <label class="dot-control">
+                  <span class="dot-lbl">Encounter Object</span>
+                  <select class="dot-select" id="dot-object" onchange="dotMatrixApplyControls()">
+                    <option value="crate">Crate</option>
+                    <option value="fish">Fish</option>
+                    <option value="bug">Bug</option>
+                    <option value="sign">Sign</option>
+                    <option value="coin">Coin</option>
+                    <option value="npc-cat">NPC Cat</option>
+                    <option value="threat">Threat</option>
+                    <option value="bed">Bed</option>
+                  </select>
+                </label>
+                <label class="dot-control">
+                  <span class="dot-lbl">Bubble Copy</span>
+                  <textarea class="dot-textarea" id="dot-copy" oninput="dotMatrixApplyControls()">Cazooka studies the street before making a move.</textarea>
+                </label>
+                <div class="dot-chip-row" id="dot-preset-row"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="dot-panel">
+            <div class="dot-panel-head">
+              <div class="dot-panel-title">Visual Tuning</div>
+              <div class="dot-panel-sub">Adjust sprite, palette, pacing, and overlays.</div>
+            </div>
+            <div class="dot-panel-body">
+              <div class="dot-controls">
+                <div class="dot-mini-grid">
+                  <label class="dot-control">
+                    <span class="dot-lbl">Cat Mood</span>
+                    <select class="dot-select" id="dot-mood" onchange="dotMatrixApplyControls()">
+                      <option value="happy">Happy</option>
+                      <option value="neutral">Neutral</option>
+                      <option value="tired">Tired</option>
+                      <option value="spicy">Spicy</option>
+                      <option value="hurt">Hurt</option>
+                    </select>
+                  </label>
+                  <label class="dot-control">
+                    <span class="dot-lbl">Cat Count</span>
+                    <select class="dot-select" id="dot-cat-count" onchange="dotMatrixApplyControls()">
+                      <option value="1">1 Cat</option>
+                      <option value="2">2 Cats</option>
+                      <option value="3">3 Cats</option>
+                    </select>
+                  </label>
+                </div>
+                <div class="dot-mini-grid">
+                  <label class="dot-control">
+                    <span class="dot-lbl">Cat Fur</span>
+                    <span class="dot-color-row">
+                      <select class="dot-select" id="dot-fur-preset" onchange="dotMatrixApplyControls()">
+                        <option value="gold">Gold</option>
+                        <option value="cream">Cream</option>
+                        <option value="charcoal">Charcoal</option>
+                        <option value="calico">Calico</option>
+                      </select>
+                      <input class="dot-color" id="dot-accent-color" type="color" value="#ffc860" oninput="dotMatrixApplyControls()">
+                    </span>
+                  </label>
+                  <label class="dot-control">
+                    <span class="dot-lbl">Palette</span>
+                    <select class="dot-select" id="dot-palette" onchange="dotMatrixApplyControls()">
+                      <option value="cool">Cool dark</option>
+                      <option value="warm">Warm night</option>
+                      <option value="mint">Mint arcade</option>
+                      <option value="mono">Monochrome</option>
+                    </select>
+                  </label>
+                </div>
                 <label class="dot-control">
                   <span class="dot-lbl">Dot Size</span>
                   <span class="dot-control-row">
-                    <input class="dot-range" id="dot-size" type="range" min="4" max="9" value="6" oninput="dotMatrixApplyControls()">
+                    <input class="dot-range" id="dot-size" type="range" min="3" max="10" value="6" oninput="dotMatrixApplyControls()">
                     <span class="dot-value" id="dot-size-val">6px</span>
+                  </span>
+                </label>
+                <label class="dot-control">
+                  <span class="dot-lbl">Animation Speed</span>
+                  <span class="dot-control-row">
+                    <input class="dot-range" id="dot-speed" type="range" min="0" max="14" value="7" oninput="dotMatrixApplyControls()">
+                    <span class="dot-value" id="dot-speed-val">7</span>
                   </span>
                 </label>
                 <label class="dot-control">
@@ -468,25 +581,33 @@
                   <button class="dot-toggle active" id="dot-motion-btn" onclick="dotMatrixToggleMotion()">Motion</button>
                   <button class="dot-toggle active" id="dot-grid-btn" onclick="dotMatrixToggleGrid()">Grid</button>
                 </div>
+                <div class="dot-toggle-row">
+                  <button class="dot-toggle active" id="dot-bubble-btn" onclick="dotMatrixToggleBubble()">Bubble</button>
+                  <button class="dot-toggle active" id="dot-fx-btn" onclick="dotMatrixToggleFx()">FX</button>
+                </div>
               </div>
-              <div class="dot-note">This is a visual-only prototype. It uses blocky dot sprites, mood-based faces, and simple encounter props so we can decide the vibe without touching player data.</div>
+              <div class="dot-note">Presets are based on outside-run outcomes: observing, finding cards, making allies, marketplace discounts, fights, avoidance, and returning home tired.</div>
             </div>
           </div>
 
-          <div class="dot-panel">
+          <div class="dot-panel preview">
             <div class="dot-panel-head">
               <div class="dot-panel-title">Live Preview</div>
-              <div class="dot-panel-sub">Canvas dot renderer, right-facing cat, rendered encounter objects.</div>
+              <div class="dot-panel-sub">Right-facing cat, rendered encounter object, weather, and bubble copy.</div>
             </div>
             <div class="dot-panel-body">
               <div class="dot-stage-wrap">
                 <canvas class="dot-stage" id="dot-matrix-canvas" width="720" height="360"></canvas>
               </div>
               <div class="dot-spec-grid">
-                <div class="dot-spec"><div class="dot-spec-k">Style</div><div class="dot-spec-v">Dot blocks</div></div>
-                <div class="dot-spec"><div class="dot-spec-k">Facing</div><div class="dot-spec-v">Right</div></div>
-                <div class="dot-spec"><div class="dot-spec-k">Use</div><div class="dot-spec-v">Prototype</div></div>
+                <div class="dot-spec"><div class="dot-spec-k">Event</div><div class="dot-spec-v" id="dot-spec-event">Observe</div></div>
+                <div class="dot-spec"><div class="dot-spec-k">Environment</div><div class="dot-spec-v" id="dot-spec-env">Alley</div></div>
+                <div class="dot-spec"><div class="dot-spec-k">Object</div><div class="dot-spec-v" id="dot-spec-object">Crate</div></div>
               </div>
+              <label class="dot-control">
+                <span class="dot-lbl">Recipe JSON</span>
+                <textarea class="dot-textarea" id="dot-config-output" readonly style="min-height:150px"></textarea>
+              </label>
             </div>
           </div>
         </div>
@@ -817,7 +938,12 @@ let RUN_TEMPLATES = [];
 let EDITING_RUN_TEMPLATE_ID = null;
 let DOT_MATRIX_FRAME = null;
 let DOT_MATRIX_STARTED_AT = 0;
-let DOT_MATRIX_STATE = { scene:'patrol', mood:'happy', dotSize:6, glow:4, motion:true, grid:true };
+let DOT_MATRIX_STATE = {
+  event:'observe', environment:'alley', weather:'clear', time:'night', object:'crate',
+  mood:'happy', catCount:1, furPreset:'gold', accentColor:'#ffc860',
+  palette:'cool', dotSize:6, speed:7, glow:4, motion:true, grid:true, bubble:true, fx:true,
+  copy:'Cazooka studies the street before making a move.'
+};
 
 const CAT_STATS = ['weight','strength','stamina','loyalty','affection','amicability','intelligence','speed','agility','stealth'];
 const TYPE_LABELS = {cat_breed:'Cat Breed',battle_gear:'Battle Gear',home_item:'Home Item',special_ability:'Special Ability',home:'Home'};
@@ -1256,25 +1382,162 @@ async function checkSession() {
 }
 
 /* ── Dot Matrix Lab ── */
+const DOT_EVENT_PRESETS = {
+  observe: {
+    label:'Observe', environment:'alley', weather:'clear', time:'night', object:'sign', mood:'neutral',
+    copy:'Cazooka studies the street before making a move.'
+  },
+  find: {
+    label:'Find Loot', environment:'forest', weather:'spark', time:'dusk', object:'crate', mood:'happy',
+    copy:'Cazooka spots something useful tucked under the leaves.'
+  },
+  'friend-win': {
+    label:'Befriend', environment:'market', weather:'clear', time:'night', object:'npc-cat', mood:'happy',
+    copy:'Cazooka slow-blinks. A new ally accepts the invitation.'
+  },
+  'friend-lose': {
+    label:'Rebuffed', environment:'rooftop', weather:'wind', time:'night', object:'npc-cat', mood:'tired',
+    copy:'Cazooka offers a polite chirp, but the stranger keeps walking.'
+  },
+  'battle-win': {
+    label:'Win Fight', environment:'alley', weather:'rain', time:'night', object:'threat', mood:'spicy',
+    copy:'Cazooka stands firm and sends trouble running.'
+  },
+  'battle-lose': {
+    label:'Lose Fight', environment:'alley', weather:'rain', time:'night', object:'threat', mood:'hurt',
+    copy:'Cazooka retreats with a bruised ego and a lesson learned.'
+  },
+  avoid: {
+    label:'Avoid', environment:'forest', weather:'wind', time:'day', object:'bug', mood:'neutral',
+    copy:'Cazooka takes the quiet route and avoids a risky encounter.'
+  },
+  market: {
+    label:'Marketplace', environment:'market', weather:'spark', time:'night', object:'fish', mood:'happy',
+    copy:'The marketplace cat recognizes Cazooka and lowers the price.'
+  }
+};
+
+const DOT_PALETTES = {
+  cool: { bg:'#060a10', grid:'#162136', ground:'#1d2b46', ground2:'#24395d', sky:'#93c5fd', text:'#ffc860' },
+  warm: { bg:'#120b08', grid:'#392315', ground:'#50331e', ground2:'#70451f', sky:'#fbbf24', text:'#fed7aa' },
+  mint: { bg:'#06110d', grid:'#12382b', ground:'#174535', ground2:'#1f6a4d', sky:'#6ee7b7', text:'#a7f3d0' },
+  mono: { bg:'#08090b', grid:'#24272d', ground:'#3f444d', ground2:'#5c6470', sky:'#cbd5e1', text:'#e5e7eb' }
+};
+
+const DOT_FURS = {
+  gold: { o:'#fbbf24', s:'#f59e0b', d:'#92400e', w:'#fef3c7' },
+  cream: { o:'#fef3c7', s:'#fcd34d', d:'#a16207', w:'#fff7ed' },
+  charcoal: { o:'#475569', s:'#1f2937', d:'#020617', w:'#cbd5e1' },
+  calico: { o:'#fef3c7', s:'#f97316', d:'#1f2937', w:'#fff7ed' }
+};
+
 function dotMatrixApplyControls() {
-  const sceneEl = document.getElementById('dot-scene');
-  const moodEl = document.getElementById('dot-mood');
-  const sizeEl = document.getElementById('dot-size');
-  const glowEl = document.getElementById('dot-glow');
-  if (!sceneEl || !moodEl || !sizeEl || !glowEl) return;
-  DOT_MATRIX_STATE.scene = sceneEl.value;
-  DOT_MATRIX_STATE.mood = moodEl.value;
-  DOT_MATRIX_STATE.dotSize = parseInt(sizeEl.value, 10) || 6;
-  DOT_MATRIX_STATE.glow = parseInt(glowEl.value, 10) || 0;
-  document.getElementById('dot-size-val').textContent = `${DOT_MATRIX_STATE.dotSize}px`;
-  document.getElementById('dot-glow-val').textContent = String(DOT_MATRIX_STATE.glow);
+  const getVal = id => document.getElementById(id)?.value;
+  if (!document.getElementById('dot-event')) return;
+  DOT_MATRIX_STATE.event = getVal('dot-event') || DOT_MATRIX_STATE.event;
+  DOT_MATRIX_STATE.environment = getVal('dot-environment') || DOT_MATRIX_STATE.environment;
+  DOT_MATRIX_STATE.weather = getVal('dot-weather') || DOT_MATRIX_STATE.weather;
+  DOT_MATRIX_STATE.time = getVal('dot-time') || DOT_MATRIX_STATE.time;
+  DOT_MATRIX_STATE.object = getVal('dot-object') || DOT_MATRIX_STATE.object;
+  DOT_MATRIX_STATE.mood = getVal('dot-mood') || DOT_MATRIX_STATE.mood;
+  DOT_MATRIX_STATE.catCount = parseInt(getVal('dot-cat-count'), 10) || 1;
+  DOT_MATRIX_STATE.furPreset = getVal('dot-fur-preset') || DOT_MATRIX_STATE.furPreset;
+  DOT_MATRIX_STATE.accentColor = getVal('dot-accent-color') || DOT_MATRIX_STATE.accentColor;
+  DOT_MATRIX_STATE.palette = getVal('dot-palette') || DOT_MATRIX_STATE.palette;
+  DOT_MATRIX_STATE.dotSize = parseInt(getVal('dot-size'), 10) || 6;
+  DOT_MATRIX_STATE.speed = parseInt(getVal('dot-speed'), 10) || 0;
+  DOT_MATRIX_STATE.glow = parseInt(getVal('dot-glow'), 10) || 0;
+  DOT_MATRIX_STATE.copy = getVal('dot-copy') || '';
+  dotMatrixSyncLabels();
   dotMatrixStart();
+}
+
+function dotMatrixInit() {
+  const row = document.getElementById('dot-preset-row');
+  if (row && !row.children.length) {
+    row.innerHTML = Object.entries(DOT_EVENT_PRESETS).map(([key, preset]) => (
+      `<button class="dot-chip${key === DOT_MATRIX_STATE.event ? ' active' : ''}" type="button" onclick="dotMatrixUsePreset('${key}')">${preset.label}</button>`
+    )).join('');
+  }
+  dotMatrixSetFormFromState();
+  dotMatrixApplyControls();
+}
+
+function dotMatrixSetFormFromState() {
+  const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
+  setVal('dot-event', DOT_MATRIX_STATE.event);
+  setVal('dot-environment', DOT_MATRIX_STATE.environment);
+  setVal('dot-weather', DOT_MATRIX_STATE.weather);
+  setVal('dot-time', DOT_MATRIX_STATE.time);
+  setVal('dot-object', DOT_MATRIX_STATE.object);
+  setVal('dot-mood', DOT_MATRIX_STATE.mood);
+  setVal('dot-cat-count', DOT_MATRIX_STATE.catCount);
+  setVal('dot-fur-preset', DOT_MATRIX_STATE.furPreset);
+  setVal('dot-accent-color', DOT_MATRIX_STATE.accentColor);
+  setVal('dot-palette', DOT_MATRIX_STATE.palette);
+  setVal('dot-size', DOT_MATRIX_STATE.dotSize);
+  setVal('dot-speed', DOT_MATRIX_STATE.speed);
+  setVal('dot-glow', DOT_MATRIX_STATE.glow);
+  setVal('dot-copy', DOT_MATRIX_STATE.copy);
+}
+
+function dotMatrixUsePreset(key) {
+  const preset = DOT_EVENT_PRESETS[key];
+  if (!preset) return;
+  DOT_MATRIX_STATE = { ...DOT_MATRIX_STATE, ...preset, event:key };
+  dotMatrixSetFormFromState();
+  dotMatrixApplyControls();
+}
+
+function dotMatrixSyncLabels() {
+  const setText = (id, text) => { const el = document.getElementById(id); if (el) el.textContent = text; };
+  setText('dot-size-val', `${DOT_MATRIX_STATE.dotSize}px`);
+  setText('dot-speed-val', String(DOT_MATRIX_STATE.speed));
+  setText('dot-glow-val', String(DOT_MATRIX_STATE.glow));
+  setText('dot-spec-event', DOT_EVENT_PRESETS[DOT_MATRIX_STATE.event]?.label || DOT_MATRIX_STATE.event);
+  setText('dot-spec-env', DOT_MATRIX_STATE.environment.replace(/-/g, ' '));
+  setText('dot-spec-object', DOT_MATRIX_STATE.object.replace(/-/g, ' '));
+  document.querySelectorAll('#dot-preset-row .dot-chip').forEach((btn, idx) => {
+    const key = Object.keys(DOT_EVENT_PRESETS)[idx];
+    btn.classList.toggle('active', key === DOT_MATRIX_STATE.event);
+  });
+  const output = document.getElementById('dot-config-output');
+  if (output) output.value = JSON.stringify(dotMatrixRecipe(), null, 2);
+}
+
+function dotMatrixRecipe() {
+  return {
+    event: DOT_MATRIX_STATE.event,
+    environment: DOT_MATRIX_STATE.environment,
+    weather: DOT_MATRIX_STATE.weather,
+    time: DOT_MATRIX_STATE.time,
+    encounter_object: DOT_MATRIX_STATE.object,
+    cat: {
+      mood: DOT_MATRIX_STATE.mood,
+      count: DOT_MATRIX_STATE.catCount,
+      fur: DOT_MATRIX_STATE.furPreset,
+      accent: DOT_MATRIX_STATE.accentColor
+    },
+    renderer: {
+      style: 'dot-matrix',
+      dot_size: DOT_MATRIX_STATE.dotSize,
+      speed: DOT_MATRIX_STATE.speed,
+      glow: DOT_MATRIX_STATE.glow,
+      motion: DOT_MATRIX_STATE.motion,
+      grid: DOT_MATRIX_STATE.grid,
+      bubble: DOT_MATRIX_STATE.bubble,
+      fx: DOT_MATRIX_STATE.fx,
+      palette: DOT_MATRIX_STATE.palette
+    },
+    copy: DOT_MATRIX_STATE.copy
+  };
 }
 
 function dotMatrixToggleMotion() {
   DOT_MATRIX_STATE.motion = !DOT_MATRIX_STATE.motion;
   const btn = document.getElementById('dot-motion-btn');
   if (btn) btn.classList.toggle('active', DOT_MATRIX_STATE.motion);
+  dotMatrixSyncLabels();
   dotMatrixStart();
 }
 
@@ -1282,6 +1545,23 @@ function dotMatrixToggleGrid() {
   DOT_MATRIX_STATE.grid = !DOT_MATRIX_STATE.grid;
   const btn = document.getElementById('dot-grid-btn');
   if (btn) btn.classList.toggle('active', DOT_MATRIX_STATE.grid);
+  dotMatrixSyncLabels();
+  dotMatrixStart();
+}
+
+function dotMatrixToggleBubble() {
+  DOT_MATRIX_STATE.bubble = !DOT_MATRIX_STATE.bubble;
+  const btn = document.getElementById('dot-bubble-btn');
+  if (btn) btn.classList.toggle('active', DOT_MATRIX_STATE.bubble);
+  dotMatrixSyncLabels();
+  dotMatrixStart();
+}
+
+function dotMatrixToggleFx() {
+  DOT_MATRIX_STATE.fx = !DOT_MATRIX_STATE.fx;
+  const btn = document.getElementById('dot-fx-btn');
+  if (btn) btn.classList.toggle('active', DOT_MATRIX_STATE.fx);
+  dotMatrixSyncLabels();
   dotMatrixStart();
 }
 
@@ -1310,15 +1590,23 @@ function dotMatrixDraw(now) {
   const ctx = canvas.getContext('2d');
   const w = canvas.width;
   const h = canvas.height;
-  const t = DOT_MATRIX_STATE.motion ? (now - DOT_MATRIX_STARTED_AT) / 1000 : 0;
+  const speed = DOT_MATRIX_STATE.speed / 7;
+  const t = DOT_MATRIX_STATE.motion ? ((now - DOT_MATRIX_STARTED_AT) / 1000) * speed : 0;
   const d = DOT_MATRIX_STATE.dotSize;
+  const pal = DOT_PALETTES[DOT_MATRIX_STATE.palette] || DOT_PALETTES.cool;
   ctx.clearRect(0, 0, w, h);
-  ctx.fillStyle = '#060a10';
+  ctx.fillStyle = pal.bg;
   ctx.fillRect(0, 0, w, h);
-  dotSky(ctx, w, h, d, t);
-  dotScene(ctx, w, h, d, t);
-  dotCat(ctx, 190, 238 + Math.sin(t * 7) * 2, d, t, DOT_MATRIX_STATE.mood);
-  dotCaption(ctx, w, h, DOT_MATRIX_STATE.scene, DOT_MATRIX_STATE.mood);
+  dotSky(ctx, w, h, d, t, pal);
+  dotBackdrop(ctx, w, h, d, t, pal);
+  dotScene(ctx, w, h, d, t, pal);
+  const catY = DOT_MATRIX_STATE.environment === 'home' ? 244 : 238;
+  for (let i = 0; i < DOT_MATRIX_STATE.catCount; i++) {
+    dotCat(ctx, 154 - (i * d * 8), catY + (i % 2) * d * 3 + Math.sin(t * 7 + i) * 2, d, t + i * 0.35, DOT_MATRIX_STATE.mood, i);
+  }
+  dotEncounter(ctx, w, h, d, t, DOT_MATRIX_STATE.object);
+  if (DOT_MATRIX_STATE.fx) dotEventFx(ctx, w, h, d, t);
+  if (DOT_MATRIX_STATE.bubble) dotCaption(ctx, w, h);
 }
 
 function dotPixel(ctx, x, y, d, color, alpha = 1) {
@@ -1351,46 +1639,50 @@ function dotMap(ctx, ox, oy, d, rows, palette) {
   });
 }
 
-function dotSky(ctx, w, h, d, t) {
+function dotSky(ctx, w, h, d, t, pal) {
   for (let y = 24; y < h - 32; y += d * 2) {
     for (let x = 20; x < w - 20; x += d * 2) {
       if (!DOT_MATRIX_STATE.grid) continue;
-      dotPixel(ctx, x, y, Math.max(2, d * 0.32), '#162136', 0.5);
+      dotPixel(ctx, x, y, Math.max(2, d * 0.32), pal.grid, 0.5);
     }
   }
-  const moonX = DOT_MATRIX_STATE.motion ? 560 + Math.sin(t * 0.4) * 8 : 560;
-  dotPixel(ctx, moonX, 48, d, '#dbeafe', 0.9);
-  dotPixel(ctx, moonX + d, 48, d, '#93c5fd', 0.5);
+  const orbX = DOT_MATRIX_STATE.motion ? 560 + Math.sin(t * 0.4) * 8 : 560;
+  const orbColor = DOT_MATRIX_STATE.time === 'day' ? '#fde68a' : DOT_MATRIX_STATE.time === 'dusk' ? '#fb923c' : pal.sky;
+  dotPixel(ctx, orbX, 48, d * 1.4, orbColor, 0.9);
+  dotPixel(ctx, orbX + d * 1.4, 48, d, orbColor, 0.45);
+  dotWeather(ctx, w, h, d, t);
 }
 
-function dotScene(ctx, w, h, d, t) {
+function dotBackdrop(ctx, w, h, d, t, pal) {
+  if (DOT_MATRIX_STATE.environment === 'forest') {
+    for (let i = 0; i < 7; i++) dotTree(ctx, 360 + i * 54 - ((t * 18) % 54), 184 + (i % 2) * 12, d);
+  } else if (DOT_MATRIX_STATE.environment === 'market') {
+    dotAwning(ctx, 390, 116, d);
+    dotLantern(ctx, 548, 124 + Math.sin(t * 2) * 2, d);
+  } else if (DOT_MATRIX_STATE.environment === 'rooftop') {
+    dotSkyline(ctx, 350, 170, d, pal);
+  } else if (DOT_MATRIX_STATE.environment === 'home') {
+    dotWindow(ctx, 472, 112, d);
+  } else {
+    dotWall(ctx, 378, 146, d, pal);
+  }
+}
+
+function dotScene(ctx, w, h, d, t, pal) {
   const floorY = 284;
   for (let x = -80; x < w + 80; x += d * 2) {
-    const sx = DOT_MATRIX_STATE.motion ? (x - (t * 72) % (d * 8)) : x;
-    dotPixel(ctx, sx, floorY, d * 2, '#1d2b46', 0.95);
-    dotPixel(ctx, sx + d, floorY + d * 3, d, '#24395d', 0.8);
+    const sx = DOT_MATRIX_STATE.motion ? (x - (t * (42 + DOT_MATRIX_STATE.speed * 5)) % (d * 8)) : x;
+    dotPixel(ctx, sx, floorY, d * 2, pal.ground, 0.95);
+    dotPixel(ctx, sx + d, floorY + d * 3, d, pal.ground2, 0.8);
   }
-
-  if (DOT_MATRIX_STATE.scene === 'market') {
-    dotCrate(ctx, 436, 228, d);
-    dotFish(ctx, 528, 248, d);
-    dotMarketCat(ctx, 600, 228, d, t);
-  } else if (DOT_MATRIX_STATE.scene === 'home') {
-    dotBed(ctx, 424, 230, d);
-    dotYarn(ctx, 560, 254, d, t);
-  } else {
-    dotGrass(ctx, 420, 256, d, t);
-    dotSign(ctx, 540, 214, d);
-    dotBug(ctx, 636, 252, d, t);
-  }
+  if (DOT_MATRIX_STATE.environment === 'forest') dotGrass(ctx, 386, 256, d, t);
+  if (DOT_MATRIX_STATE.environment === 'home') dotRug(ctx, 392, 268, d);
 }
 
-function dotCat(ctx, ox, oy, d, t, mood) {
+function dotCat(ctx, ox, oy, d, t, mood, idx = 0) {
   const lift = DOT_MATRIX_STATE.motion ? Math.round(Math.sin(t * 9) * 1.5) : 0;
-  const palette = {
-    o:'#fbbf24', s:'#f59e0b', d:'#92400e', e:'#05080c', p:'#f9a8d4',
-    b:'#60a5fa', w:'#fef3c7'
-  };
+  const fur = DOT_FURS[DOT_MATRIX_STATE.furPreset] || DOT_FURS.gold;
+  const palette = { ...fur, e:'#05080c', p:'#f9a8d4', b:DOT_MATRIX_STATE.accentColor, r:'#fb7185', g:'#34d399' };
   const body = [
     '  oo       ',
     ' ooooo  o ',
@@ -1403,20 +1695,35 @@ function dotCat(ctx, ox, oy, d, t, mood) {
     ' o   o ',
     'ooooooo',
     'oeoeooo',
-    mood === 'happy' ? 'ooppooo' : mood === 'tired' ? 'ooeeooo' : mood === 'spicy' ? 'oeooeoo' : 'ooeeooo',
+    mood === 'happy' ? 'ooppooo' : mood === 'tired' ? 'ooeeooo' : mood === 'spicy' ? 'oeooeoo' : mood === 'hurt' ? 'oereooo' : 'ooeeooo',
     'ooooooo',
     ' ooooo '
   ];
-  dotMap(ctx, ox, oy + lift, d, body, palette);
-  dotMap(ctx, ox + d * 6, oy - d * 4 + lift, d, head, palette);
+  dotMap(ctx, ox, oy + lift + idx * 2, d, body, palette);
+  dotMap(ctx, ox + d * 6, oy - d * 4 + lift + idx * 2, d, head, palette);
   if (mood === 'spicy') {
     dotPixel(ctx, ox + d * 13, oy - d * 2 + lift, d, '#fb7185');
   } else if (mood === 'tired') {
     dotPixel(ctx, ox + d * 14, oy - d * 6 + lift, d, '#93c5fd', 0.85);
     dotPixel(ctx, ox + d * 16, oy - d * 8 + lift, d * 0.75, '#93c5fd', 0.7);
+  } else if (mood === 'hurt') {
+    dotPixel(ctx, ox + d * 14, oy - d * 3 + lift, d, '#f87171', 0.9);
   } else {
     dotPixel(ctx, ox + d * 14, oy - d * 3 + lift, d, '#34d399', 0.85);
   }
+}
+
+function dotEncounter(ctx, w, h, d, t, object) {
+  const x = 470 + Math.sin(t * 1.4) * 6;
+  const y = 232;
+  if (object === 'crate') dotCrate(ctx, x, y, d);
+  if (object === 'fish') dotFish(ctx, x + 22, y + 22, d);
+  if (object === 'bug') dotBug(ctx, x + 34, y + 24, d, t);
+  if (object === 'sign') dotSign(ctx, x + 16, y - 16, d);
+  if (object === 'coin') dotCoin(ctx, x + 42, y + 20, d, t);
+  if (object === 'npc-cat') dotMarketCat(ctx, x + 58, y - 8, d, t);
+  if (object === 'threat') dotThreat(ctx, x + 44, y + 8, d, t);
+  if (object === 'bed') dotBed(ctx, x, y, d);
 }
 
 function dotCrate(ctx, ox, oy, d) {
@@ -1433,6 +1740,16 @@ function dotMarketCat(ctx, ox, oy, d, t) {
 
 function dotBed(ctx, ox, oy, d) {
   dotMap(ctx, ox, oy, d, ['ppppppppp','pbbbbbbbp','pbbbbbbbp','sssssssss'], { p:'#a78bfa', b:'#312e81', s:'#475569' });
+}
+
+function dotCoin(ctx, ox, oy, d, t) {
+  const y = oy + Math.sin(t * 6) * 5;
+  dotMap(ctx, ox, y, d, [' yy ','yyyy','yyyy',' yy '], { y:'#facc15' });
+}
+
+function dotThreat(ctx, ox, oy, d, t) {
+  const y = oy + Math.sin(t * 4) * 2;
+  dotMap(ctx, ox, y, d, ['  rr  ',' rrrrr','rereer',' rrrr ',' r  r '], { r:'#ef4444', e:'#05080c' });
 }
 
 function dotYarn(ctx, ox, oy, d, t) {
@@ -1456,21 +1773,82 @@ function dotBug(ctx, ox, oy, d, t) {
   dotMap(ctx, ox, y, d, [' ee ','eeee',' ee '], { e:'#c084fc' });
 }
 
-function dotCaption(ctx, w, h, scene, mood) {
-  const copy = {
-    patrol:'observing a suspicious path',
-    market:'negotiating with the marketplace cat',
-    home:'half-awake, protecting the blanket'
-  }[scene] || 'observing';
+function dotTree(ctx, ox, oy, d) {
+  dotMap(ctx, ox, oy, d, ['  gg  ',' gggg ','gggggg','  tt  ','  tt  '], { g:'#16a34a', t:'#854d0e' });
+}
+
+function dotAwning(ctx, ox, oy, d) {
+  dotMap(ctx, ox, oy, d, ['rrrrrrrrrrrr','wwwwwwwwwwww','r r r r r r '], { r:'#ef4444', w:'#f8fafc' });
+}
+
+function dotLantern(ctx, ox, oy, d) {
+  dotMap(ctx, ox, oy, d, [' y ','yyy',' y '], { y:'#fbbf24' });
+}
+
+function dotSkyline(ctx, ox, oy, d, pal) {
+  const c = pal.ground;
+  dotMap(ctx, ox, oy, d, ['aa  aaaa   aaa','aa  aaaa a aaa','aaaaaaaaaaaaaa'], { a:c });
+}
+
+function dotWindow(ctx, ox, oy, d) {
+  dotMap(ctx, ox, oy, d, ['bbbbbbbb','byyybyyb','byyybyyb','bbbbbbbb'], { b:'#475569', y:'#facc15' });
+}
+
+function dotWall(ctx, ox, oy, d, pal) {
+  for (let i = 0; i < 8; i++) dotPixel(ctx, ox + i * d * 7, oy + (i % 2) * d * 3, d * 5, pal.grid, 0.5);
+}
+
+function dotRug(ctx, ox, oy, d) {
+  dotMap(ctx, ox, oy, d, ['mmmmmmmmmmmm','m          m','mmmmmmmmmmmm'], { m:'#7c3aed' });
+}
+
+function dotWeather(ctx, w, h, d, t) {
+  if (DOT_MATRIX_STATE.weather === 'rain') {
+    for (let i = 0; i < 28; i++) {
+      const x = (i * 41 + t * 80) % (w + 60) - 30;
+      const y = (i * 29 + t * 120) % h;
+      dotPixel(ctx, x, y, Math.max(2, d * 0.45), '#60a5fa', 0.75);
+    }
+  } else if (DOT_MATRIX_STATE.weather === 'wind') {
+    for (let i = 0; i < 8; i++) {
+      const x = (i * 86 + t * 60) % (w + 90) - 45;
+      dotPixel(ctx, x, 92 + i * 20, d * 2, '#94a3b8', 0.35);
+    }
+  } else if (DOT_MATRIX_STATE.weather === 'spark') {
+    for (let i = 0; i < 12; i++) {
+      const pulse = 0.45 + Math.abs(Math.sin(t * 2 + i)) * 0.45;
+      dotPixel(ctx, 318 + i * 29, 76 + (i % 3) * 44, d * 0.7, '#facc15', pulse);
+    }
+  }
+}
+
+function dotEventFx(ctx, w, h, d, t) {
+  const event = DOT_MATRIX_STATE.event;
+  if (event === 'find' || event === 'market') {
+    for (let i = 0; i < 5; i++) dotPixel(ctx, 438 + i * d * 4, 198 + Math.sin(t * 5 + i) * 8, d, '#facc15', 0.85);
+  }
+  if (event === 'battle-win' || event === 'battle-lose') {
+    dotPixel(ctx, 410 + Math.sin(t * 8) * 8, 212, d * 2, '#fb7185', 0.75);
+    dotPixel(ctx, 442 + Math.cos(t * 7) * 8, 198, d, '#f87171', 0.85);
+  }
+  if (event === 'friend-win') {
+    dotPixel(ctx, 410, 198 + Math.sin(t * 5) * 3, d, '#f9a8d4', 0.9);
+    dotPixel(ctx, 424, 190 + Math.sin(t * 5 + 1) * 3, d, '#f9a8d4', 0.75);
+  }
+}
+
+function dotCaption(ctx, w, h) {
+  const copy = DOT_MATRIX_STATE.copy || 'Cazooka observes quietly.';
+  const pal = DOT_PALETTES[DOT_MATRIX_STATE.palette] || DOT_PALETTES.cool;
   ctx.save();
   ctx.shadowBlur = 0;
   ctx.fillStyle = '#0d1117';
   ctx.globalAlpha = 0.78;
-  ctx.fillRect(24, 24, 314, 34);
+  ctx.fillRect(24, 24, Math.min(590, Math.max(280, copy.length * 8 + 34)), 44);
   ctx.globalAlpha = 1;
-  ctx.fillStyle = '#ffc860';
-  ctx.font = '14px "DM Mono", monospace';
-  ctx.fillText(`${mood.toUpperCase()} CAT: ${copy}`, 38, 46);
+  ctx.fillStyle = pal.text;
+  ctx.font = '13px "DM Mono", monospace';
+  ctx.fillText(copy.slice(0, 72), 38, 51);
   ctx.restore();
 }
 
@@ -1484,7 +1862,7 @@ function navTo(page) {
   if (page === 'players') loadPlayers();
   if (page === 'studio') loadCards();
   if (page === 'runs') loadRunTemplates();
-  if (page === 'dot-matrix') dotMatrixApplyControls();
+  if (page === 'dot-matrix') dotMatrixInit();
 }
 
 /* ── Card Studio ── */
