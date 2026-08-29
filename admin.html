@@ -257,6 +257,34 @@
   .ability-effect-text{grid-column:1/-1}
   @media(max-width:900px){.ability-effect-row{grid-template-columns:1fr 1fr}.ability-effect-text{grid-column:1/-1}}
 
+  /* ── Dot Matrix Lab ── */
+  .dot-lab{display:grid;grid-template-columns:minmax(280px,360px) 1fr;gap:18px;align-items:start}
+  .dot-panel{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);overflow:hidden}
+  .dot-panel-head{padding:14px 16px;border-bottom:1px solid var(--bd)}
+  .dot-panel-title{font-size:13px;font-weight:700}
+  .dot-panel-sub{font-size:11px;color:var(--t3);margin-top:2px}
+  .dot-panel-body{padding:16px;display:flex;flex-direction:column;gap:14px}
+  .dot-stage-wrap{padding:18px;background:#05080c;border:1px solid #172033;border-radius:var(--r);position:relative;overflow:hidden}
+  .dot-stage-wrap::before{content:'';position:absolute;inset:0;background:linear-gradient(to bottom,rgba(255,255,255,.035),transparent 1px);background-size:100% 4px;pointer-events:none;mix-blend-mode:screen;opacity:.6}
+  .dot-stage-wrap::after{content:'';position:absolute;inset:0;background:radial-gradient(circle at 50% 45%,rgba(88,166,255,.1),transparent 58%);pointer-events:none}
+  .dot-stage{display:block;width:100%;height:auto;image-rendering:pixelated;border-radius:6px;background:#070b11;position:relative;z-index:1}
+  .dot-controls{display:grid;grid-template-columns:1fr;gap:12px}
+  .dot-control{display:flex;flex-direction:column;gap:6px}
+  .dot-control-row{display:flex;align-items:center;gap:10px}
+  .dot-lbl{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em}
+  .dot-range{width:100%;accent-color:var(--acc)}
+  .dot-value{font-family:var(--fm);font-size:11px;color:var(--acc2);min-width:44px;text-align:right}
+  .dot-select{padding:8px 10px;background:var(--s2);border:1px solid var(--bd);border-radius:var(--r-sm);color:var(--t1);font-size:12px;outline:none}
+  .dot-toggle-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .dot-toggle{padding:9px 10px;background:var(--s2);border:1px solid var(--bd);border-radius:var(--r-sm);color:var(--t2);font-size:12px;cursor:pointer}
+  .dot-toggle.active{border-color:var(--acc);background:var(--acc-dim);color:var(--acc)}
+  .dot-note{font-size:12px;color:var(--t3);line-height:1.55;background:var(--s2);border:1px solid var(--bd);border-radius:var(--r-sm);padding:12px}
+  .dot-spec-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .dot-spec{background:var(--s2);border:1px solid var(--bd);border-radius:var(--r-sm);padding:12px}
+  .dot-spec-k{font-family:var(--fm);font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--t3);margin-bottom:5px}
+  .dot-spec-v{font-size:16px;font-weight:800;color:var(--t1)}
+  @media(max-width:900px){.dot-lab{grid-template-columns:1fr}.dot-spec-grid{grid-template-columns:1fr}}
+
   a.game-link{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--acc);text-decoration:none}
   a.game-link:hover{text-decoration:underline}
 </style>
@@ -297,6 +325,9 @@
       </button>
       <button class="nav-item" data-page="runs" onclick="navTo('runs')">
         <span class="nav-icon">🐾</span> Outside Runs
+      </button>
+      <button class="nav-item" data-page="dot-matrix" onclick="navTo('dot-matrix')">
+        <span class="nav-icon">▦</span> Dot Matrix
       </button>
       <button class="nav-item" data-page="players" onclick="navTo('players')">
         <span class="nav-icon">👤</span> Players
@@ -384,6 +415,78 @@
             </div>
             <div class="run-panel-body" id="run-template-editor">
               <div class="run-editor-empty">Select a template or create a new one.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dot Matrix Lab -->
+      <div class="page" id="page-dot-matrix">
+        <div class="page-title">Dot Matrix</div>
+        <div class="page-sub">Experiment with a simpler animated style for cats, items, and outside encounters.</div>
+
+        <div class="dot-lab">
+          <div class="dot-panel">
+            <div class="dot-panel-head">
+              <div class="dot-panel-title">Renderer Controls</div>
+              <div class="dot-panel-sub">Tune the dots before we promote this into the game.</div>
+            </div>
+            <div class="dot-panel-body">
+              <div class="dot-controls">
+                <label class="dot-control">
+                  <span class="dot-lbl">Scene</span>
+                  <select class="dot-select" id="dot-scene" onchange="dotMatrixApplyControls()">
+                    <option value="patrol">Outside Patrol</option>
+                    <option value="market">Marketplace Cat</option>
+                    <option value="home">Sleepy Home</option>
+                  </select>
+                </label>
+                <label class="dot-control">
+                  <span class="dot-lbl">Mood</span>
+                  <select class="dot-select" id="dot-mood" onchange="dotMatrixApplyControls()">
+                    <option value="happy">Happy</option>
+                    <option value="neutral">Neutral</option>
+                    <option value="tired">Tired</option>
+                    <option value="spicy">Spicy</option>
+                  </select>
+                </label>
+                <label class="dot-control">
+                  <span class="dot-lbl">Dot Size</span>
+                  <span class="dot-control-row">
+                    <input class="dot-range" id="dot-size" type="range" min="4" max="9" value="6" oninput="dotMatrixApplyControls()">
+                    <span class="dot-value" id="dot-size-val">6px</span>
+                  </span>
+                </label>
+                <label class="dot-control">
+                  <span class="dot-lbl">Glow</span>
+                  <span class="dot-control-row">
+                    <input class="dot-range" id="dot-glow" type="range" min="0" max="10" value="4" oninput="dotMatrixApplyControls()">
+                    <span class="dot-value" id="dot-glow-val">4</span>
+                  </span>
+                </label>
+                <div class="dot-toggle-row">
+                  <button class="dot-toggle active" id="dot-motion-btn" onclick="dotMatrixToggleMotion()">Motion</button>
+                  <button class="dot-toggle active" id="dot-grid-btn" onclick="dotMatrixToggleGrid()">Grid</button>
+                </div>
+              </div>
+              <div class="dot-note">This is a visual-only prototype. It uses blocky dot sprites, mood-based faces, and simple encounter props so we can decide the vibe without touching player data.</div>
+            </div>
+          </div>
+
+          <div class="dot-panel">
+            <div class="dot-panel-head">
+              <div class="dot-panel-title">Live Preview</div>
+              <div class="dot-panel-sub">Canvas dot renderer, right-facing cat, rendered encounter objects.</div>
+            </div>
+            <div class="dot-panel-body">
+              <div class="dot-stage-wrap">
+                <canvas class="dot-stage" id="dot-matrix-canvas" width="720" height="360"></canvas>
+              </div>
+              <div class="dot-spec-grid">
+                <div class="dot-spec"><div class="dot-spec-k">Style</div><div class="dot-spec-v">Dot blocks</div></div>
+                <div class="dot-spec"><div class="dot-spec-k">Facing</div><div class="dot-spec-v">Right</div></div>
+                <div class="dot-spec"><div class="dot-spec-k">Use</div><div class="dot-spec-v">Prototype</div></div>
+              </div>
             </div>
           </div>
         </div>
@@ -712,6 +815,9 @@ let ALL_CARDS  = [];
 let EDITING_ID = null;
 let RUN_TEMPLATES = [];
 let EDITING_RUN_TEMPLATE_ID = null;
+let DOT_MATRIX_FRAME = null;
+let DOT_MATRIX_STARTED_AT = 0;
+let DOT_MATRIX_STATE = { scene:'patrol', mood:'happy', dotSize:6, glow:4, motion:true, grid:true };
 
 const CAT_STATS = ['weight','strength','stamina','loyalty','affection','amicability','intelligence','speed','agility','stealth'];
 const TYPE_LABELS = {cat_breed:'Cat Breed',battle_gear:'Battle Gear',home_item:'Home Item',special_ability:'Special Ability',home:'Home'};
@@ -1149,15 +1255,236 @@ async function checkSession() {
   showAdmin();
 }
 
+/* ── Dot Matrix Lab ── */
+function dotMatrixApplyControls() {
+  const sceneEl = document.getElementById('dot-scene');
+  const moodEl = document.getElementById('dot-mood');
+  const sizeEl = document.getElementById('dot-size');
+  const glowEl = document.getElementById('dot-glow');
+  if (!sceneEl || !moodEl || !sizeEl || !glowEl) return;
+  DOT_MATRIX_STATE.scene = sceneEl.value;
+  DOT_MATRIX_STATE.mood = moodEl.value;
+  DOT_MATRIX_STATE.dotSize = parseInt(sizeEl.value, 10) || 6;
+  DOT_MATRIX_STATE.glow = parseInt(glowEl.value, 10) || 0;
+  document.getElementById('dot-size-val').textContent = `${DOT_MATRIX_STATE.dotSize}px`;
+  document.getElementById('dot-glow-val').textContent = String(DOT_MATRIX_STATE.glow);
+  dotMatrixStart();
+}
+
+function dotMatrixToggleMotion() {
+  DOT_MATRIX_STATE.motion = !DOT_MATRIX_STATE.motion;
+  const btn = document.getElementById('dot-motion-btn');
+  if (btn) btn.classList.toggle('active', DOT_MATRIX_STATE.motion);
+  dotMatrixStart();
+}
+
+function dotMatrixToggleGrid() {
+  DOT_MATRIX_STATE.grid = !DOT_MATRIX_STATE.grid;
+  const btn = document.getElementById('dot-grid-btn');
+  if (btn) btn.classList.toggle('active', DOT_MATRIX_STATE.grid);
+  dotMatrixStart();
+}
+
+function dotMatrixStart() {
+  if (!document.getElementById('page-dot-matrix')?.classList.contains('active')) return;
+  if (!DOT_MATRIX_STARTED_AT) DOT_MATRIX_STARTED_AT = performance.now();
+  if (!DOT_MATRIX_FRAME) DOT_MATRIX_FRAME = requestAnimationFrame(dotMatrixTick);
+}
+
+function dotMatrixStop() {
+  if (DOT_MATRIX_FRAME) cancelAnimationFrame(DOT_MATRIX_FRAME);
+  DOT_MATRIX_FRAME = null;
+}
+
+function dotMatrixTick(now) {
+  DOT_MATRIX_FRAME = null;
+  dotMatrixDraw(now);
+  if (document.getElementById('page-dot-matrix')?.classList.contains('active')) {
+    DOT_MATRIX_FRAME = requestAnimationFrame(dotMatrixTick);
+  }
+}
+
+function dotMatrixDraw(now) {
+  const canvas = document.getElementById('dot-matrix-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width;
+  const h = canvas.height;
+  const t = DOT_MATRIX_STATE.motion ? (now - DOT_MATRIX_STARTED_AT) / 1000 : 0;
+  const d = DOT_MATRIX_STATE.dotSize;
+  ctx.clearRect(0, 0, w, h);
+  ctx.fillStyle = '#060a10';
+  ctx.fillRect(0, 0, w, h);
+  dotSky(ctx, w, h, d, t);
+  dotScene(ctx, w, h, d, t);
+  dotCat(ctx, 190, 238 + Math.sin(t * 7) * 2, d, t, DOT_MATRIX_STATE.mood);
+  dotCaption(ctx, w, h, DOT_MATRIX_STATE.scene, DOT_MATRIX_STATE.mood);
+}
+
+function dotPixel(ctx, x, y, d, color, alpha = 1) {
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.fillStyle = color;
+  if (DOT_MATRIX_STATE.glow > 0) {
+    ctx.shadowColor = color;
+    ctx.shadowBlur = DOT_MATRIX_STATE.glow;
+  }
+  const r = Math.max(1, Math.floor(d * 0.22));
+  const px = Math.round(x);
+  const py = Math.round(y);
+  if (ctx.roundRect) {
+    ctx.beginPath();
+    ctx.roundRect(px, py, d, d, r);
+    ctx.fill();
+  } else {
+    ctx.fillRect(px, py, d, d);
+  }
+  ctx.restore();
+}
+
+function dotMap(ctx, ox, oy, d, rows, palette) {
+  rows.forEach((row, yy) => {
+    [...row].forEach((cell, xx) => {
+      const color = palette[cell];
+      if (color) dotPixel(ctx, ox + xx * d, oy + yy * d, d, color);
+    });
+  });
+}
+
+function dotSky(ctx, w, h, d, t) {
+  for (let y = 24; y < h - 32; y += d * 2) {
+    for (let x = 20; x < w - 20; x += d * 2) {
+      if (!DOT_MATRIX_STATE.grid) continue;
+      dotPixel(ctx, x, y, Math.max(2, d * 0.32), '#162136', 0.5);
+    }
+  }
+  const moonX = DOT_MATRIX_STATE.motion ? 560 + Math.sin(t * 0.4) * 8 : 560;
+  dotPixel(ctx, moonX, 48, d, '#dbeafe', 0.9);
+  dotPixel(ctx, moonX + d, 48, d, '#93c5fd', 0.5);
+}
+
+function dotScene(ctx, w, h, d, t) {
+  const floorY = 284;
+  for (let x = -80; x < w + 80; x += d * 2) {
+    const sx = DOT_MATRIX_STATE.motion ? (x - (t * 72) % (d * 8)) : x;
+    dotPixel(ctx, sx, floorY, d * 2, '#1d2b46', 0.95);
+    dotPixel(ctx, sx + d, floorY + d * 3, d, '#24395d', 0.8);
+  }
+
+  if (DOT_MATRIX_STATE.scene === 'market') {
+    dotCrate(ctx, 436, 228, d);
+    dotFish(ctx, 528, 248, d);
+    dotMarketCat(ctx, 600, 228, d, t);
+  } else if (DOT_MATRIX_STATE.scene === 'home') {
+    dotBed(ctx, 424, 230, d);
+    dotYarn(ctx, 560, 254, d, t);
+  } else {
+    dotGrass(ctx, 420, 256, d, t);
+    dotSign(ctx, 540, 214, d);
+    dotBug(ctx, 636, 252, d, t);
+  }
+}
+
+function dotCat(ctx, ox, oy, d, t, mood) {
+  const lift = DOT_MATRIX_STATE.motion ? Math.round(Math.sin(t * 9) * 1.5) : 0;
+  const palette = {
+    o:'#fbbf24', s:'#f59e0b', d:'#92400e', e:'#05080c', p:'#f9a8d4',
+    b:'#60a5fa', w:'#fef3c7'
+  };
+  const body = [
+    '  oo       ',
+    ' ooooo  o ',
+    'oooooooooo',
+    'oooooooooo',
+    ' oooooooo ',
+    '  s    s  '
+  ];
+  const head = [
+    ' o   o ',
+    'ooooooo',
+    'oeoeooo',
+    mood === 'happy' ? 'ooppooo' : mood === 'tired' ? 'ooeeooo' : mood === 'spicy' ? 'oeooeoo' : 'ooeeooo',
+    'ooooooo',
+    ' ooooo '
+  ];
+  dotMap(ctx, ox, oy + lift, d, body, palette);
+  dotMap(ctx, ox + d * 6, oy - d * 4 + lift, d, head, palette);
+  if (mood === 'spicy') {
+    dotPixel(ctx, ox + d * 13, oy - d * 2 + lift, d, '#fb7185');
+  } else if (mood === 'tired') {
+    dotPixel(ctx, ox + d * 14, oy - d * 6 + lift, d, '#93c5fd', 0.85);
+    dotPixel(ctx, ox + d * 16, oy - d * 8 + lift, d * 0.75, '#93c5fd', 0.7);
+  } else {
+    dotPixel(ctx, ox + d * 14, oy - d * 3 + lift, d, '#34d399', 0.85);
+  }
+}
+
+function dotCrate(ctx, ox, oy, d) {
+  dotMap(ctx, ox, oy, d, ['bbbbbb','bssdsb','bsdsdb','bddssb','bbbbbb'], { b:'#a16207', s:'#d97706', d:'#78350f' });
+}
+
+function dotFish(ctx, ox, oy, d) {
+  dotMap(ctx, ox, oy, d, ['  aa  ','aaaaa>','  aa  '], { a:'#67e8f9', '>':'#f472b6' });
+}
+
+function dotMarketCat(ctx, ox, oy, d, t) {
+  dotMap(ctx, ox, oy + Math.sin(t * 4) * 2, d, [' g   g ','ggggggg','gegeggg','ggwgggg',' ggggg '], { g:'#94a3b8', e:'#05080c', w:'#fef3c7' });
+}
+
+function dotBed(ctx, ox, oy, d) {
+  dotMap(ctx, ox, oy, d, ['ppppppppp','pbbbbbbbp','pbbbbbbbp','sssssssss'], { p:'#a78bfa', b:'#312e81', s:'#475569' });
+}
+
+function dotYarn(ctx, ox, oy, d, t) {
+  const y = oy + Math.sin(t * 5) * 3;
+  dotMap(ctx, ox, y, d, [' rr ','rrrr','rrrr',' rr '], { r:'#fb7185' });
+}
+
+function dotGrass(ctx, ox, oy, d, t) {
+  for (let i = 0; i < 9; i++) {
+    const y = oy + Math.sin(t * 3 + i) * 2;
+    dotPixel(ctx, ox + i * d * 3, y, d, i % 2 ? '#22c55e' : '#16a34a', 0.9);
+  }
+}
+
+function dotSign(ctx, ox, oy, d) {
+  dotMap(ctx, ox, oy, d, ['yyyyyyyy','y      y','yyyyyyyy','   y    ','   y    '], { y:'#ca8a04' });
+}
+
+function dotBug(ctx, ox, oy, d, t) {
+  const y = oy + Math.sin(t * 8) * 5;
+  dotMap(ctx, ox, y, d, [' ee ','eeee',' ee '], { e:'#c084fc' });
+}
+
+function dotCaption(ctx, w, h, scene, mood) {
+  const copy = {
+    patrol:'observing a suspicious path',
+    market:'negotiating with the marketplace cat',
+    home:'half-awake, protecting the blanket'
+  }[scene] || 'observing';
+  ctx.save();
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = '#0d1117';
+  ctx.globalAlpha = 0.78;
+  ctx.fillRect(24, 24, 314, 34);
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = '#ffc860';
+  ctx.font = '14px "DM Mono", monospace';
+  ctx.fillText(`${mood.toUpperCase()} CAT: ${copy}`, 38, 46);
+  ctx.restore();
+}
+
 /* ── Nav ── */
 function navTo(page) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById('page-' + page).classList.add('active');
   document.querySelector('[data-page="' + page + '"]').classList.add('active');
+  if (page !== 'dot-matrix') dotMatrixStop();
   if (page === 'players') loadPlayers();
   if (page === 'studio') loadCards();
   if (page === 'runs') loadRunTemplates();
+  if (page === 'dot-matrix') dotMatrixApplyControls();
 }
 
 /* ── Card Studio ── */
