@@ -659,7 +659,7 @@
             </div>
             <div class="dot-panel-body">
               <div class="dot-stage-wrap">
-                <canvas class="dot-stage" id="dot-matrix-canvas" width="720" height="360"></canvas>
+                <canvas class="dot-stage" id="dot-matrix-canvas" width="960" height="360"></canvas>
               </div>
               <div class="dot-spec-grid">
                 <div class="dot-spec"><div class="dot-spec-k">Event</div><div class="dot-spec-v" id="dot-spec-event">Observe</div></div>
@@ -1694,6 +1694,8 @@ function dotMatrixRecipe() {
     },
     renderer: {
       style: 'dot-matrix',
+      aspect_ratio: '16:6',
+      zones: ['cat', 'travel_space', 'encounter'],
       dot_size: DOT_MATRIX_STATE.dotSize,
       speed: DOT_MATRIX_STATE.speed,
       glow: DOT_MATRIX_STATE.glow,
@@ -1957,9 +1959,10 @@ function dotMatrixDraw(now) {
     ctx.fillStyle = `rgba(250,204,21,${0.08 + Math.abs(Math.sin(t * 6)) * 0.08})`;
     ctx.fillRect(0, 0, w, h);
   }
-  dotMatrixPreviewLayer(ctx, DOT_LAYERS.environment, -34 + envShift + envShake, 108, Math.max(5, d * 0.86), envAlpha);
+  dotMatrixPreviewLayerFit(ctx, DOT_LAYERS.environment, envShift + envShake, 108, w, 200, envAlpha);
+  dotMatrixZoneGuides(ctx, w, h);
   if (DOT_MATRIX_STATE.envAction === 'rain-pulse') dotWeather(ctx, w, h, d, t * 1.6);
-  const unit = Math.max(5, d * 1.15);
+  const unit = Math.max(5, d * 1.05);
   const encounterPos = dotMatrixEncounterPosition(t, unit);
   dotMatrixPreviewLayer(ctx, DOT_LAYERS.encounter, encounterPos.x, encounterPos.y, unit, 1);
   const catPositions = dotMatrixCatPositions(t, unit);
@@ -1977,13 +1980,46 @@ function dotMatrixPreviewLayer(ctx, layer, ox, oy, unit, alpha = 1) {
   }));
 }
 
+function dotMatrixPreviewLayerFit(ctx, layer, ox, oy, targetW, targetH, alpha = 1) {
+  if (!layer) return;
+  const rows = layer.length;
+  const cols = rows ? layer[0].length : 1;
+  const unitX = targetW / cols;
+  const unitY = targetH / rows;
+  const size = Math.min(unitX, unitY) * 0.9;
+  layer.forEach((row, y) => row.forEach((color, x) => {
+    if (color) dotPixel(ctx, ox + x * unitX, oy + y * unitY, size, color, alpha);
+  }));
+}
+
+function dotMatrixZoneGuides(ctx, w, h) {
+  ctx.save();
+  ctx.shadowBlur = 0;
+  ctx.strokeStyle = 'rgba(148,163,184,.18)';
+  ctx.setLineDash([6, 8]);
+  [w / 3, (w / 3) * 2].forEach(x => {
+    ctx.beginPath();
+    ctx.moveTo(x, 94);
+    ctx.lineTo(x, h - 24);
+    ctx.stroke();
+  });
+  ctx.setLineDash([]);
+  ctx.fillStyle = 'rgba(148,163,184,.38)';
+  ctx.font = '10px "DM Mono", monospace';
+  ctx.fillText('CAT', 24, 336);
+  ctx.fillText('TRAVEL SPACE', w / 3 + 24, 336);
+  ctx.fillText('ENCOUNTER', (w / 3) * 2 + 24, 336);
+  ctx.restore();
+}
+
 function dotMatrixEncounterPosition(t, unit) {
   const wobble = DOT_MATRIX_STATE.motion ? Math.sin(t * 1.8) * unit : 0;
-  if (DOT_MATRIX_STATE.reaction === 'chase') return { x:430 + wobble + Math.sin(t * 3) * 18, y:106 };
-  if (DOT_MATRIX_STATE.reaction === 'back-away') return { x:498 + wobble, y:112 };
-  if (DOT_MATRIX_STATE.reaction === 'surround') return { x:420 + wobble, y:108 };
-  if (DOT_MATRIX_STATE.reaction === 'rest') return { x:410, y:120 };
-  return { x:438 + wobble, y:112 };
+  const zoneX = 960 * 2 / 3;
+  if (DOT_MATRIX_STATE.reaction === 'chase') return { x:zoneX + 104 + wobble + Math.sin(t * 3) * 18, y:112 };
+  if (DOT_MATRIX_STATE.reaction === 'back-away') return { x:zoneX + 98 + wobble, y:112 };
+  if (DOT_MATRIX_STATE.reaction === 'surround') return { x:zoneX + 88 + wobble, y:110 };
+  if (DOT_MATRIX_STATE.reaction === 'rest') return { x:zoneX + 74, y:124 };
+  return { x:zoneX + 94 + wobble, y:112 };
 }
 
 function dotMatrixCatPositions(t, unit) {
@@ -1992,22 +2028,23 @@ function dotMatrixCatPositions(t, unit) {
   const reaction = DOT_MATRIX_STATE.reaction;
   const count = Math.max(1, Math.min(3, DOT_MATRIX_STATE.catCount));
   const arrival = DOT_MATRIX_STATE.pacing === 'pause' ? Math.min(1, t / 1.4) : 1;
-  const passBy = DOT_MATRIX_STATE.pacing === 'pass' ? ((t * 58) % 620) : 0;
+  const passBy = DOT_MATRIX_STATE.pacing === 'pass' ? ((t * 72) % 960) : 0;
   const positions = [];
   for (let i = 0; i < count; i++) {
-    let x = 74 + arrival * 92 + passBy - i * unit * 7;
+    let x = 72 + arrival * 62 + passBy - i * unit * 7;
     let y = baseY + i * unit * 2 + bob;
-    if (reaction === 'advance') x += Math.sin(t * 2.6) * unit * 3 + unit * 7;
+    if (DOT_MATRIX_STATE.pacing === 'pause') x = Math.min(x, 214 - i * unit * 7);
+    if (reaction === 'advance') x += Math.sin(t * 2.6) * unit * 3 + unit * 10;
     if (reaction === 'back-away') x -= Math.abs(Math.sin(t * 2.2)) * unit * 4;
     if (reaction === 'jump') y -= Math.abs(Math.sin(t * 3.5)) * unit * 6;
     if (reaction === 'crouch') y += unit * 3;
-    if (reaction === 'chase') x += Math.abs(Math.sin(t * 3.2)) * unit * 10;
+    if (reaction === 'chase') x += Math.abs(Math.sin(t * 3.2)) * unit * 16;
     if (reaction === 'celebrate') y -= Math.abs(Math.sin(t * 6)) * unit * 4;
-    if (reaction === 'inspect') x += unit * 12 + Math.sin(t * 2) * unit * 1.5;
+    if (reaction === 'inspect') x += unit * 14 + Math.sin(t * 2) * unit * 1.5;
     if (reaction === 'slow-blink') x += unit * 7;
     if (reaction === 'rest') { x += unit * 6; y += unit * 4; }
     if (reaction === 'surround') {
-      const surround = [{ x:92, y:baseY + unit * 4 }, { x:278, y:baseY + unit }, { x:172, y:baseY - unit * 4 }];
+      const surround = [{ x:88, y:baseY + unit * 4 }, { x:232, y:baseY + unit }, { x:162, y:baseY - unit * 4 }];
       x = surround[i]?.x || x;
       y = surround[i]?.y || y;
     }
