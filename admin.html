@@ -357,6 +357,9 @@
       <button class="nav-item" data-page="players" onclick="navTo('players')">
         <span class="nav-icon">👤</span> Players
       </button>
+      <button class="nav-item" data-page="tradecenter" onclick="navTo('tradecenter')">
+        <span class="nav-icon">🤝</span> Trade Center
+      </button>
     </nav>
 
     <main class="content">
@@ -746,6 +749,51 @@
             <span class="table-count" id="player-count"></span>
           </div>
           <div id="players-table-wrap"><div class="empty"><span class="spinner"></span></div></div>
+        </div>
+      </div>
+
+      <!-- Trade Center: admin-curated Buy marketplace -->
+      <div class="page" id="page-tradecenter">
+        <div class="page-title">Trade Center</div>
+        <div class="page-sub">Create listings players can buy with coins in-game.</div>
+        <div class="stats-row">
+          <div class="stat-tile"><div class="stat-label">Active Listings</div><div class="stat-value" id="tc-st-active">—</div></div>
+          <div class="stat-tile"><div class="stat-label">Sold</div><div class="stat-value" id="tc-st-sold">—</div></div>
+          <div class="stat-tile"><div class="stat-label">Coins Generated</div><div class="stat-value" id="tc-st-revenue">—</div></div>
+        </div>
+
+        <div class="form-section">Create Listing</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-lbl">Card</label>
+            <select class="form-select" id="tc-f-card" onchange="tcAdminSuggestPrice()"></select>
+          </div>
+          <div class="form-group">
+            <label class="form-lbl">Price (coins)</label>
+            <input class="form-input" id="tc-f-price" type="number" min="1">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-lbl">Duration</label>
+            <select class="form-select" id="tc-f-duration">
+              <option value="">Permanent</option>
+              <option value="1">1 day</option>
+              <option value="3">3 days</option>
+              <option value="7">7 days</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn btn-primary" id="tc-f-save-btn" onclick="tcAdminCreateListing()">+ Create Listing</button>
+        <div class="ced-err" id="tc-f-err"></div>
+        <div class="ced-ok"  id="tc-f-ok"></div>
+
+        <div class="table-wrap" style="margin-top:24px">
+          <div class="table-head">
+            <span class="table-title">Listings</span>
+            <span class="table-count" id="tc-listing-count"></span>
+          </div>
+          <div id="tc-listings-table-wrap"><div class="empty"><span class="spinner"></span></div></div>
         </div>
       </div>
 
@@ -2307,6 +2355,7 @@ function navTo(page) {
   if (page === 'studio') loadCards();
   if (page === 'runs') loadRunTemplates();
   if (page === 'dot-matrix') dotMatrixInit();
+  if (page === 'tradecenter') tcAdminLoad();
 }
 
 /* ── Card Studio ── */
@@ -3183,6 +3232,90 @@ async function loadPlayers() {
     <td>${p.is_admin?'<span class="badge badge-green">Admin</span>':'<span class="badge badge-gray">Player</span>'}</td>
     <td style="color:var(--t3)">${fmtDate(p.created_at)}</td>
   </tr>`).join('')}</tbody></table>`;
+}
+
+/* ── Trade Center (admin-curated Buy marketplace) ── */
+function tcAdminSuggestPrice() {
+  const cardId = document.getElementById('tc-f-card').value;
+  const card = ALL_CARDS.find(c => c.id === cardId);
+  const priceInp = document.getElementById('tc-f-price');
+  if (card && priceInp) priceInp.value = Math.round((card.coin_cost || 0) * 1.15);
+}
+
+async function tcAdminCreateListing() {
+  const cardId   = document.getElementById('tc-f-card').value;
+  const price    = parseInt(document.getElementById('tc-f-price').value) || 0;
+  const days     = document.getElementById('tc-f-duration').value;
+  const errEl    = document.getElementById('tc-f-err');
+  const okEl     = document.getElementById('tc-f-ok');
+  const btn      = document.getElementById('tc-f-save-btn');
+  errEl.style.display = 'none'; okEl.style.display = 'none';
+
+  if (!cardId) { errEl.textContent = 'Choose a card.'; errEl.style.display = ''; return; }
+  if (price <= 0) { errEl.textContent = 'Price must be a positive number.'; errEl.style.display = ''; return; }
+
+  btn.disabled = true; btn.textContent = 'Creating…';
+  const expires_at = days ? new Date(Date.now() + Number(days) * 86400000).toISOString() : null;
+  const { data: { user } } = await db.auth.getUser();
+  const { error } = await db.from('market_listings').insert({
+    card_id: cardId, price, expires_at, created_by: user.id
+  });
+  btn.disabled = false; btn.textContent = '+ Create Listing';
+
+  if (error) { errEl.textContent = error.message; errEl.style.display = ''; return; }
+  okEl.textContent = '✓ Listing created!'; okEl.style.display = '';
+  setTimeout(() => { okEl.style.display = 'none'; }, 2000);
+  await tcAdminLoad();
+}
+
+async function tcAdminCancelListing(id) {
+  if (!confirm('Cancel this listing?')) return;
+  await db.from('market_listings').update({ status: 'cancelled' }).eq('id', id);
+  await tcAdminLoad();
+}
+
+async function tcAdminLoad() {
+  // Card picker (from the already-loaded Studio card list)
+  const cardSel = document.getElementById('tc-f-card');
+  if (cardSel && !cardSel.dataset.filled) {
+    const ownable = ALL_CARDS.filter(c => (c.coin_cost || 0) > 0).sort((a,b) => a.name.localeCompare(b.name));
+    cardSel.innerHTML = ownable.map(c => `<option value="${esc(c.id)}">${esc(c.name)} (${esc(c.type)} · ${c.coin_cost}🪙)</option>`).join('');
+    cardSel.dataset.filled = '1';
+    tcAdminSuggestPrice();
+  }
+
+  const wrap = document.getElementById('tc-listings-table-wrap');
+  wrap.innerHTML = '<div class="empty"><span class="spinner"></span></div>';
+  const { data: listings, error } = await db.from('market_listings')
+    .select('*, buyer:market_listings_bought_by_fkey(callsign)')
+    .order('created_at', { ascending: false });
+  if (error || !listings) { wrap.innerHTML = '<div class="empty">Could not load listings.</div>'; return; }
+
+  document.getElementById('tc-st-active').textContent = listings.filter(l => l.status === 'active').length;
+  const sold = listings.filter(l => l.status === 'sold');
+  document.getElementById('tc-st-sold').textContent = sold.length;
+  document.getElementById('tc-st-revenue').textContent = sold.reduce((s,l) => s + (l.price||0), 0).toLocaleString();
+  document.getElementById('tc-listing-count').textContent = listings.length + ' listings';
+
+  if (!listings.length) { wrap.innerHTML = '<div class="empty">No listings yet.</div>'; return; }
+  wrap.innerHTML = `<table><thead><tr>
+    <th>Card</th><th>Price</th><th>Status</th><th>Buyer</th><th>Expires</th><th>Created</th><th></th>
+  </tr></thead><tbody>${listings.map(l => {
+    const card = ALL_CARDS.find(c => c.id === l.card_id);
+    const statusBadge = l.status === 'active' ? '<span class="badge badge-green">Active</span>'
+      : l.status === 'sold' ? '<span class="badge badge-gray">Sold</span>'
+      : l.status === 'expired' ? '<span class="badge badge-gray">Expired</span>'
+      : '<span class="badge badge-gray">Cancelled</span>';
+    return `<tr>
+      <td><strong>${esc(card ? card.name : l.card_id)}</strong></td>
+      <td>${(l.price||0).toLocaleString()} 🪙</td>
+      <td>${statusBadge}</td>
+      <td style="color:var(--t3)">${l.buyer ? esc(l.buyer.callsign) : '—'}</td>
+      <td style="color:var(--t3)">${l.expires_at ? fmtDate(l.expires_at) : 'Never'}</td>
+      <td style="color:var(--t3)">${fmtDate(l.created_at)}</td>
+      <td>${l.status === 'active' ? `<button class="btn" style="padding:4px 10px;font-size:11px" onclick="tcAdminCancelListing('${l.id}')">Cancel</button>` : ''}</td>
+    </tr>`;
+  }).join('')}</tbody></table>`;
 }
 
 /* ── Helpers ── */

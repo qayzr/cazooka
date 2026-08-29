@@ -1078,6 +1078,24 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 /* ── MARKET ── */
 .mkt-ov{position:absolute;inset:0;z-index:950;background:var(--bg);display:flex;flex-direction:column;overflow:hidden}
 .run-ov{position:absolute;inset:0;z-index:960;background:var(--bg);display:flex;flex-direction:column;overflow:hidden}
+.trd-ov{position:absolute;inset:0;z-index:955;background:var(--bg);display:flex;flex-direction:column;overflow:hidden}
+.trd-menu{display:flex;flex-direction:column;gap:12px;max-width:480px;margin:0 auto}
+.trd-menu-card{display:flex;flex-direction:column;align-items:flex-start;gap:4px;background:var(--s1);border:1px solid var(--bd);border-radius:var(--r-lg);padding:18px 20px;cursor:pointer;transition:border-color .15s,background .15s;text-align:left;width:100%}
+.trd-menu-card:hover{border-color:var(--acc);background:var(--acc-bg)}
+.trd-menu-icon{font-size:28px;line-height:1}
+.trd-menu-name{font-family:var(--fd);font-size:16px;font-weight:700;color:var(--t1)}
+.trd-menu-desc{font-family:var(--fb);font-size:12px;color:var(--t2)}
+.trd-pickable{cursor:pointer;position:relative}
+.trd-select-badge{position:absolute;top:6px;left:6px;width:22px;height:22px;border-radius:50%;background:var(--acc);color:#0D1117;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;opacity:0;transition:opacity .12s;pointer-events:none;z-index:2}
+.trd-selected .trd-select-badge{opacity:1}
+.trd-selected .cv{box-shadow:0 0 0 3px var(--bg),0 0 0 6px var(--acc)}
+.trd-bulkbar{flex-shrink:0;display:flex;align-items:center;gap:10px;padding:12px 20px;background:var(--s1);border-top:1px solid var(--bd)}
+.trd-bulk-count{font-family:var(--fm);font-size:11px;color:var(--t2);flex-shrink:0;white-space:nowrap}
+.trd-quote-list{display:flex;flex-direction:column;gap:4px;max-height:200px;overflow-y:auto;width:100%}
+.trd-quote-row{display:flex;justify-content:space-between;font-family:var(--fm);font-size:11px;color:var(--t2);padding:4px 0;border-bottom:1px solid var(--bd)}
+.trd-buy-foot{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.trd-buy-price{font-family:var(--fm);font-size:12px;color:var(--acc2);font-weight:700}
+.trd-buy-time{font-family:var(--fm);font-size:9px;color:var(--t3)}
 .mkt-hdr{flex-shrink:0;height:52px;display:flex;align-items:center;gap:12px;padding:0 20px;background:var(--s1);border-bottom:1px solid var(--bd)}
 .mkt-back{padding:6px 14px;font-family:var(--fm);font-size:10px;text-transform:uppercase;letter-spacing:.07em;background:none;border:1px solid var(--bd);border-radius:var(--r-md);color:var(--t3);cursor:pointer;transition:all .15s;flex-shrink:0}
 .mkt-back:hover{border-color:var(--acc);color:var(--acc2)}
@@ -1147,6 +1165,7 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 <div id="game-home" class="game-ov" style="display:none"></div>
 <div id="outing-picker-ov" class="outing-picker-ov" style="display:none"></div>
 <div id="market-ov" class="mkt-ov" style="display:none"></div>
+<div id="trade-ov" class="trd-ov" style="display:none"></div>
 <div id="run-ov" class="run-ov" style="display:none">
   <div id="sbxp-results" style="flex:1;display:flex;flex-direction:column;overflow:hidden">
     <div class="sbx-results" id="sbx-results">
@@ -1270,6 +1289,14 @@ let GH_HAS_UNREAD    = true; // demo: unread messages exist
 let GH_RETURN_DIFFS  = null; // {ci: {hungerDiff, moodDiff, energyDiff}} set on return from adventure
 let GH_ACTIVE_HOME_IDX = 0;  // which home card is active on the home tab
 const GH_CARD_FILTER = { search:'', type:'all', rarity:'all', view:'recent' };
+
+// ── Trade Center ──
+let TC_VIEW = 'menu'; // 'menu' | 'sell' | 'buy' | 'trade' | 'respond'
+let TC_FILTER = { search:'', type:'all', rarity:'all' };
+let TC_SELECTED = new Set();
+let TC_LISTINGS = [];
+let TC_RESPONDING_OFFER = null;
+let GH_INBOX_OFFERS = [];
 let _GH_TOUCH_MOVED = false; // true if last touch event involved significant horizontal movement
 let GH_LAST_INTERACTION = Date.now();
 let GH_SLEEP_CHECK_TIMER = null;
@@ -4700,6 +4727,24 @@ function getCurrentHomeId() {
   return cardIdOf(sbx.home);
 }
 
+// Every card id currently equipped/in-use somewhere — shared by the Cards
+// tab and the Trade Center (Sell/Trade pickers only offer inactive cards).
+function getActiveCardIds() {
+  const cats = sbx.cats || [];
+  const homeUsageCounts = getHomeUsageCounts();
+  return new Set([
+    ...Object.keys(sbx.savedHomes || {}),
+    getCurrentHomeId(),
+    ...cats.map(cs => cs.breed && cs.breed.id).filter(Boolean),
+    ...cats.flatMap(cs => (cs.gear || []).map(g => typeof g === 'string' ? g : (g && g.id))).filter(Boolean),
+    ...cats.flatMap(cs => (cs.abilities || []).map(a => typeof a === 'string' ? a : (a && a.id))).filter(Boolean),
+    ...Object.keys(homeUsageCounts.cat_breed),
+    ...Object.keys(homeUsageCounts.home_item),
+    ...Object.keys(homeUsageCounts.battle_gear),
+    ...Object.keys(homeUsageCounts.special_ability),
+  ]);
+}
+
 function getHomeEnvProfile(homeCard) {
   const name = ((homeCard && homeCard.name) || '').toLowerCase();
   const id = ((homeCard && homeCard.id) || '').toLowerCase();
@@ -4806,9 +4851,11 @@ function showGameHome() {
   document.getElementById('market-ov').style.display = 'none';
   document.getElementById('outing-picker-ov').style.display = 'none';
   document.getElementById('run-ov').style.display = 'none';
+  document.getElementById('trade-ov').style.display = 'none';
   const gh = document.getElementById('game-home');
   gh.style.display = 'flex';
   renderGameHome();
+  loadInboxOffers();
   if (GAME_CARE_TIMER) clearInterval(GAME_CARE_TIMER);
   GAME_CARE_TIMER = setInterval(updateGameHomeBars, 30000);
   if (GH_SLEEP_CHECK_TIMER) clearInterval(GH_SLEEP_CHECK_TIMER);
@@ -5419,6 +5466,7 @@ function renderGameHome() {
   // ── VISITS TAB ──
   const VISIT_LOCATIONS = [
     { icon:'🏪', name:'Marketplace', desc:'Buy food, treats, gear and home items.', open:true,  action:'showMarket()' },
+    { icon:'🤝', name:'Trade Center', desc:'Sell cards to the market, buy from other listings, or trade with other players.', open:true, action:'openTradeCenter()' },
     { icon:'🩺', name:'Veterinarian', desc:'Health checks, vaccinations, and recovery services for your cats.', open:false },
     { icon:'🏋️', name:'Cat Gym',      desc:'Strength and agility training to improve your cats\' stats over time.', open:false },
     { icon:'🐟', name:'Fish Market',  desc:'Source rare ingredients and specialty food your cats will love.', open:false },
@@ -5446,6 +5494,7 @@ function renderGameHome() {
 
   // ── INBOX TAB ──
   const inboxTabHtml = `<div class="gh-inbox">
+    ${buildTradeOfferInboxRows()}
     <div class="gh-inbox-msg">
       <div class="gh-inbox-avatar">🩺</div>
       <div class="gh-inbox-body">
@@ -5464,17 +5513,7 @@ function renderGameHome() {
   </div>`;
 
   // ── CARDS TAB ──
-  const activeCardIds = new Set([
-    ...Object.keys(sbx.savedHomes || {}),
-    getCurrentHomeId(),
-    ...cats.map(cs => cs.breed && cs.breed.id).filter(Boolean),
-    ...cats.flatMap(cs => (cs.gear || []).map(g => typeof g === 'string' ? g : (g && g.id))).filter(Boolean),
-    ...cats.flatMap(cs => (cs.abilities || []).map(a => typeof a === 'string' ? a : (a && a.id))).filter(Boolean),
-    ...Object.keys(homeUsageCounts.cat_breed),
-    ...Object.keys(homeUsageCounts.home_item),
-    ...Object.keys(homeUsageCounts.battle_gear),
-    ...Object.keys(homeUsageCounts.special_ability),
-  ]);
+  const activeCardIds = getActiveCardIds();
   const allDeckCards = deckIds.map(entry => typeof entry === 'string' ? getCard(entry) : entry).filter(Boolean);
   let cardsTabHtml;
   if (!allDeckCards.length) {
@@ -5527,8 +5566,7 @@ function renderGameHome() {
           <span class="gh-card-badge ${isActive ? 'active' : 'inactive'}">${isActive ? 'Active' : 'Inactive'}</span>
           ${GH_CARD_FILTER.view === 'recent' ? `<span class="gh-card-badge inactive">New #${deckIndex + 1}</span>` : ''}
           ${!isActive ? `<div class="gh-card-actions-row" onclick="event.stopPropagation()">
-            <button class="gh-card-act-btn">Trade</button>
-            <button class="gh-card-act-btn">Send</button>
+            <button class="gh-card-act-btn" onclick="openSendCardSheet('${card.id}')">📤 Send</button>
           </div>` : ''}
         </div>
       </div>`;
@@ -5957,6 +5995,7 @@ function ghEquipAbility(ci, cardId, evt) {
 
 function ghSetTab(tab) {
   GH_TAB = tab;
+  if (tab === 'inbox') loadInboxOffers();
   renderGameHome();
 }
 
@@ -6036,6 +6075,51 @@ function dismissCarePopup() {
   const ov = document.getElementById('care-popup-overlay');
   if (ov) ov.style.display = 'none';
 }
+
+function openSendCardSheet(cardId) {
+  showCarePopup(`
+    <div class="care-popup-icon">📤</div>
+    <div class="care-popup-title">Send Card</div>
+    <div class="care-popup-desc">Enter the exact callsign of the player to send this to. This happens right away and can't be undone.</div>
+    <input class="ob-input" id="send-card-callsign" type="text" placeholder="Their callsign" autocomplete="off" style="margin-bottom:6px" onkeydown="if(event.key==='Enter')confirmSendCard('${cardId}')">
+    <div id="send-card-err" style="display:none;color:#F87171;font-family:var(--fm);font-size:10px;text-align:center;margin-bottom:4px"></div>
+    <button class="care-popup-btn primary" id="send-card-btn" onclick="confirmSendCard('${cardId}')">Send</button>
+    <button class="care-popup-btn secondary" onclick="dismissCarePopup()">Cancel</button>
+  `);
+  setTimeout(() => document.getElementById('send-card-callsign')?.focus(), 50);
+}
+
+async function confirmSendCard(cardId) {
+  const input   = document.getElementById('send-card-callsign');
+  const errEl   = document.getElementById('send-card-err');
+  const btn     = document.getElementById('send-card-btn');
+  const callsign = (input?.value || '').trim();
+  if (errEl) errEl.style.display = 'none';
+  if (!callsign) { if (errEl) { errEl.textContent = 'Enter a callsign.'; errEl.style.display = ''; } return; }
+  if (!db || !CZ_USER) { if (errEl) { errEl.textContent = 'You must be signed in to send cards.'; errEl.style.display = ''; } return; }
+
+  if (btn) { btn.disabled = true; btn.textContent = 'Sending…'; }
+  const { error } = await db.rpc('send_cards_to_player', { p_card_ids: [cardId], p_recipient_callsign: callsign });
+  if (error) {
+    if (btn) { btn.disabled = false; btn.textContent = 'Send'; }
+    if (errEl) {
+      errEl.textContent = error.code === 'P0002' ? 'No player found with that callsign.' : (error.message || 'Send failed — try again.');
+      errEl.style.display = '';
+    }
+    return;
+  }
+
+  // The RPC already wrote the sender's row directly — reconcile local
+  // state now so a later unrelated savePlayer() doesn't re-upload a
+  // stale PLAYER/sbx blob and resurrect the card we just sent away.
+  if (PLAYER && PLAYER.deckIds) PLAYER.deckIds = PLAYER.deckIds.filter(id => id !== cardId);
+  sbx.deck = (sbx.deck || []).filter(entry => (typeof entry === 'string' ? entry : entry?.id) !== cardId);
+
+  dismissCarePopup();
+  showCareToast(`📤 Sent to ${callsign}!`);
+  renderGameHome();
+}
+
 function renderAndAnimateCareAction() {
   renderGameHomeKeepScroll();
 }
@@ -6574,6 +6658,410 @@ function buyCard(cardId) {
   savePlayer();
   showCareToast(`${card ? card.name : 'Card'} added to deck! ✨`);
   renderMarket();
+}
+
+/* ══════════════════════════════════════════
+   TRADE CENTER — Sell / Buy / Trade
+   Sell and Trade share one card-picker grid (tcCardPicker*); Send (in
+   the Cards tab) lives separately in openSendCardSheet/confirmSendCard.
+   Every mutating action here goes through a SECURITY DEFINER RPC that
+   already writes the authoritative row(s) server-side — after a
+   successful call we just reconcile local PLAYER/sbx state to match,
+   we don't call savePlayer() again (that would just re-upload the same
+   state we already reconciled).
+══════════════════════════════════════════ */
+function openTradeCenter() {
+  TC_VIEW = 'menu';
+  TC_SELECTED = new Set();
+  TC_FILTER = { search:'', type:'all', rarity:'all' };
+  document.getElementById('trade-ov').style.display = 'flex';
+  renderTradeCenter();
+}
+function closeTradeCenter() {
+  document.getElementById('trade-ov').style.display = 'none';
+  renderGameHome();
+}
+function tcShowMenu()  { TC_VIEW = 'menu';  TC_SELECTED = new Set(); renderTradeCenter(); }
+function tcShowSell()  { TC_VIEW = 'sell';  TC_SELECTED = new Set(); renderTradeCenter(); }
+function tcShowTrade() { TC_VIEW = 'trade'; TC_SELECTED = new Set(); renderTradeCenter(); }
+function tcShowBuy()   { TC_VIEW = 'buy';   TC_SELECTED = new Set(); renderTradeCenter(); tcLoadListings(); }
+
+function tcSetFilter(key, val) { TC_FILTER[key] = val; renderTradeCenter(); }
+
+function tcToggleSelect(cardId) {
+  if (TC_SELECTED.has(cardId)) {
+    TC_SELECTED.delete(cardId);
+  } else {
+    if (TC_SELECTED.size >= 10) { showCareToast('You can only pick up to 10 cards at a time.'); return; }
+    TC_SELECTED.add(cardId);
+  }
+  renderTradeCenter();
+}
+
+// Only inactive cards can be sold/traded — same rule as the Cards tab's Send.
+function tcGetInactiveDeckCards() {
+  const player = PLAYER || {};
+  const deckIds = (player.deckIds) || sbx.deck || [];
+  const activeCardIds = getActiveCardIds();
+  return deckIds
+    .map(entry => typeof entry === 'string' ? getCard(entry) : entry)
+    .filter(Boolean)
+    .filter(card => !activeCardIds.has(card.id));
+}
+
+function tcFilterCards(cards) {
+  const q = TC_FILTER.search.toLowerCase();
+  return cards.filter(card => {
+    if (TC_FILTER.type !== 'all' && card.type !== TC_FILTER.type) return false;
+    if (TC_FILTER.rarity !== 'all' && card.rarity !== TC_FILTER.rarity) return false;
+    if (q && !card.name.toLowerCase().includes(q) && !(card.description||'').toLowerCase().includes(q)) return false;
+    return true;
+  });
+}
+
+function tcCardPickerToolbarHtml() {
+  const typeOptions = [['all','All Types'],['cat_breed','Cat Breeds'],['home','Homes'],['home_item','Items'],['battle_gear','Gear'],['special_ability','Abilities']];
+  const rarityOptions = ['all', ...RARITIES];
+  return `<div class="gh-card-tools">
+    <input class="gh-card-search" type="text" placeholder="Search cards…" value="${escapeAttr(TC_FILTER.search)}" oninput="tcSetFilter('search', this.value)">
+    <select class="gh-card-filter" onchange="tcSetFilter('type', this.value)">
+      ${typeOptions.map(([v,l]) => `<option value="${v}"${TC_FILTER.type===v?' selected':''}>${l}</option>`).join('')}
+    </select>
+    <select class="gh-card-filter" onchange="tcSetFilter('rarity', this.value)">
+      ${rarityOptions.map(v => `<option value="${v}"${TC_FILTER.rarity===v?' selected':''}>${v==='all'?'All Rarities':v[0].toUpperCase()+v.slice(1)}</option>`).join('')}
+    </select>
+  </div>`;
+}
+
+function tcCardPickerGridHtml() {
+  const cards = tcFilterCards(tcGetInactiveDeckCards());
+  if (!cards.length) return `<div class="gh-empty">No eligible cards. Active cards can't be sold or traded.</div>`;
+  const grid = cards.map(card => {
+    const sel = TC_SELECTED.has(card.id);
+    return `<div class="gh-card-cell trd-pickable${sel?' trd-selected':''}" data-peek-card="${card.id}" onclick="tcToggleSelect('${card.id}')">
+      ${buildCardFaceHtml(card, { standardLayout: true })}
+      <div class="trd-select-badge">✓</div>
+    </div>`;
+  }).join('');
+  return `<div class="gh-card-grid">${grid}</div>`;
+}
+
+function renderTradeCenter() {
+  const ov = document.getElementById('trade-ov');
+  if (!ov || ov.style.display === 'none') return;
+  ov.innerHTML = TC_VIEW === 'sell' ? tcRenderSell()
+    : TC_VIEW === 'buy' ? tcRenderBuy()
+    : TC_VIEW === 'trade' ? tcRenderTrade()
+    : TC_VIEW === 'respond' ? tcRenderRespond()
+    : tcRenderMenu();
+}
+
+function tcRenderMenu() {
+  const coins = PLAYER ? PLAYER.coins : sbx.coins;
+  return `
+    <div class="mkt-hdr">
+      <button class="mkt-back" onclick="closeTradeCenter()">← Home</button>
+      <span class="mkt-title">🤝 Trade Center</span>
+      <span class="mkt-coins">🪙 ${coins}</span>
+    </div>
+    <div class="mkt-body">
+      <div class="trd-menu">
+        <button class="trd-menu-card" onclick="tcShowSell()">
+          <div class="trd-menu-icon">💰</div>
+          <div class="trd-menu-name">Sell</div>
+          <div class="trd-menu-desc">Sell your cards to the market for coins.</div>
+        </button>
+        <button class="trd-menu-card" onclick="tcShowBuy()">
+          <div class="trd-menu-icon">🛍️</div>
+          <div class="trd-menu-name">Buy</div>
+          <div class="trd-menu-desc">Buy cards from special limited-time listings.</div>
+        </button>
+        <button class="trd-menu-card" onclick="tcShowTrade()">
+          <div class="trd-menu-icon">🔄</div>
+          <div class="trd-menu-name">Trade</div>
+          <div class="trd-menu-desc">Offer up to 10 cards to another player.</div>
+        </button>
+      </div>
+    </div>`;
+}
+
+// ── Sell ──
+function tcRenderSell() {
+  const coins = PLAYER ? PLAYER.coins : sbx.coins;
+  return `
+    <div class="mkt-hdr">
+      <button class="mkt-back" onclick="tcShowMenu()">← Trade Center</button>
+      <span class="mkt-title">💰 Sell Cards</span>
+      <span class="mkt-coins">🪙 ${coins}</span>
+    </div>
+    <div class="mkt-body">
+      ${tcCardPickerToolbarHtml()}
+      ${tcCardPickerGridHtml()}
+    </div>
+    <div class="trd-bulkbar">
+      <span class="trd-bulk-count">${TC_SELECTED.size} / 10 selected</span>
+      <button class="ob-btn-primary" style="width:auto;padding:10px 24px;margin-left:auto" ${TC_SELECTED.size?'':'disabled'} onclick="tcGetSellQuote()">Get Quote</button>
+    </div>`;
+}
+
+async function tcGetSellQuote() {
+  const ids = [...TC_SELECTED];
+  if (!ids.length) return;
+  if (!db || !CZ_USER) { showCareToast('You must be signed in to sell cards.'); return; }
+  const { data, error } = await db.rpc('quote_sell_price', { p_card_ids: ids });
+  if (error || !data) { showCareToast('Could not get a quote — try again.'); return; }
+  const total = data.reduce((s, r) => s + r.price, 0);
+  const rows = data.map(r => {
+    const card = getCard(r.card_id);
+    return `<div class="trd-quote-row"><span>${card ? card.name : r.card_id}</span><span>🪙 ${r.price}</span></div>`;
+  }).join('');
+  showCarePopup(`
+    <div class="care-popup-icon">💰</div>
+    <div class="care-popup-title">Sell for ${total} coins?</div>
+    <div class="trd-quote-list">${rows}</div>
+    <button class="care-popup-btn primary" onclick="tcConfirmSell()">Confirm Sale</button>
+    <button class="care-popup-btn secondary" onclick="dismissCarePopup()">Cancel</button>
+  `);
+}
+
+async function tcConfirmSell() {
+  const ids = [...TC_SELECTED];
+  const { data: total, error } = await db.rpc('execute_sell', { p_card_ids: ids });
+  if (error) { showCareToast('Sell failed — try again.'); return; }
+  if (PLAYER && PLAYER.deckIds) PLAYER.deckIds = PLAYER.deckIds.filter(id => !ids.includes(id));
+  sbx.deck = (sbx.deck || []).filter(entry => !ids.includes(typeof entry === 'string' ? entry : entry?.id));
+  sbx.coins = (sbx.coins || 0) + total;
+  if (PLAYER) PLAYER.coins = sbx.coins;
+  dismissCarePopup();
+  TC_SELECTED = new Set();
+  showCareToast(`💰 Sold for +${total} coins!`);
+  renderTradeCenter();
+}
+
+// ── Buy ──
+async function tcLoadListings() {
+  if (!db) return;
+  const { data } = await db.from('market_listings').select('*').eq('status', 'active').order('created_at', { ascending: false });
+  TC_LISTINGS = (data || []).filter(l => !l.expires_at || new Date(l.expires_at) > new Date());
+  if (TC_VIEW === 'buy') renderTradeCenter();
+}
+
+function tcFormatTimeLeft(expiresAt) {
+  const ms = new Date(expiresAt).getTime() - Date.now();
+  if (ms <= 0) return 'Expired';
+  const days = Math.floor(ms / 86400000);
+  if (days >= 1) return `${days}d left`;
+  const hrs = Math.floor(ms / 3600000);
+  if (hrs >= 1) return `${hrs}h left`;
+  return `${Math.max(1, Math.floor(ms / 60000))}m left`;
+}
+
+function tcRenderBuy() {
+  const coins = PLAYER ? PLAYER.coins : sbx.coins;
+  let body;
+  if (!TC_LISTINGS.length) {
+    body = `<div class="gh-empty">No listings available right now. Check back later!</div>`;
+  } else {
+    body = `<div class="gh-card-grid">${TC_LISTINGS.map(l => {
+      const card = getCard(l.card_id);
+      if (!card) return '';
+      const can = coins >= l.price;
+      const timeLeft = l.expires_at ? tcFormatTimeLeft(l.expires_at) : '';
+      return `<div class="gh-card-cell">
+        ${buildCardFaceHtml(card, { standardLayout: true })}
+        <div class="trd-buy-foot">
+          <span class="trd-buy-price">🪙 ${l.price}</span>
+          ${timeLeft ? `<span class="trd-buy-time">${timeLeft}</span>` : ''}
+          <button class="mkt-buy-btn"${can ? '' : ' disabled'} onclick="tcBuyListing('${l.id}')">Buy</button>
+        </div>
+      </div>`;
+    }).join('')}</div>`;
+  }
+  return `
+    <div class="mkt-hdr">
+      <button class="mkt-back" onclick="tcShowMenu()">← Trade Center</button>
+      <span class="mkt-title">🛍️ Buy Listings</span>
+      <span class="mkt-coins">🪙 ${coins}</span>
+    </div>
+    <div class="mkt-body">${body}</div>`;
+}
+
+function tcBuyListing(listingId) {
+  if (!db || !CZ_USER) { showCareToast('You must be signed in to buy.'); return; }
+  const listing = TC_LISTINGS.find(l => l.id === listingId);
+  const card = listing ? getCard(listing.card_id) : null;
+  showCarePopup(`
+    <div class="care-popup-icon">🛍️</div>
+    <div class="care-popup-title">Buy ${card ? card.name : 'this card'}?</div>
+    <div class="care-popup-desc">This costs ${listing ? listing.price : '?'} coins.</div>
+    <button class="care-popup-btn primary" onclick="tcConfirmBuy('${listingId}')">Confirm Purchase</button>
+    <button class="care-popup-btn secondary" onclick="dismissCarePopup()">Cancel</button>
+  `);
+}
+
+async function tcConfirmBuy(listingId) {
+  const listing = TC_LISTINGS.find(l => l.id === listingId);
+  const { error } = await db.rpc('buy_listing', { p_listing_id: listingId });
+  dismissCarePopup();
+  if (error) { showCareToast(error.message || 'Purchase failed — try again.'); return; }
+  if (listing) {
+    if (PLAYER) { PLAYER.deckIds = [...(PLAYER.deckIds || []), listing.card_id]; PLAYER.coins -= listing.price; }
+    sbx.deck = [...(sbx.deck || []), listing.card_id];
+    sbx.coins = (sbx.coins || 0) - listing.price;
+  }
+  showCareToast('🛍️ Purchased!');
+  await tcLoadListings();
+}
+
+// ── Trade ──
+function tcRenderTrade() {
+  const coins = PLAYER ? PLAYER.coins : sbx.coins;
+  return `
+    <div class="mkt-hdr">
+      <button class="mkt-back" onclick="tcShowMenu()">← Trade Center</button>
+      <span class="mkt-title">🔄 Propose a Trade</span>
+      <span class="mkt-coins">🪙 ${coins}</span>
+    </div>
+    <div class="mkt-body">
+      ${tcCardPickerToolbarHtml()}
+      ${tcCardPickerGridHtml()}
+    </div>
+    <div class="trd-bulkbar">
+      <input class="ob-input" id="trd-trade-callsign" type="text" placeholder="Recipient's callsign" style="flex:1;min-width:0;padding:10px 14px">
+      <button class="ob-btn-primary" style="width:auto;padding:10px 20px;flex-shrink:0" ${TC_SELECTED.size ? '' : 'disabled'} onclick="tcSendTradeOffer()">Send Offer</button>
+    </div>`;
+}
+
+async function tcSendTradeOffer() {
+  const ids = [...TC_SELECTED];
+  const input = document.getElementById('trd-trade-callsign');
+  const callsign = (input?.value || '').trim();
+  if (!callsign) { showCareToast('Enter a callsign to trade with.'); return; }
+  if (!db || !CZ_USER) { showCareToast('You must be signed in to trade.'); return; }
+  const { error } = await db.rpc('create_trade_offer', { p_to_callsign: callsign, p_offered_card_ids: ids });
+  if (error) {
+    showCareToast(error.code === 'P0002' ? 'No player found with that callsign.' : (error.message || 'Could not send offer — try again.'));
+    return;
+  }
+  showCareToast(`🔄 Offer sent to ${callsign}!`);
+  TC_SELECTED = new Set();
+  tcShowMenu();
+}
+
+// ── Trade offer inbox + response (accept/decline) ──
+async function loadInboxOffers() {
+  if (!db || !CZ_USER) return;
+  const { data } = await db.from('trade_offers')
+    .select('*')
+    .or(`from_player.eq.${CZ_USER.id},to_player.eq.${CZ_USER.id}`)
+    .order('created_at', { ascending: false })
+    .limit(30);
+  GH_INBOX_OFFERS = data || [];
+  GH_HAS_UNREAD = GH_INBOX_OFFERS.some(o => o.status === 'pending' && o.to_player === CZ_USER.id);
+  if (GH_TAB === 'inbox') renderGameHome();
+}
+
+function buildTradeOfferInboxRows() {
+  if (!CZ_USER || !GH_INBOX_OFFERS.length) return '';
+  return GH_INBOX_OFFERS.map(o => {
+    const incoming = o.to_player === CZ_USER.id;
+    const counterparty = incoming ? o.from_callsign : o.to_callsign;
+    const cardNames = (o.offered_card_ids || []).map(id => getCard(id)?.name || id).join(', ') || '—';
+    if (o.status === 'pending' && incoming) {
+      return `<div class="gh-inbox-msg" onclick="openTradeResponse('${o.id}')" style="cursor:pointer">
+        <div class="gh-inbox-avatar">🔄</div>
+        <div class="gh-inbox-body">
+          <div class="gh-inbox-from">${escapeAttr(counterparty)} wants to trade</div>
+          <div class="gh-inbox-text">Offering: ${escapeAttr(cardNames)}</div>
+        </div>
+        <div class="gh-inbox-unread"></div>
+      </div>`;
+    }
+    if (o.status === 'pending') {
+      return `<div class="gh-inbox-msg">
+        <div class="gh-inbox-avatar">🔄</div>
+        <div class="gh-inbox-body">
+          <div class="gh-inbox-from">Waiting for ${escapeAttr(counterparty)}</div>
+          <div class="gh-inbox-text">You offered: ${escapeAttr(cardNames)}</div>
+        </div>
+      </div>`;
+    }
+    const statusLabel = o.status === 'completed' ? 'Trade completed'
+      : o.status === 'declined' ? (incoming ? 'You declined' : `${escapeAttr(counterparty)} declined`)
+      : 'Trade cancelled';
+    return `<div class="gh-inbox-msg">
+      <div class="gh-inbox-avatar">${o.status === 'completed' ? '✅' : '✖️'}</div>
+      <div class="gh-inbox-body">
+        <div class="gh-inbox-from">${statusLabel}</div>
+        <div class="gh-inbox-text">${escapeAttr(counterparty)} · ${escapeAttr(cardNames)}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openTradeResponse(offerId) {
+  const offer = GH_INBOX_OFFERS.find(o => o.id === offerId);
+  if (!offer) return;
+  TC_RESPONDING_OFFER = offer;
+  TC_VIEW = 'respond';
+  TC_SELECTED = new Set();
+  document.getElementById('trade-ov').style.display = 'flex';
+  renderTradeCenter();
+}
+
+function closeTradeResponse() {
+  TC_RESPONDING_OFFER = null;
+  document.getElementById('trade-ov').style.display = 'none';
+  renderGameHome();
+}
+
+function tcRenderRespond() {
+  const offer = TC_RESPONDING_OFFER;
+  if (!offer) return tcRenderMenu();
+  const offeredCards = (offer.offered_card_ids || []).map(id => getCard(id)).filter(Boolean);
+  const offeredHtml = offeredCards.map(c => `<div class="gh-card-cell">${buildCardFaceHtml(c, { standardLayout: true })}</div>`).join('');
+  return `
+    <div class="mkt-hdr">
+      <button class="mkt-back" onclick="closeTradeResponse()">← Home</button>
+      <span class="mkt-title">🔄 Trade Offer</span>
+      <span class="mkt-coins">🪙 ${PLAYER ? PLAYER.coins : sbx.coins}</span>
+    </div>
+    <div class="mkt-body">
+      <div class="gh-cards-title" style="margin-bottom:8px">${escapeAttr(offer.from_callsign)} is offering:</div>
+      <div class="gh-card-grid" style="margin-bottom:16px">${offeredHtml}</div>
+      <div class="gh-cards-title" style="margin-bottom:8px">Pick cards to offer back:</div>
+      ${tcCardPickerToolbarHtml()}
+      ${tcCardPickerGridHtml()}
+    </div>
+    <div class="trd-bulkbar">
+      <button class="ob-btn-ghost" style="width:auto;padding:10px 20px" onclick="tcDeclineOffer('${offer.id}')">Decline</button>
+      <span class="trd-bulk-count">${TC_SELECTED.size} / 10 selected</span>
+      <button class="ob-btn-primary" style="width:auto;padding:10px 24px;margin-left:auto" ${TC_SELECTED.size ? '' : 'disabled'} onclick="tcCompleteOffer('${offer.id}')">Confirm Trade</button>
+    </div>`;
+}
+
+async function tcDeclineOffer(offerId) {
+  const { error } = await db.rpc('decline_trade_offer', { p_offer_id: offerId });
+  if (error) { showCareToast('Could not decline — try again.'); return; }
+  showCareToast('Trade declined.');
+  closeTradeResponse();
+  await loadInboxOffers();
+}
+
+async function tcCompleteOffer(offerId) {
+  const ids = [...TC_SELECTED];
+  const offer = TC_RESPONDING_OFFER;
+  const { error } = await db.rpc('complete_trade_offer', { p_offer_id: offerId, p_requested_card_ids: ids });
+  if (error) { showCareToast(error.message || 'Trade failed — try again.'); return; }
+  if (PLAYER && PLAYER.deckIds) {
+    PLAYER.deckIds = PLAYER.deckIds.filter(id => !ids.includes(id));
+    PLAYER.deckIds = [...PLAYER.deckIds, ...(offer.offered_card_ids || [])];
+  }
+  sbx.deck = (sbx.deck || []).filter(entry => !ids.includes(typeof entry === 'string' ? entry : entry?.id));
+  sbx.deck = [...sbx.deck, ...(offer.offered_card_ids || [])];
+  showCareToast('🔄 Trade complete!');
+  closeTradeResponse();
+  await loadInboxOffers();
 }
 
 /* ══════════════════════════════════════════
