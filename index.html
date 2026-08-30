@@ -3518,6 +3518,22 @@ function mergeOutsideAi(runs, ai) {
   });
 }
 
+function applyOutsideAiToActiveRun(directedRuns) {
+  if (!sbx.activeRun || !Array.isArray(directedRuns)) return;
+  sbx.activeRun.runs.forEach((run, ri) => {
+    const directed = directedRuns[ri];
+    if (!directed) return;
+    run.aiSummary = directed.aiSummary || run.aiSummary || '';
+    (run.encounters || []).forEach((enc, ei) => {
+      const aiEnc = directed.encounters && directed.encounters[ei];
+      if (!aiEnc) return;
+      enc.aiBubble = aiEnc.aiBubble || enc.aiBubble || '';
+      enc.aiSummary = aiEnc.aiSummary || enc.aiSummary || '';
+      enc.aiLog = aiEnc.aiLog && aiEnc.aiLog.length ? aiEnc.aiLog : (enc.aiLog || []);
+    });
+  });
+}
+
 async function decorateOutsideRunsWithAI(runs) {
   const ai = await callCatAiDirector('outside', { runs });
   return mergeOutsideAi(runs, ai);
@@ -3829,8 +3845,7 @@ async function createServerOutsideRuns(readyIndices) {
       showCareToast('Could not start a server run. Please try again.');
       return [];
     }
-    const directedRuns = await decorateOutsideRunsWithAI(data.runs);
-    return directedRuns.map(run => ({
+    return data.runs.map(run => ({
       ...run,
       catIdx: Number(run.catIdx),
       encounters: Array.isArray(run.encounters) ? run.encounters : [],
@@ -3886,6 +3901,10 @@ async function startRun(selectedCatIndices) {
   sbx.activeRun.runs = runs.map(run => scheduleRunEncounters(run, visibleStartTime));
   sbx.activeRun.timer = setInterval(runTick, 300);
   runTick();
+  decorateOutsideRunsWithAI(runs.map(run => ({
+    ...run,
+    encounters: (run.encounters || []).map(enc => ({ ...enc }))
+  }))).then(applyOutsideAiToActiveRun);
   return true;
 }
 
