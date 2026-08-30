@@ -3605,13 +3605,22 @@ async function callCatAiDirector(mode, payload) {
 function mergeOutsideAi(runs, ai) {
   if (!ai || !Array.isArray(ai.runs)) return runs;
   return runs.map((run, ri) => {
-    const aiRun = ai.runs[ri] || {};
-    const aiEncounters = Array.isArray(aiRun.encounters) ? aiRun.encounters : [];
+    const aiRun = ai.runs[ri];
+    const factEncounters = run.encounters || [];
+    // Only trust this run's narration if the AI accounted for every real
+    // encounter, in the same order — a mismatched count means its lines
+    // can't be safely mapped onto what actually happened (e.g. a battle
+    // beat landing on a find encounter), so skip AI narration for the
+    // whole run rather than guess. The game's own outcome/rewards/stats
+    // never come from the AI either way — this only affects flavor text,
+    // which falls back to the existing deterministic narration.
+    const aligned = aiRun && Array.isArray(aiRun.encounters) && aiRun.encounters.length === factEncounters.length;
+    if (!aligned) return run;
     return {
       ...run,
       aiSummary: aiRun.summary || '',
-      encounters: (run.encounters || []).map((enc, ei) => {
-        const aiEnc = aiEncounters[ei] || {};
+      encounters: factEncounters.map((enc, ei) => {
+        const aiEnc = aiRun.encounters[ei] || {};
         return {
           ...enc,
           aiBubble: aiEnc.bubble || '',
@@ -4292,6 +4301,27 @@ function battleSummaryDetailsHtml(title, summary, logHtml, footerHtml = '', loot
   </details>${lootPillHtml(loot, extraLoot)}`;
 }
 
+// outcome: 'win' | 'lose' | 'neutral' — colors the closing beat to match
+// what actually happened (a real, server-decided fact), never guessed
+// from AI text. Defaults to 'neutral' for encounters with no win/lose
+// framing (e.g. observe).
+function outsideBeatLogHtml(lines, outcome = 'neutral') {
+  const rows = Array.isArray(lines) ? lines.filter(Boolean) : [];
+  if (!rows.length) return '';
+  const lastCls = outcome === 'win' ? 'win' : outcome === 'lose' ? 'lose' : 'open';
+  return `<div class="btl-log">${rows.map((text, idx) =>
+    `<div class="btl-r ${idx === rows.length - 1 ? lastCls : 'open'}">${escapeAttr(text)}</div>`
+  ).join('')}</div>`;
+}
+
+// The only thing that decides win/lose/neutral framing is the real
+// server-generated encounter type/facts — never anything the AI wrote.
+function outsideLogOutcome(enc) {
+  if (enc.type === 'friend-lose') return 'lose';
+  if (enc.type === 'friend-win' || enc.type === 'find') return 'win';
+  return 'neutral';
+}
+
 function fallbackBattleLog(enc, title) {
   const enemy = enc.enemy || 'street cat';
   const outcome = enc.charmed ? 'charm' : enc.avoided ? 'avoid' : enc.won ? 'win' : 'loss';
@@ -4410,9 +4440,11 @@ function buildPvPBattleHtml(enc) {
 
 function buildEventHtml(enc) {
   if (enc.type === 'observe') {
+    const logHtml = outsideBeatLogHtml(enc.aiLog);
     return `<div class="ev-ico ev-find">${enc.icon}</div>
       <div class="ev-body">
         <div class="ev-detail">${enc.aiBubble || enc.intro}</div>
+        ${logHtml ? battleSummaryDetailsHtml('Scouting sequence', enc.aiSummary || 'Follow the moment beat by beat', logHtml) : ''}
       </div>`;
   }
   if (enc.type === 'pvp-battle')    return buildPvPBattleHtml(enc);
@@ -4425,10 +4457,10 @@ function buildEventHtml(enc) {
   return `<div class="ev-ico ${icoClass}">${enc.icon}</div>
     <div class="ev-body">
       <div class="ev-detail">${enc.aiBubble || `${enc.intro}${enc.outcome ? ' ' + enc.outcome : ''}`}</div>
-      ${enc.aiSummary ? `<div class="ev-detail" style="color:var(--t3);font-size:10px;margin-top:3px">${enc.aiSummary}</div>` : ''}
+      ${enc.aiLog && enc.aiLog.length ? battleSummaryDetailsHtml(enc.type === 'find' ? 'Discovery sequence' : 'Social sequence', enc.aiSummary || 'Follow the moment beat by beat', outsideBeatLogHtml(enc.aiLog, outsideLogOutcome(enc)), '', enc.loot, enc.extraLoot) : (enc.aiSummary ? `<div class="ev-detail" style="color:var(--t3);font-size:10px;margin-top:3px">${enc.aiSummary}</div>` : '')}
       ${enc.abilityNotes && enc.abilityNotes.length ? `<div class="ev-detail" style="color:#a78bfa;font-size:10px;margin-top:3px">${enc.abilityNotes.join(' · ')}</div>` : ''}
       ${enc.npcAlly ? `<div class="pvp-footer"><span class="pvp-befriended">🐾 New ally: ${enc.npcAlly.name}</span></div>` : ''}
-      ${lootPillHtml(enc.loot, enc.extraLoot)}
+      ${enc.aiLog && enc.aiLog.length ? '' : lootPillHtml(enc.loot, enc.extraLoot)}
     </div>`;
 }
 

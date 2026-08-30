@@ -127,13 +127,14 @@ async function callCohere(mode: string, facts: unknown) {
   const model = Deno.env.get("COHERE_MODEL") || "command-r-08-2024";
   const schema = mode === "dojo"
     ? `{"summary":"short result line","coach_note":"one useful tactical note","log":["3-6 short fight narration lines"]}`
-    : `{"runs":[{"summary":"short run summary","encounters":[{"bubble":"short thought bubble","summary":"short encounter summary","log":["4-6 short lines for battle or pvp-battle encounters, [] otherwise"]}]}]}`;
+    : `{"runs":[{"summary":"short run summary","encounters":[{"bubble":"short immediate thought bubble","summary":"short encounter summary","log":["2-4 micro-beats for observe/find/social, 4-6 fight beats for battle/pvp-battle"]}]}]}`;
   const prompt = [
     "You are the Cazooka cat-card game AI director.",
     "Rewrite only narration. Do not alter outcomes, rewards, loot, stats, names, encounter counts, or win/loss facts.",
+    "You may decide the micro-sequence inside each locked encounter: what the cat notices, tries, reacts to, and how the fixed outcome is reached.",
     "Keep text playful, concise, and suitable for a cozy tactical cat game.",
     "Use provided statSummary and tactics to make fights feel specific: low stamina invites pressure, speed advantages create dodges/counters, strength advantages create heavy trades, intelligence reads patterns.",
-    "For battle and pvp-battle encounters, write 4 to 6 beat-by-beat fight log lines that reference at least one provided tactic. For non-battle encounters, keep log empty.",
+    "For observe encounters, write 2 sensory scouting beats. For find encounters, write 3 searching/discovery beats. For friend-win/friend-lose encounters, write 3 social beats. For battle and pvp-battle encounters, write 4 to 6 beat-by-beat fight log lines that reference at least one provided tactic.",
     "For dojo mode, coach_note should mention the most important stat/tactic lesson.",
     "No gore, no real-world brands, no profanity, no new mechanics.",
     "Return ONLY valid JSON matching this schema:",
@@ -183,7 +184,10 @@ function guardOutsideResponse(ai: JsonObject, facts: JsonObject[]) {
           const enc = (aiEnc[ei] || {}) as JsonObject;
           const kind = String(factEnc?.type || "");
           const log = Array.isArray(enc.log) ? enc.log.slice(0, 6).map((line) => shortText(line, 150)).filter(Boolean) : [];
-          const guardedLog = (kind === "battle" || kind === "pvp-battle") && log.length >= 3 ? log : [];
+          const isBattle = kind === "battle" || kind === "pvp-battle";
+          const guardedLog = isBattle
+            ? (log.length >= 3 ? log : [])
+            : (log.length >= 2 ? log.slice(0, 4) : []);
           return {
             bubble: shortText(enc.bubble, 120),
             summary: shortText(enc.summary, 120),
