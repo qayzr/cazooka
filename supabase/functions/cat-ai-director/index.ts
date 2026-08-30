@@ -106,11 +106,12 @@ async function callCohere(mode: string, facts: unknown) {
   const model = Deno.env.get("COHERE_MODEL") || "command-r-08-2024";
   const schema = mode === "dojo"
     ? `{"summary":"short result line","coach_note":"one useful tactical note","log":["3-6 short fight narration lines"]}`
-    : `{"runs":[{"summary":"short run summary","encounters":[{"bubble":"short thought bubble","summary":"short encounter summary","log":["0-4 short lines for battles only"]}]}]}`;
+    : `{"runs":[{"summary":"short run summary","encounters":[{"bubble":"short thought bubble","summary":"short encounter summary","log":["4-6 short lines for battle or pvp-battle encounters, [] otherwise"]}]}]}`;
   const prompt = [
     "You are the Cazooka cat-card game AI director.",
     "Rewrite only narration. Do not alter outcomes, rewards, loot, stats, names, encounter counts, or win/loss facts.",
     "Keep text playful, concise, and suitable for a cozy tactical cat game.",
+    "For battle and pvp-battle encounters, write 4 to 6 beat-by-beat fight log lines. For non-battle encounters, keep log empty.",
     "No gore, no real-world brands, no profanity, no new mechanics.",
     "Return ONLY valid JSON matching this schema:",
     schema,
@@ -155,12 +156,15 @@ function guardOutsideResponse(ai: JsonObject, facts: JsonObject[]) {
       const encounters = Array.isArray(run.encounters) ? run.encounters : [];
       return {
         summary: shortText(aiRun.summary, 120),
-        encounters: encounters.map((_, ei) => {
+        encounters: encounters.map((factEnc: JsonObject, ei) => {
           const enc = (aiEnc[ei] || {}) as JsonObject;
+          const kind = String(factEnc?.type || "");
+          const log = Array.isArray(enc.log) ? enc.log.slice(0, 6).map((line) => shortText(line, 150)).filter(Boolean) : [];
+          const guardedLog = (kind === "battle" || kind === "pvp-battle") && log.length >= 3 ? log : [];
           return {
             bubble: shortText(enc.bubble, 120),
             summary: shortText(enc.summary, 120),
-            log: Array.isArray(enc.log) ? enc.log.slice(0, 4).map((line) => shortText(line, 150)).filter(Boolean) : [],
+            log: guardedLog,
           };
         }),
       };

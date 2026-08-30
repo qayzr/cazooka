@@ -3812,7 +3812,7 @@ function scheduleRunEncounters(run, startTime) {
   return run;
 }
 
-async function createServerOutsideRuns(readyIndices, startTime) {
+async function createServerOutsideRuns(readyIndices) {
   if (!db) {
     showCareToast('Supabase is required to start outside runs.');
     return [];
@@ -3830,13 +3830,13 @@ async function createServerOutsideRuns(readyIndices, startTime) {
       return [];
     }
     const directedRuns = await decorateOutsideRunsWithAI(data.runs);
-    return directedRuns.map(run => scheduleRunEncounters({
+    return directedRuns.map(run => ({
       ...run,
       catIdx: Number(run.catIdx),
       encounters: Array.isArray(run.encounters) ? run.encounters : [],
       energyCost: Math.max(0, Number(run.energyCost || 0)),
       energySaveNote: run.energySaveNote || ''
-    }, startTime));
+    }));
   } catch(e) {
     console.warn('Server outside run failed', e);
     showCareToast('Could not start a server run. Please try again.');
@@ -3859,8 +3859,7 @@ async function startRun(selectedCatIndices) {
     return false;
   }
 
-  const startTime = Date.now();
-  const runs = await createServerOutsideRuns(readyIndices, startTime);
+  const runs = await createServerOutsideRuns(readyIndices);
   if (!runs.length) return false;
   runs.forEach(run => {
     const cs = sbx.cats[run.catIdx];
@@ -3872,12 +3871,20 @@ async function startRun(selectedCatIndices) {
     setCatCare(run.catIdx, cs, { energy: clampCareValue(state.energy - energyCost, state.energy), isResting: false });
   });
 
-  sbx.activeRun = { runs, readyIndices, startWall: startTime, allDone: false, timer: null };
-  sbx.activeRun.timer = setInterval(runTick, 300);
-
   document.getElementById('game-home').style.display = 'none';
   document.getElementById('run-ov').style.display = 'flex';
+  const picker = document.getElementById('outing-picker-ov');
+  if (picker) picker.style.display = 'none';
+  setOutingLaunching(false);
+
+  sbx.activeRun = { runs, readyIndices, startWall: null, allDone: false, timer: null };
   buildRunSkeleton();
+  await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+
+  const visibleStartTime = Date.now();
+  sbx.activeRun.startWall = visibleStartTime;
+  sbx.activeRun.runs = runs.map(run => scheduleRunEncounters(run, visibleStartTime));
+  sbx.activeRun.timer = setInterval(runTick, 300);
   runTick();
   return true;
 }
@@ -4074,6 +4081,38 @@ function battleSummaryDetailsHtml(title, summary, logHtml, footerHtml = '', loot
   </details>${lootPillHtml(loot, extraLoot)}`;
 }
 
+function fallbackBattleLog(enc, title) {
+  const enemy = enc.enemy || 'street cat';
+  const outcome = enc.charmed ? 'charm' : enc.avoided ? 'avoid' : enc.won ? 'win' : 'loss';
+  const beats = {
+    charm: [
+      `${title}.`,
+      `The ${enemy} sizes up the situation, but the tension softens.`,
+      `A calm blink does more work than claws would have.`,
+      `The path opens without a real fight.`
+    ],
+    avoid: [
+      `${title}.`,
+      `The ${enemy} moves first, trying to cut off the route.`,
+      `Your cat waits half a beat, then slips through the safest gap.`,
+      `No clean hit lands before the street gets quiet again.`
+    ],
+    win: [
+      `${title}.`,
+      `The ${enemy} tests the distance with a sharp feint.`,
+      `Your cat holds position, counters, and takes control of the rhythm.`,
+      `A final clean move settles the exchange.`
+    ],
+    loss: [
+      `${title}.`,
+      `The ${enemy} presses hard and forces a messy retreat.`,
+      `Your cat gives ground, protecting stamina instead of chasing pride.`,
+      `The fight ends with a lesson and enough energy to get home.`
+    ]
+  };
+  return beats[outcome].map((text, idx) => ({ cls: idx === 0 ? 'open' : outcome === 'loss' ? 'hit' : 'win', text }));
+}
+
 function buildBattleEventHtml(enc) {
   const realWin  = enc.won && !enc.avoided;
   const icoClass = enc.charmed ? 'ev-friend-w' : (realWin ? 'ev-fight-w' : 'ev-fight-l');
@@ -4083,9 +4122,9 @@ function buildBattleEventHtml(enc) {
       ? `Slipped away from a ${enc.enemy}`
       : (realWin ? `Defeated a ${enc.enemy}` : `Lost to a ${enc.enemy}`);
 
-  const battleLog = enc.aiLog && enc.aiLog.length
+  const battleLog = enc.aiLog && enc.aiLog.length >= 3
     ? enc.aiLog.map(text => ({ cls:'open', text }))
-    : (enc.battleLog || []);
+    : ((enc.battleLog || []).length >= 3 ? enc.battleLog : fallbackBattleLog(enc, title));
   const logHtml = `<div class="btl-log">${battleLog.map(l =>
     `<div class="btl-r ${l.cls}">${l.text}</div>`).join('')}</div>`;
 
@@ -4135,9 +4174,9 @@ function buildPvPBattleHtml(enc) {
     icoClass = 'ev-fight-l';
     title = `Lost to ${opponent.catName} (${opponent.ownerName}) · Rep ${opponent.rep}`;
   }
-  const pvpLog = enc.aiLog && enc.aiLog.length
+  const pvpLog = enc.aiLog && enc.aiLog.length >= 3
     ? enc.aiLog.map(text => ({ cls:'open', text }))
-    : (pvpResult.log || []);
+    : ((pvpResult.log || []).length >= 3 ? pvpResult.log : fallbackBattleLog({ ...enc, enemy: opponent.catName }, title));
   const logHtml = `<div class="btl-log">${pvpLog.map(l =>
     `<div class="btl-r ${l.cls}">${l.text}</div>`).join('')}</div>`;
   const footerHtml = `<div class="pvp-footer">
