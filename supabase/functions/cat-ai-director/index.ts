@@ -67,6 +67,8 @@ function sanitizeOutsideFacts(runs: unknown): JsonObject[] | null {
     name: shortText(run?.name, 80),
     catIdx: finiteNumber(run?.catIdx),
     energyCost: finiteNumber(run?.energyCost),
+    statSummary: sanitizeStatSummary(run?.statSummary),
+    tactics: sanitizeTextList(run?.tactics, 5, 120),
     encounters: Array.isArray(run?.encounters)
       ? run.encounters.slice(0, MAX_ENCOUNTERS).map((enc: JsonObject) => ({
           type: ALLOWED_OUTSIDE_TYPES.has(String(enc?.type)) ? enc.type : "observe",
@@ -76,6 +78,8 @@ function sanitizeOutsideFacts(runs: unknown): JsonObject[] | null {
           won: Boolean(enc?.won),
           avoided: Boolean(enc?.avoided),
           charmed: Boolean(enc?.charmed),
+          statSummary: sanitizeStatSummary(enc?.statSummary),
+          tactics: sanitizeTextList(enc?.tactics, 5, 120),
           lootName: enc?.loot && typeof enc.loot === "object" ? shortText((enc.loot as JsonObject).name, 80) : "",
           log: Array.isArray(enc?.battleLog)
             ? enc.battleLog.slice(0, MAX_LOG_LINES).map((line: JsonObject) => shortText(line?.text))
@@ -96,8 +100,25 @@ function sanitizeDojoFacts(result: unknown): JsonObject | null {
     draw: Boolean(r.draw),
     catHp: finiteNumber(r.catHp),
     oppHp: finiteNumber(r.oppHp),
+    catStats: sanitizeStatSummary(r.catStats),
+    oppStats: sanitizeStatSummary(r.oppStats),
+    tactics: sanitizeTextList(r.tactics, 5, 120),
     log: Array.isArray(r.log) ? r.log.slice(0, MAX_LOG_LINES).map((line) => shortText(line)) : [],
   };
+}
+
+function sanitizeStatSummary(value: unknown) {
+  if (!value || typeof value !== "object") return {};
+  const v = value as JsonObject;
+  return {
+    power: finiteNumber(v.power),
+    high: sanitizeTextList(v.high, 3, 40),
+    low: sanitizeTextList(v.low, 2, 40),
+  };
+}
+
+function sanitizeTextList(value: unknown, maxItems: number, maxLength: number) {
+  return Array.isArray(value) ? value.slice(0, maxItems).map((item) => shortText(item, maxLength)).filter(Boolean) : [];
 }
 
 async function callCohere(mode: string, facts: unknown) {
@@ -111,7 +132,9 @@ async function callCohere(mode: string, facts: unknown) {
     "You are the Cazooka cat-card game AI director.",
     "Rewrite only narration. Do not alter outcomes, rewards, loot, stats, names, encounter counts, or win/loss facts.",
     "Keep text playful, concise, and suitable for a cozy tactical cat game.",
-    "For battle and pvp-battle encounters, write 4 to 6 beat-by-beat fight log lines. For non-battle encounters, keep log empty.",
+    "Use provided statSummary and tactics to make fights feel specific: low stamina invites pressure, speed advantages create dodges/counters, strength advantages create heavy trades, intelligence reads patterns.",
+    "For battle and pvp-battle encounters, write 4 to 6 beat-by-beat fight log lines that reference at least one provided tactic. For non-battle encounters, keep log empty.",
+    "For dojo mode, coach_note should mention the most important stat/tactic lesson.",
     "No gore, no real-world brands, no profanity, no new mechanics.",
     "Return ONLY valid JSON matching this schema:",
     schema,

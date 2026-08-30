@@ -3459,15 +3459,48 @@ function dojoStatChips(stats) {
   ).join('');
 }
 
-function dojoRollDamage(attacker, defender, turn, actor) {
+function summarizeFightStats(stats) {
+  const ordered = DOJO_STAT_KEYS
+    .map(key => [key, Number(stats && stats[key]) || 0])
+    .sort((a,b) => b[1] - a[1]);
+  return {
+    power: Math.round(dojoCombatPower(stats || {})),
+    high: ordered.slice(0, 3).map(([key, val]) => `${key}:${Math.round(val)}`),
+    low: ordered.slice(-2).map(([key, val]) => `${key}:${Math.round(val)}`)
+  };
+}
+
+function getFightTactics(catStats, oppStats, catHpPct = 1, oppHpPct = 1) {
+  const catSpeed = (Number(catStats.speed) || 0) + (Number(catStats.agility) || 0);
+  const oppSpeed = (Number(oppStats.speed) || 0) + (Number(oppStats.agility) || 0);
+  const catForce = (Number(catStats.strength) || 0) + (Number(catStats.stamina) || 0);
+  const oppForce = (Number(oppStats.strength) || 0) + (Number(oppStats.stamina) || 0);
+  const tactics = [];
+  if (catHpPct < 0.35) tactics.push('player stamina low: enemy presses for a decisive crit');
+  if (oppHpPct < 0.35) tactics.push('enemy stamina low: player can finish if they keep tempo');
+  if (catSpeed >= oppSpeed + 12) tactics.push('player has speed advantage: dodges and counters matter');
+  else if (oppSpeed >= catSpeed + 12) tactics.push('enemy has speed advantage: ambushes and quick crit attempts matter');
+  if (catForce >= oppForce + 14) tactics.push('player has power advantage: holds ground and trades well');
+  else if (oppForce >= catForce + 14) tactics.push('enemy has power advantage: heavy hits are dangerous');
+  if ((Number(catStats.intelligence) || 0) >= (Number(oppStats.intelligence) || 0) + 10) tactics.push('player reads patterns earlier');
+  if (!tactics.length) tactics.push('balanced fight: small timing mistakes decide the exchange');
+  return tactics;
+}
+
+function dojoRollDamage(attacker, defender, turn, actor, attackerHpPct = 1, defenderHpPct = 1) {
   const tempo = (Number(attacker.speed) || 0) + (Number(attacker.agility) || 0);
   const guard = (Number(defender.stamina) || 0) * 0.35 + (Number(defender.agility) || 0) * 0.2;
   const base = 6 + (Number(attacker.strength) || 0) * 0.32 + (Number(attacker.agility) || 0) * 0.14 + turn;
   const variance = 0.86 + Math.random() * 0.28;
-  const critChance = Math.min(0.24, 0.05 + tempo / 900);
+  const finisherRead = defenderHpPct < 0.35 ? 0.08 : 0;
+  const desperation = attackerHpPct < 0.28 ? 0.04 : 0;
+  const critChance = Math.min(0.34, 0.05 + tempo / 900 + finisherRead + desperation);
   const crit = Math.random() < critChance;
-  const damage = Math.max(3, Math.round((base * variance * (crit ? 1.45 : 1)) - guard * 0.08));
-  const verb = crit ? 'lands a clean critical hit' : actor === 'cat' ? 'finds an opening' : 'pushes back';
+  const pressure = defenderHpPct < 0.35 ? 1.08 : 1;
+  const damage = Math.max(3, Math.round((base * variance * pressure * (crit ? 1.45 : 1)) - guard * 0.08));
+  const verb = crit
+    ? (defenderHpPct < 0.35 ? 'spots low stamina and commits to a critical hit' : 'lands a clean critical hit')
+    : actor === 'cat' ? 'finds an opening' : 'pushes back';
   return { damage, crit, text: verb };
 }
 
@@ -3518,6 +3551,34 @@ function mergeOutsideAi(runs, ai) {
   });
 }
 
+function outsideRunsForAi(runs) {
+  return (runs || []).map(run => {
+    const stats = run.stats || {};
+    const statSummary = summarizeFightStats(stats);
+    const baselineEnemy = {
+      strength: 16,
+      agility: 16,
+      stamina: 16,
+      speed: 16,
+      intelligence: 12,
+      stealth: 12,
+      affection: 8,
+      amicability: 8
+    };
+    const tactics = getFightTactics(stats, baselineEnemy);
+    return {
+      ...run,
+      statSummary,
+      tactics,
+      encounters: (run.encounters || []).map(enc => ({
+        ...enc,
+        statSummary,
+        tactics: (enc.type === 'battle' || enc.type === 'pvp-battle') ? tactics : []
+      }))
+    };
+  });
+}
+
 function applyOutsideAiToActiveRun(directedRuns) {
   if (!sbx.activeRun || !Array.isArray(directedRuns)) return;
   sbx.activeRun.runs.forEach((run, ri) => {
@@ -3535,7 +3596,7 @@ function applyOutsideAiToActiveRun(directedRuns) {
 }
 
 async function decorateOutsideRunsWithAI(runs) {
-  const ai = await callCatAiDirector('outside', { runs });
+  const ai = await callCatAiDirector('outside', { runs: outsideRunsForAi(runs) });
   return mergeOutsideAi(runs, ai);
 }
 
@@ -3560,19 +3621,23 @@ async function simulateDojoFight() {
   const oppName = opp.card.name;
   let catHp = Math.round(58 + (Number(catStats.stamina) || 10) * 1.15);
   let oppHp = Math.round(58 + (Number(oppStats.stamina) || 10) * 1.15);
+  const catMaxHp = catHp;
+  const oppMaxHp = oppHp;
   const catFirst = ((catStats.speed || 0) + (catStats.agility || 0) + Math.random() * 18) >= ((oppStats.speed || 0) + (oppStats.agility || 0) + Math.random() * 18);
   const log = [`${catName} squares up with ${oppName}. ${catFirst ? catName : oppName} moves first.`];
+  const openingTactics = getFightTactics(catStats, oppStats, catHp / catMaxHp, oppHp / oppMaxHp);
+  log.push(`Read: ${openingTactics[0]}.`);
 
   for (let turn = 1; turn <= 6 && catHp > 0 && oppHp > 0; turn++) {
     const order = catFirst ? ['cat','opp'] : ['opp','cat'];
     for (const actor of order) {
       if (catHp <= 0 || oppHp <= 0) break;
       if (actor === 'cat') {
-        const hit = dojoRollDamage(catStats, oppStats, turn, 'cat');
+        const hit = dojoRollDamage(catStats, oppStats, turn, 'cat', catHp / catMaxHp, oppHp / oppMaxHp);
         oppHp = Math.max(0, oppHp - hit.damage);
         log.push(`${catName} ${hit.text} for ${hit.damage}. ${oppName} has ${oppHp} stamina left.`);
       } else {
-        const hit = dojoRollDamage(oppStats, catStats, turn, 'opp');
+        const hit = dojoRollDamage(oppStats, catStats, turn, 'opp', oppHp / oppMaxHp, catHp / catMaxHp);
         catHp = Math.max(0, catHp - hit.damage);
         log.push(`${oppName} ${hit.text} for ${hit.damage}. ${catName} has ${catHp} stamina left.`);
       }
@@ -3592,6 +3657,9 @@ async function simulateDojoFight() {
     catHp,
     oppHp,
     difficulty: DOJO_DIFFICULTY[DOJO_STATE.difficulty]?.label || 'On Par',
+    catStats: summarizeFightStats(catStats),
+    oppStats: summarizeFightStats(oppStats),
+    tactics: getFightTactics(catStats, oppStats, catHp / catMaxHp, oppHp / oppMaxHp),
     log
   };
   DOJO_STATE.result = result;
@@ -3901,10 +3969,7 @@ async function startRun(selectedCatIndices) {
   sbx.activeRun.runs = runs.map(run => scheduleRunEncounters(run, visibleStartTime));
   sbx.activeRun.timer = setInterval(runTick, 300);
   runTick();
-  decorateOutsideRunsWithAI(runs.map(run => ({
-    ...run,
-    encounters: (run.encounters || []).map(enc => ({ ...enc }))
-  }))).then(applyOutsideAiToActiveRun);
+  decorateOutsideRunsWithAI(runs).then(applyOutsideAiToActiveRun);
   return true;
 }
 
