@@ -3435,7 +3435,70 @@ function dojoRollDamage(attacker, defender, turn, actor) {
   return { damage, crit, text: verb };
 }
 
-function simulateDojoFight() {
+async function callCatAiDirector(mode, payload) {
+  if (!db || !SUPA_URL || !SUPA_KEY) return null;
+  try {
+    let token = SUPA_KEY;
+    if (CZ_USER && db.auth) {
+      const { data } = await db.auth.getSession();
+      token = data?.session?.access_token || SUPA_KEY;
+    }
+    const res = await fetch(`${SUPA_URL}/functions/v1/cat-ai-director`, {
+      method: 'POST',
+      headers: {
+        apikey: SUPA_KEY,
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ mode, ...payload })
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data && data.ok ? data : null;
+  } catch(e) {
+    console.warn('AI director unavailable', e);
+    return null;
+  }
+}
+
+function mergeOutsideAi(runs, ai) {
+  if (!ai || !Array.isArray(ai.runs)) return runs;
+  return runs.map((run, ri) => {
+    const aiRun = ai.runs[ri] || {};
+    const aiEncounters = Array.isArray(aiRun.encounters) ? aiRun.encounters : [];
+    return {
+      ...run,
+      aiSummary: aiRun.summary || '',
+      encounters: (run.encounters || []).map((enc, ei) => {
+        const aiEnc = aiEncounters[ei] || {};
+        return {
+          ...enc,
+          aiBubble: aiEnc.bubble || '',
+          aiSummary: aiEnc.summary || '',
+          aiLog: Array.isArray(aiEnc.log) ? aiEnc.log.filter(Boolean) : []
+        };
+      })
+    };
+  });
+}
+
+async function decorateOutsideRunsWithAI(runs) {
+  const ai = await callCatAiDirector('outside', { runs });
+  return mergeOutsideAi(runs, ai);
+}
+
+async function decorateDojoResultWithAI(result) {
+  const ai = await callCatAiDirector('dojo', { result });
+  if (!ai || !ai.result) return result;
+  return {
+    ...result,
+    aiSummary: ai.result.summary || '',
+    coachNote: ai.result.coach_note || '',
+    aiLog: Array.isArray(ai.result.log) ? ai.result.log.filter(Boolean) : []
+  };
+}
+
+async function simulateDojoFight() {
   const cs = getDojoCatSetup();
   const opp = getDojoOpponent();
   if (!cs || !opp) return;
@@ -3469,7 +3532,7 @@ function simulateDojoFight() {
   const won = catHp > 0 && (oppHp <= 0 || catScore >= oppScore);
   const draw = catHp > 0 && oppHp > 0 && Math.abs(catScore - oppScore) < 5;
   log.push(draw ? 'The dojo bell rings. This one ends even.' : won ? `${catName} takes the practice win.` : `${oppName} wins the exchange. ${catName} learned the shape of the fight.`);
-  DOJO_STATE.result = {
+  const result = {
     catName,
     oppName,
     won,
@@ -3479,6 +3542,9 @@ function simulateDojoFight() {
     difficulty: DOJO_DIFFICULTY[DOJO_STATE.difficulty]?.label || 'On Par',
     log
   };
+  DOJO_STATE.result = result;
+  renderGameHomeKeepScroll();
+  DOJO_STATE.result = await decorateDojoResultWithAI(result);
   renderGameHomeKeepScroll();
 }
 
@@ -3563,10 +3629,11 @@ function buildDojoHtml() {
     ${result ? `<details class="dojo-result" open>
       <summary>
         <span class="dojo-result-title">${result.draw ? 'Even match' : result.won ? 'Practice win' : 'Practice loss'} · ${escapeAttr(result.catName)} vs ${escapeAttr(result.oppName)}</span>
-        <span class="dojo-result-line">${result.difficulty} · ${result.catHp} / ${result.oppHp} stamina remaining · click for full exchange</span>
+        <span class="dojo-result-line">${escapeAttr(result.aiSummary || `${result.difficulty} · ${result.catHp} / ${result.oppHp} stamina remaining`)} · click for full exchange</span>
       </summary>
       <div class="dojo-log">
-        ${result.log.map((line, idx) => `<div class="dojo-log-row ${idx === result.log.length - 1 ? (result.draw ? '' : result.won ? 'win' : 'loss') : line.includes(result.catName) ? 'hit' : 'opp'}">${escapeAttr(line)}</div>`).join('')}
+        ${(result.aiLog && result.aiLog.length ? result.aiLog : result.log).map((line, idx, rows) => `<div class="dojo-log-row ${idx === rows.length - 1 ? (result.draw ? '' : result.won ? 'win' : 'loss') : line.includes(result.catName) ? 'hit' : 'opp'}">${escapeAttr(line)}</div>`).join('')}
+        ${result.coachNote ? `<div class="dojo-log-row win">${escapeAttr(result.coachNote)}</div>` : ''}
       </div>
     </details>` : ''}
   </div>`;
@@ -3726,7 +3793,8 @@ async function createServerOutsideRuns(readyIndices, startTime) {
       showCareToast('Could not start a server run. Please try again.');
       return [];
     }
-    return data.runs.map(run => scheduleRunEncounters({
+    const directedRuns = await decorateOutsideRunsWithAI(data.runs);
+    return directedRuns.map(run => scheduleRunEncounters({
       ...run,
       catIdx: Number(run.catIdx),
       encounters: Array.isArray(run.encounters) ? run.encounters : [],
@@ -3978,13 +4046,17 @@ function buildBattleEventHtml(enc) {
       ? `Slipped away from a ${enc.enemy}`
       : (realWin ? `Defeated a ${enc.enemy}` : `Lost to a ${enc.enemy}`);
 
-  const logHtml = `<div class="btl-log">${(enc.battleLog||[]).map(l =>
+  const battleLog = enc.aiLog && enc.aiLog.length
+    ? enc.aiLog.map(text => ({ cls:'open', text }))
+    : (enc.battleLog || []);
+  const logHtml = `<div class="btl-log">${battleLog.map(l =>
     `<div class="btl-r ${l.cls}">${l.text}</div>`).join('')}</div>`;
 
   const persistHtml = `<div class="btl-persist-note ${enc.persistAfter?'yes':'no'}">${enc.persistAfter?'🌆':'🏡'} ${enc.persistText}</div>`;
   const outcome = enc.charmed ? 'Charm worked' : enc.avoided ? 'Clean escape' : realWin ? 'Won the fight' : 'Retreated';
   const lootCount = [enc.loot, ...(enc.extraLoot || [])].filter(Boolean).length;
-  const summary = `${outcome} · ${(enc.battleLog || []).length} beat${(enc.battleLog || []).length === 1 ? '' : 's'}${lootCount ? ` · found ${lootCount} card${lootCount === 1 ? '' : 's'}` : ''}`;
+  const fallbackSummary = `${outcome} · ${battleLog.length} beat${battleLog.length === 1 ? '' : 's'}${lootCount ? ` · found ${lootCount} card${lootCount === 1 ? '' : 's'}` : ''}`;
+  const summary = enc.aiSummary || fallbackSummary;
 
   return `<div class="ev-ico ${icoClass}">${enc.icon}</div>
     <div class="ev-body">
@@ -4026,7 +4098,10 @@ function buildPvPBattleHtml(enc) {
     icoClass = 'ev-fight-l';
     title = `Lost to ${opponent.catName} (${opponent.ownerName}) · Rep ${opponent.rep}`;
   }
-  const logHtml = `<div class="btl-log">${(pvpResult.log||[]).map(l =>
+  const pvpLog = enc.aiLog && enc.aiLog.length
+    ? enc.aiLog.map(text => ({ cls:'open', text }))
+    : (pvpResult.log || []);
+  const logHtml = `<div class="btl-log">${pvpLog.map(l =>
     `<div class="btl-r ${l.cls}">${l.text}</div>`).join('')}</div>`;
   const footerHtml = `<div class="pvp-footer">
     <span class="pvp-rep-delta ${repClass}">⭐ ${repSign}${repDelta} REP</span>
@@ -4039,7 +4114,7 @@ function buildPvPBattleHtml(enc) {
   if (coins > 0) rewardBits.push(`+${coins} coins`);
   const lootCount = [enc.loot, ...(enc.extraLoot || [])].filter(Boolean).length;
   if (lootCount) rewardBits.push(`found ${lootCount} card${lootCount === 1 ? '' : 's'}`);
-  const summary = `${outcome} · ${rewardBits.join(' · ')}`;
+  const summary = enc.aiSummary || `${outcome} · ${rewardBits.join(' · ')}`;
   return `<div class="ev-ico ${icoClass}">${enc.icon}</div>
     <div class="ev-body">
       ${battleSummaryDetailsHtml(title, summary, logHtml, footerHtml, enc.loot, enc.extraLoot)}
@@ -4050,7 +4125,7 @@ function buildEventHtml(enc) {
   if (enc.type === 'observe') {
     return `<div class="ev-ico ev-find">${enc.icon}</div>
       <div class="ev-body">
-        <div class="ev-detail">${enc.intro}</div>
+        <div class="ev-detail">${enc.aiBubble || enc.intro}</div>
       </div>`;
   }
   if (enc.type === 'pvp-battle')    return buildPvPBattleHtml(enc);
@@ -4062,7 +4137,8 @@ function buildEventHtml(enc) {
   }[enc.type] || 'ev-find';
   return `<div class="ev-ico ${icoClass}">${enc.icon}</div>
     <div class="ev-body">
-      <div class="ev-detail">${enc.intro}${enc.outcome ? ' ' + enc.outcome : ''}</div>
+      <div class="ev-detail">${enc.aiBubble || `${enc.intro}${enc.outcome ? ' ' + enc.outcome : ''}`}</div>
+      ${enc.aiSummary ? `<div class="ev-detail" style="color:var(--t3);font-size:10px;margin-top:3px">${enc.aiSummary}</div>` : ''}
       ${enc.abilityNotes && enc.abilityNotes.length ? `<div class="ev-detail" style="color:#a78bfa;font-size:10px;margin-top:3px">${enc.abilityNotes.join(' · ')}</div>` : ''}
       ${enc.npcAlly ? `<div class="pvp-footer"><span class="pvp-befriended">🐾 New ally: ${enc.npcAlly.name}</span></div>` : ''}
       ${lootPillHtml(enc.loot, enc.extraLoot)}
