@@ -922,6 +922,10 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .outing-picker-go{flex:1;padding:11px 14px;border-radius:var(--r-md);border:none;background:var(--acc);color:#0D1117;font-family:var(--fd);font-size:13px;font-weight:700;cursor:pointer;transition:all .15s}
 .outing-picker-go:hover:not(:disabled){background:var(--acc2)}
 .outing-picker-go:disabled{background:var(--s3);color:var(--t3);cursor:not-allowed}
+.outing-launch-lock{position:absolute;inset:0;z-index:9800;display:none;align-items:center;justify-content:center;background:rgba(5,8,13,.72);backdrop-filter:blur(4px)}
+.outing-launch-box{display:flex;flex-direction:column;align-items:center;gap:12px;font-family:var(--fm);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--t2)}
+.outing-launch-spinner{width:42px;height:42px;border-radius:50%;border:3px solid rgba(148,163,184,.24);border-top-color:var(--acc);animation:outing-spin .8s linear infinite}
+@keyframes outing-spin{to{transform:rotate(360deg)}}
 /* Radar chart */
 .radar-wrap{display:flex;justify-content:center;padding:8px 0 4px}
 .radar-svg{width:100%;max-width:220px;height:auto;display:block}
@@ -1194,6 +1198,12 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 <div id="onboard" class="onboard-ov" style="display:none"></div>
 <div id="game-home" class="game-ov" style="display:none"></div>
 <div id="outing-picker-ov" class="outing-picker-ov" style="display:none"></div>
+<div id="outing-launch-lock" class="outing-launch-lock" aria-live="polite" aria-busy="true">
+  <div class="outing-launch-box">
+    <div class="outing-launch-spinner"></div>
+    <div>Preparing outside run</div>
+  </div>
+</div>
 <div id="market-ov" class="mkt-ov" style="display:none"></div>
 <div id="trade-ov" class="trd-ov" style="display:none"></div>
 <div id="run-ov" class="run-ov" style="display:none">
@@ -2537,6 +2547,26 @@ function freshCatState(breedId) {
   return { breedId, hunger:82, mood:75, energy:90, lastUpdated:Date.now(), isResting:false };
 }
 
+function clampCareValue(value, fallback = 0) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return fallback;
+  return Math.max(0, Math.min(100, n));
+}
+
+function normalizeCatCareState(raw, breedId) {
+  const now = Date.now();
+  const lastUpdated = Number(raw && raw.lastUpdated);
+  return {
+    ...(raw || {}),
+    breedId,
+    hunger: clampCareValue(raw && raw.hunger, 82),
+    mood: clampCareValue(raw && raw.mood, 75),
+    energy: clampCareValue(raw && raw.energy, 90),
+    lastUpdated: Number.isFinite(lastUpdated) && lastUpdated > 0 ? lastUpdated : now,
+    isResting: Boolean(raw && raw.isResting)
+  };
+}
+
 function getLiveCatState(ci, catSetup) {
   const key  = String(ci);
   const raw  = CAT_CARE[key];
@@ -2547,16 +2577,21 @@ function getLiveCatState(ci, catSetup) {
     saveCareStore();
     return {...s};
   }
+  const clean = normalizeCatCareState(raw, bid);
+  if (clean.hunger !== raw.hunger || clean.mood !== raw.mood || clean.energy !== raw.energy || clean.lastUpdated !== raw.lastUpdated || clean.isResting !== raw.isResting) {
+    CAT_CARE[key] = clean;
+    saveCareStore();
+  }
   const traits = getTraits(catSetup.breed);
   const now    = Date.now();
-  const hrs    = Math.max(0, (now - raw.lastUpdated) / 3600000);
-  if (hrs < 0.001) return {...raw};
-  const eRate  = raw.isResting ? CARE_BASE.energyResting : CARE_BASE.energyRecovery;
+  const hrs    = Math.max(0, (now - clean.lastUpdated) / 3600000);
+  if (hrs < 0.001) return {...clean};
+  const eRate  = clean.isResting ? CARE_BASE.energyResting : CARE_BASE.energyRecovery;
   const updated = {
-    ...raw,
-    hunger:      Math.max(0,   raw.hunger - CARE_BASE.hungerDecay * traits.hunger_rate * hrs),
-    mood:        Math.max(0,   raw.mood   - CARE_BASE.moodDecay   * traits.mood_rate   * hrs),
-    energy:      Math.min(100, raw.energy + eRate * traits.energy_rate * hrs),
+    ...clean,
+    hunger:      clampCareValue(clean.hunger - CARE_BASE.hungerDecay * traits.hunger_rate * hrs),
+    mood:        clampCareValue(clean.mood   - CARE_BASE.moodDecay   * traits.mood_rate   * hrs),
+    energy:      clampCareValue(clean.energy + eRate * traits.energy_rate * hrs),
     lastUpdated: now
   };
   CAT_CARE[key] = updated;
@@ -2566,7 +2601,7 @@ function getLiveCatState(ci, catSetup) {
 
 function setCatCare(ci, catSetup, patch) {
   const cur = getLiveCatState(ci, catSetup);
-  const upd = {...cur, ...patch, lastUpdated: Date.now()};
+  const upd = normalizeCatCareState({...cur, ...patch, lastUpdated: Date.now()}, catSetup.breed.id);
   CAT_CARE[String(ci)] = upd;
   saveCareStore();
   return upd;
@@ -2639,7 +2674,7 @@ function feedCat(ci) {
   }
   const s    = getLiveCatState(ci, cs);
   const gain = (traits.food_pref === 'premium' || traits.food_pref === 'prefers_premium') && hasPremiumFood() ? 38 : 26;
-  setCatCare(ci, cs, { hunger: Math.min(100, s.hunger + gain) });
+  setCatCare(ci, cs, { hunger: clampCareValue(s.hunger + gain, s.hunger) });
   showCareToast('🍖 Fed! +' + gain + ' hunger');
   renderCarePanel();
 }
@@ -2650,7 +2685,7 @@ function playCat(ci) {
   if (s.energy < 8) { showCareToast('😴 Too tired to play right now.'); return; }
   const traits  = getTraits(cs.breed);
   const moodGain = Math.round((hasPlayToy() ? 28 : 20) * traits.play_enjoy);
-  setCatCare(ci, cs, { mood: Math.min(100, s.mood + moodGain), energy: Math.max(0, s.energy - 6), isResting:false });
+  setCatCare(ci, cs, { mood: clampCareValue(s.mood + moodGain, s.mood), energy: clampCareValue(s.energy - 6, s.energy), isResting:false });
   showCareToast('🎾 Played! +' + moodGain + ' mood');
   renderCarePanel();
 }
@@ -2660,7 +2695,7 @@ function groomCat(ci) {
   const s  = getLiveCatState(ci, cs);
   const traits  = getTraits(cs.breed);
   const moodGain = Math.round((hasGroomingTool() ? 22 : 14) * traits.groom_enjoy);
-  setCatCare(ci, cs, { mood: Math.min(100, s.mood + moodGain) });
+  setCatCare(ci, cs, { mood: clampCareValue(s.mood + moodGain, s.mood) });
   showCareToast('🪮 Groomed! +' + moodGain + ' mood');
   renderCarePanel();
 }
@@ -2911,6 +2946,7 @@ const sbx = {
 };
 
 let OUTING_SELECTED = new Set();
+let OUTING_LAUNCHING = false;
 
 function initSandbox() { /* sandbox removed — no-op */ }
 
@@ -3830,9 +3866,10 @@ async function startRun(selectedCatIndices) {
     const cs = sbx.cats[run.catIdx];
     if (!cs) return;
     const state = getLiveCatState(run.catIdx, cs);
-    const energyCost = Math.min(state.energy - 2, Math.round(run.energyCost || 0));
+    const requestedCost = Math.max(0, Number.isFinite(Number(run.energyCost)) ? Math.round(Number(run.energyCost)) : 0);
+    const energyCost = Math.max(0, Math.min(Math.max(0, state.energy - 2), requestedCost));
     run.energyCost = energyCost;
-    setCatCare(run.catIdx, cs, { energy: Math.max(0, state.energy - energyCost), isResting: false });
+    setCatCare(run.catIdx, cs, { energy: clampCareValue(state.energy - energyCost, state.energy), isResting: false });
   });
 
   sbx.activeRun = { runs, readyIndices, startWall: startTime, allDone: false, timer: null };
@@ -4170,10 +4207,11 @@ function finishRun() {
 
       // Mood boost for going outside
       const moodBoost = Math.round(8 * traits.outdoor_mood_boost);
-      setCatCare(ci, cs, { mood: Math.min(100, preState.mood + moodBoost) });
+      setCatCare(ci, cs, { mood: clampCareValue(preState.mood + moodBoost, preState.mood) });
 
       // Hunger drain from exertion — proportional to run length, halved if premium food active
-      const baseHungerDrain = Math.round(10 + (run ? run.dur_min * 0.7 : 10));
+      const runMinutes = Number(run && run.dur_min);
+      const baseHungerDrain = Math.round(10 + (Number.isFinite(runMinutes) ? runMinutes * 0.7 : 10));
       const abilityCards = getEquippedAbilityCards(cs.abilities || []);
       const hungerProc = rollAbilityProc(abilityCards, 'hunger_drain_reduce', {}, `return-${ci}`);
       const hungerSave = hungerProc ? Math.min(80, hungerProc.value || 15) / 100 : 0;
@@ -4181,7 +4219,7 @@ function finishRun() {
       const hungerDrain = Math.round(protectedDrain * (1 - hungerSave));
       if (run && hungerProc) run.hungerSaveNote = `${hungerProc.card.name}: -${Math.round(hungerSave * 100)}% hunger drain`;
       const postMood = getLiveCatState(ci, cs);
-      setCatCare(ci, cs, { hunger: Math.max(0, postMood.hunger - hungerDrain) });
+      setCatCare(ci, cs, { hunger: clampCareValue(postMood.hunger - hungerDrain, postMood.hunger) });
 
       // Record diffs for the return animation
       returnDiffs[ci] = {
@@ -4879,6 +4917,7 @@ function startSimulation() {
   const gh = document.getElementById('game-home'); if (gh) gh.style.display = 'none';
   const mkt = document.getElementById('market-ov'); if (mkt) mkt.style.display = 'none';
   const op = document.getElementById('outing-picker-ov'); if (op) op.style.display = 'none';
+  setOutingLaunching(false);
   showOnboardStep('register');
 }
 
@@ -6478,13 +6517,19 @@ function ghFeedWith(ci, consId) {
   }
   const state = getLiveCatState(ci, cs);
   const patch = {};
-  if (data.hunger) patch.hunger = Math.min(100, state.hunger + data.hunger);
-  if (data.energy) patch.energy = Math.min(100, state.energy + data.energy);
-  if (data.mood) patch.mood = Math.min(100, state.mood + data.mood);
+  const hungerGain = Number(data.hunger);
+  const energyGain = Number(data.energy);
+  const moodGain = Number(data.mood);
+  if (Number.isFinite(hungerGain) && hungerGain !== 0) patch.hunger = clampCareValue(state.hunger + hungerGain, state.hunger);
+  if (Number.isFinite(energyGain) && energyGain !== 0) patch.energy = clampCareValue(state.energy + energyGain, state.energy);
+  if (Number.isFinite(moodGain) && moodGain !== 0) patch.mood = clampCareValue(state.mood + moodGain, state.mood);
   if (data.statBoosts) {
     const _care = CAT_CARE[String(ci)] || {};
     patch.statBoosts = {...(_care.statBoosts||{})};
-    Object.entries(data.statBoosts).forEach(([stat, val]) => { patch.statBoosts[stat] = (patch.statBoosts[stat]||0) + val; });
+    Object.entries(data.statBoosts).forEach(([stat, val]) => {
+      const boost = Number(val);
+      if (Number.isFinite(boost)) patch.statBoosts[stat] = (Number(patch.statBoosts[stat]) || 0) + boost;
+    });
   }
   setCatCare(ci, cs, patch);
   consumeCardUse(consId);
@@ -6515,7 +6560,7 @@ function ghGroomWith(ci, consId) {
     const _s = getLiveCatState(ci, cs);
     const _tr = getTraits(cs.breed);
     const _mg = Math.round(14 * _tr.groom_enjoy);
-    setCatCare(ci, cs, { mood: Math.min(100, _s.mood + _mg) });
+    setCatCare(ci, cs, { mood: clampCareValue(_s.mood + _mg, _s.mood) });
     GH_OPEN_GROOM.delete(ci);
     showCareToast(`🖐 Basic groom done! +${_mg} mood`);
     renderAndAnimateCareAction();
@@ -6527,13 +6572,19 @@ function ghGroomWith(ci, consId) {
   const data = item.data || {};
   const state = getLiveCatState(ci, cs);
   const patch = {};
-  if (data.mood) patch.mood = Math.min(100, state.mood + data.mood);
-  if (data.hunger) patch.hunger = Math.min(100, state.hunger + data.hunger);
-  if (data.energy) patch.energy = Math.min(100, state.energy + data.energy);
+  const moodGain = Number(data.mood);
+  const hungerGain = Number(data.hunger);
+  const energyGain = Number(data.energy);
+  if (Number.isFinite(moodGain) && moodGain !== 0) patch.mood = clampCareValue(state.mood + moodGain, state.mood);
+  if (Number.isFinite(hungerGain) && hungerGain !== 0) patch.hunger = clampCareValue(state.hunger + hungerGain, state.hunger);
+  if (Number.isFinite(energyGain) && energyGain !== 0) patch.energy = clampCareValue(state.energy + energyGain, state.energy);
   if (data.statBoosts) {
     const _care = CAT_CARE[String(ci)] || {};
     patch.statBoosts = {...(_care.statBoosts||{})};
-    Object.entries(data.statBoosts).forEach(([stat, val]) => { patch.statBoosts[stat] = (patch.statBoosts[stat]||0) + val; });
+    Object.entries(data.statBoosts).forEach(([stat, val]) => {
+      const boost = Number(val);
+      if (Number.isFinite(boost)) patch.statBoosts[stat] = (Number(patch.statBoosts[stat]) || 0) + boost;
+    });
   }
   setCatCare(ci, cs, patch);
   consumeCardUse(consId);
@@ -6673,6 +6724,17 @@ function getReadyCatIndices() {
   return (sbx.cats || []).map((cs, ci) => canCatGoOutside(ci, cs).canGo ? ci : -1).filter(ci => ci >= 0);
 }
 
+function setOutingLaunching(isLaunching) {
+  OUTING_LAUNCHING = Boolean(isLaunching);
+  const lock = document.getElementById('outing-launch-lock');
+  if (lock) lock.style.display = OUTING_LAUNCHING ? 'flex' : 'none';
+  const goBtn = document.querySelector('.outing-picker-go');
+  if (goBtn) {
+    goBtn.disabled = OUTING_LAUNCHING || !OUTING_SELECTED.size;
+    goBtn.textContent = OUTING_LAUNCHING ? 'Preparing...' : `Send ${OUTING_SELECTED.size || 0} Cat${OUTING_SELECTED.size === 1 ? '' : 's'} Outside`;
+  }
+}
+
 function renderOutingPicker() {
   const ov = document.getElementById('outing-picker-ov');
   if (!ov) return;
@@ -6715,19 +6777,20 @@ function renderOutingPicker() {
         <div class="outing-picker-title">Choose cats to send out</div>
         <div class="outing-picker-sub">Ready cats are selected by default. Leave tired or risky cats at home.</div>
       </div>
-      <button class="outing-picker-x" onclick="closeOutingPicker()">×</button>
+      <button class="outing-picker-x" onclick="closeOutingPicker()" ${OUTING_LAUNCHING ? 'disabled' : ''}>×</button>
     </div>
     <div class="outing-picker-list">${rows}</div>
     <div class="outing-picker-foot">
-      <button class="outing-picker-cancel" onclick="closeOutingPicker()">Cancel</button>
-      <button class="outing-picker-go" onclick="confirmOutingSelection()" ${selectedCount ? '' : 'disabled'}>
-        Send ${selectedCount || 0} Cat${selectedCount === 1 ? '' : 's'} Outside
+      <button class="outing-picker-cancel" onclick="closeOutingPicker()" ${OUTING_LAUNCHING ? 'disabled' : ''}>Cancel</button>
+      <button class="outing-picker-go" onclick="confirmOutingSelection()" ${selectedCount && !OUTING_LAUNCHING ? '' : 'disabled'}>
+        ${OUTING_LAUNCHING ? 'Preparing...' : `Send ${selectedCount || 0} Cat${selectedCount === 1 ? '' : 's'} Outside`}
       </button>
     </div>
   </div>`;
 }
 
 function openOutingPicker() {
+  if (OUTING_LAUNCHING) return;
   const ready = getReadyCatIndices();
   if (!ready.length) {
     const { reason } = sbx.cats[0] ? canCatGoOutside(0, sbx.cats[0]) : { reason:null };
@@ -6741,11 +6804,13 @@ function openOutingPicker() {
 }
 
 function closeOutingPicker() {
+  if (OUTING_LAUNCHING) return;
   const ov = document.getElementById('outing-picker-ov');
   if (ov) ov.style.display = 'none';
 }
 
 function toggleOutingCat(ci) {
+  if (OUTING_LAUNCHING) return;
   if (!sbx.cats[ci] || !canCatGoOutside(ci, sbx.cats[ci]).canGo) return;
   if (OUTING_SELECTED.has(ci)) OUTING_SELECTED.delete(ci);
   else OUTING_SELECTED.add(ci);
@@ -6753,31 +6818,41 @@ function toggleOutingCat(ci) {
 }
 
 async function confirmOutingSelection() {
+  if (OUTING_LAUNCHING) return;
   const selected = [...OUTING_SELECTED].filter(ci => sbx.cats[ci] && canCatGoOutside(ci, sbx.cats[ci]).canGo);
   if (!selected.length) {
     showCareToast('Select at least one ready cat');
     renderOutingPicker();
     return;
   }
-  if (PLAYER) {
-    sbx.deck  = [...(PLAYER.deckIds || [])];
-    sbx.coins = PLAYER.coins;
+  setOutingLaunching(true);
+  try {
+    if (PLAYER) {
+      sbx.deck  = [...(PLAYER.deckIds || [])];
+      sbx.coins = PLAYER.coins;
+    }
+
+    // Convert gear IDs to card objects for run calculations. Abilities can stay
+    // as IDs because getEffectiveStats resolves them through getCard().
+    sbx.cats = sbx.cats.map(cs => ({
+      ...cs,
+      gear: (cs.gear || []).map(g => typeof g === 'string' ? getCard(g) : g).filter(Boolean)
+    }));
+
+    const started = await startRun(selected);
+    setOutingLaunching(false);
+    if (!started) return;
+    closeOutingPicker();
+    if (GAME_CARE_TIMER) { clearInterval(GAME_CARE_TIMER); GAME_CARE_TIMER = null; }
+  } catch(e) {
+    console.warn('Outside launch failed', e);
+    setOutingLaunching(false);
+    showCareToast('Could not start outside run. Please try again.');
   }
-
-  // Convert gear IDs to card objects for run calculations. Abilities can stay
-  // as IDs because getEffectiveStats resolves them through getCard().
-  sbx.cats = sbx.cats.map(cs => ({
-    ...cs,
-    gear: (cs.gear || []).map(g => typeof g === 'string' ? getCard(g) : g).filter(Boolean)
-  }));
-
-  const started = await startRun(selected);
-  if (!started) return;
-  closeOutingPicker();
-  if (GAME_CARE_TIMER) { clearInterval(GAME_CARE_TIMER); GAME_CARE_TIMER = null; }
 }
 
 function ghSendOutside() {
+  if (OUTING_LAUNCHING) return;
   openOutingPicker();
 }
 
