@@ -1348,7 +1348,7 @@ let GH_HAS_UNREAD    = true; // demo: unread messages exist
 let GH_RETURN_DIFFS  = null; // {ci: {hungerDiff, moodDiff, energyDiff}} set on return from adventure
 let GH_ACTIVE_HOME_IDX = 0;  // which home card is active on the home tab
 const GH_CARD_FILTER = { search:'', type:'all', rarity:'all', view:'recent' };
-const DOJO_STATE = { view:'visits', catIdx:0, difficulty:'onpar', opponentId:null, result:null, revealed:0, timer:null, running:false };
+const DOJO_STATE = { view:'visits', catIdx:0, difficulty:'onpar', opponentId:null, result:null, revealed:0, timer:null, running:false, coachShown:false };
 
 // ── Trade Center ──
 let TC_VIEW = 'menu'; // 'menu' | 'sell' | 'buy' | 'trade' | 'respond'
@@ -3476,6 +3476,7 @@ function openDojo() {
   DOJO_STATE.view = 'dojo';
   DOJO_STATE.result = null;
   DOJO_STATE.revealed = 0;
+  DOJO_STATE.coachShown = false;
   clearDojoTimer();
   renderGameHomeKeepScroll();
 }
@@ -3484,6 +3485,7 @@ function closeDojo() {
   DOJO_STATE.view = 'visits';
   DOJO_STATE.result = null;
   DOJO_STATE.revealed = 0;
+  DOJO_STATE.coachShown = false;
   clearDojoTimer();
   renderGameHomeKeepScroll();
 }
@@ -3515,14 +3517,117 @@ function startDojoReveal() {
   clearDojoTimer();
   DOJO_STATE.revealed = 0;
   DOJO_STATE.running = true;
+  DOJO_STATE.coachShown = false;
+  // One full render to create the arena DOM (there's nothing to scroll-follow
+  // yet). Every beat after this patches the existing DOM in place instead of
+  // re-rendering, so the view can follow each new bubble instead of resetting.
+  renderGameHomeKeepScroll();
   const revealNext = () => {
+    const result = DOJO_STATE.result;
+    if (!result) { clearDojoTimer(); return; }
     const rows = getDojoDisplayLog();
-    DOJO_STATE.revealed = Math.min(rows.length, DOJO_STATE.revealed + 1);
-    if (DOJO_STATE.revealed >= rows.length) clearDojoTimer();
-    renderGameHomeKeepScroll();
+    if (DOJO_STATE.revealed >= rows.length) { clearDojoTimer(); return; }
+    DOJO_STATE.revealed += 1;
+    const finished = DOJO_STATE.revealed >= rows.length;
+    if (finished) { DOJO_STATE.running = false; clearDojoTimer(); }
+    dojoPatchReveal(result, rows, finished);
   };
   revealNext();
   DOJO_STATE.timer = setInterval(revealNext, 1050);
+}
+
+// Appends the newly-revealed beat (and, once finished, the coach note +
+// result summary) directly into the live DOM and scrolls it into view —
+// no full re-render, so the fight view follows along instead of jumping
+// back to the top of the page on every beat.
+function dojoPatchReveal(result, rows, finished) {
+  const bubbles = document.getElementById('dojo-bubbles');
+  if (!bubbles) return; // dojo isn't the active view anymore
+
+  const idx = DOJO_STATE.revealed - 1;
+  const line = rows[idx];
+  const bubbleEl = document.createElement('div');
+  bubbleEl.className = `dojo-bubble ${classifyDojoBeat(line, result, idx, rows.length)}`;
+  bubbleEl.textContent = line;
+  bubbles.appendChild(bubbleEl);
+
+  const meta = (result.beatMeta && result.beatMeta[idx]) || { catHp: result.catHp, oppHp: result.oppHp };
+  const catPct = Math.max(0, Math.min(100, Math.round(((meta.catHp ?? result.catHp) / (result.catMaxHp || 1)) * 100)));
+  const oppPct = Math.max(0, Math.min(100, Math.round(((meta.oppHp ?? result.oppHp) / (result.oppMaxHp || 1)) * 100)));
+  const catHpEl  = document.getElementById('dojo-cat-hp');
+  const oppHpEl  = document.getElementById('dojo-opp-hp');
+  const catBarEl = document.getElementById('dojo-cat-bar');
+  const oppBarEl = document.getElementById('dojo-opp-bar');
+  if (catHpEl)  catHpEl.textContent  = Math.max(0, Math.round(meta.catHp ?? result.catHp));
+  if (oppHpEl)  oppHpEl.textContent  = Math.max(0, Math.round(meta.oppHp ?? result.oppHp));
+  if (catBarEl) catBarEl.style.width = catPct + '%';
+  if (oppBarEl) oppBarEl.style.width = oppPct + '%';
+
+  const counterEl = document.getElementById('dojo-beat-counter');
+  if (counterEl) counterEl.textContent = `${DOJO_STATE.revealed} / ${rows.length} beats`;
+
+  if (finished) dojoApplyFinishedUi(result);
+
+  requestAnimationFrame(() => {
+    (bubbles.lastElementChild || bubbleEl).scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  });
+}
+
+// Idempotent — safe to call once when the reveal finishes, and again later
+// if the AI response for this fight arrives after the reveal already ended.
+function dojoApplyFinishedUi(result) {
+  const bubbles = document.getElementById('dojo-bubbles');
+  if (bubbles && result.coachNote && !DOJO_STATE.coachShown) {
+    const coachEl = document.createElement('div');
+    coachEl.className = 'dojo-bubble win';
+    coachEl.textContent = result.coachNote;
+    bubbles.appendChild(coachEl);
+    DOJO_STATE.coachShown = true;
+  }
+
+  const titleEl = document.getElementById('dojo-arena-title');
+  if (titleEl) titleEl.textContent = result.draw ? 'Even Match' : result.won ? 'Practice Win' : 'Practice Loss';
+
+  let panel = document.getElementById('dojo-result-panel');
+  const arena = document.querySelector('.dojo-arena');
+  if (!panel && arena) {
+    panel = document.createElement('div');
+    panel.className = 'dojo-result';
+    panel.id = 'dojo-result-panel';
+    arena.insertAdjacentElement('afterend', panel);
+  }
+  if (panel) panel.innerHTML = dojoResultSummaryHtml(result);
+
+  const btn = document.getElementById('dojo-run-btn');
+  if (btn) { btn.disabled = !getDojoOpponent(); btn.textContent = 'Start Sparring'; }
+}
+
+// Reason is derived strictly from the actual win condition (KO, or final
+// score) rather than result.tactics — that list is context for the AI
+// narrator and isn't guaranteed to point at whichever side actually won,
+// so reusing it here could describe a losing-sounding state on a win.
+function dojoWinReason(result) {
+  if (result.draw) return 'the two cats traded evenly and neither could pull ahead';
+  const winnerName = result.won ? result.catName : result.oppName;
+  const loserHp = result.won ? result.oppHp : result.catHp;
+  if (loserHp <= 0) return `${winnerName} landed the finishing blow`;
+  const winnerPower = (result.won ? result.catStats : result.oppStats)?.power || 0;
+  const loserPower  = (result.won ? result.oppStats : result.catStats)?.power || 0;
+  return winnerPower >= loserPower
+    ? `${winnerName} had the stronger stat spread`
+    : `${winnerName} held on with more stamina left`;
+}
+
+// A short, always-visible explanation of why the fight went the way it
+// did — built entirely from real stats/outcome, never from AI text, so
+// it's reliable regardless of whether the AI director responds at all.
+function dojoResultSummaryHtml(result) {
+  const title = result.draw ? 'Even match' : result.won ? 'Practice win' : 'Practice loss';
+  const verb = result.draw ? 'Neither cat could pull ahead' : result.won ? `${result.catName} won` : `${result.oppName} won`;
+  return `<div style="padding:12px 14px;display:flex;flex-direction:column;gap:4px">
+    <span class="dojo-result-title">${escapeAttr(title)} · ${escapeAttr(result.catName)} vs ${escapeAttr(result.oppName)}</span>
+    <span class="dojo-result-line">${escapeAttr(`${verb} — ${dojoWinReason(result)}.`)}</span>
+  </div>`;
 }
 
 function getDojoDisplayLog() {
@@ -3743,6 +3848,8 @@ async function simulateDojoFight() {
     draw,
     catHp,
     oppHp,
+    catMaxHp,
+    oppMaxHp,
     difficulty: DOJO_DIFFICULTY[DOJO_STATE.difficulty]?.label || 'On Par',
     catStats: summarizeFightStats(catStats),
     oppStats: summarizeFightStats(oppStats),
@@ -3754,14 +3861,22 @@ async function simulateDojoFight() {
   startDojoReveal();
   decorateDojoResultWithAI(result).then(directed => {
     if (!DOJO_STATE.result || DOJO_STATE.result !== result) return;
-    const oldRows = result.log || [];
-    const aiRows = directed.aiLog && directed.aiLog.length ? directed.aiLog : [];
-    const keepCount = Math.min(DOJO_STATE.revealed, oldRows.length);
-    DOJO_STATE.result = {
-      ...directed,
-      aiLog: aiRows.length ? [...oldRows.slice(0, keepCount), ...aiRows.slice(keepCount)] : directed.aiLog
-    };
-    renderGameHomeKeepScroll();
+    const realRows = result.log || [];
+    const aiRows = Array.isArray(directed.aiLog) ? directed.aiLog : [];
+    // Only trust the AI's log if it covers the whole real fight, beat for
+    // beat. A shorter response can't be safely spliced into an in-progress
+    // reveal — the reveal loop reads the log's length to know when the
+    // fight is over, so a short AI log would end the sequence early and
+    // silently hide real beats (and their reward-bearing outcome line).
+    // A mismatch just falls back to the deterministic log instead.
+    DOJO_STATE.result = { ...directed, aiLog: aiRows.length === realRows.length ? aiRows : [] };
+    // Already-revealed beats keep whatever text they were shown with —
+    // dojoPatchReveal only ever reads a beat's text once, the first time
+    // it's revealed, so swapping the array here can't retroactively change
+    // bubbles already on screen. If the fight already finished before this
+    // arrived, patch the result panel in place instead of a full re-render
+    // (which would jump scroll to top).
+    if (!DOJO_STATE.running) dojoApplyFinishedUi(DOJO_STATE.result);
   });
 }
 
@@ -3853,7 +3968,7 @@ function buildDojoHtml() {
       </div>
     </div>
     <div class="dojo-actions">
-      <button class="dojo-run-btn" onclick="simulateDojoFight()" ${opp && !DOJO_STATE.running ? '' : 'disabled'}>${DOJO_STATE.running ? 'Sparring...' : 'Start Sparring'}</button>
+      <button class="dojo-run-btn" id="dojo-run-btn" onclick="simulateDojoFight()" ${opp && !DOJO_STATE.running ? '' : 'disabled'}>${DOJO_STATE.running ? 'Sparring...' : 'Start Sparring'}</button>
     </div>
     ${result ? (() => {
       const rows = getDojoDisplayLog();
@@ -3866,14 +3981,14 @@ function buildDojoHtml() {
       const done = !DOJO_STATE.running;
       return `<div class="dojo-arena">
         <div class="dojo-arena-head">
-          <span>${done ? (result.draw ? 'Even Match' : result.won ? 'Practice Win' : 'Practice Loss') : 'Sparring'}</span>
-          <span>${Math.min(DOJO_STATE.revealed, rows.length)} / ${rows.length} beats</span>
+          <span id="dojo-arena-title">${done ? (result.draw ? 'Even Match' : result.won ? 'Practice Win' : 'Practice Loss') : 'Sparring'}</span>
+          <span id="dojo-beat-counter">${Math.min(DOJO_STATE.revealed, rows.length)} / ${rows.length} beats</span>
         </div>
         <div class="dojo-vitals">
-          <div class="dojo-vital"><span><b>${escapeAttr(result.catName)}</b><em>${Math.max(0, Math.round(currentMeta.catHp ?? result.catHp))}</em></span><div class="dojo-vital-bar"><div class="dojo-vital-fill" style="width:${catPct}%"></div></div></div>
-          <div class="dojo-vital opp"><span><b>${escapeAttr(result.oppName)}</b><em>${Math.max(0, Math.round(currentMeta.oppHp ?? result.oppHp))}</em></span><div class="dojo-vital-bar"><div class="dojo-vital-fill" style="width:${oppPct}%"></div></div></div>
+          <div class="dojo-vital"><span><b>${escapeAttr(result.catName)}</b><em id="dojo-cat-hp">${Math.max(0, Math.round(currentMeta.catHp ?? result.catHp))}</em></span><div class="dojo-vital-bar"><div class="dojo-vital-fill" id="dojo-cat-bar" style="width:${catPct}%"></div></div></div>
+          <div class="dojo-vital opp"><span><b>${escapeAttr(result.oppName)}</b><em id="dojo-opp-hp">${Math.max(0, Math.round(currentMeta.oppHp ?? result.oppHp))}</em></span><div class="dojo-vital-bar"><div class="dojo-vital-fill" id="dojo-opp-bar" style="width:${oppPct}%"></div></div></div>
         </div>
-        <div class="dojo-bubbles">
+        <div class="dojo-bubbles" id="dojo-bubbles">
           ${shown.map((line, idx) => {
             const cls = classifyDojoBeat(line, result, idx, rows.length);
             return `<div class="dojo-bubble ${cls}">${escapeAttr(line)}</div>`;
@@ -3881,16 +3996,7 @@ function buildDojoHtml() {
           ${result.coachNote && !DOJO_STATE.running ? `<div class="dojo-bubble win">${escapeAttr(result.coachNote)}</div>` : ''}
         </div>
       </div>
-      ${done ? `<details class="dojo-result">
-      <summary>
-        <span class="dojo-result-title">${result.draw ? 'Even match' : result.won ? 'Practice win' : 'Practice loss'} · ${escapeAttr(result.catName)} vs ${escapeAttr(result.oppName)}</span>
-        <span class="dojo-result-line">${escapeAttr(result.aiSummary || `${result.difficulty} · ${result.catHp} / ${result.oppHp} stamina remaining`)} · click for full exchange</span>
-      </summary>
-      <div class="dojo-log">
-        ${rows.map((line, idx) => `<div class="dojo-log-row ${classifyDojoBeat(line, result, idx, rows.length)}">${escapeAttr(line)}</div>`).join('')}
-        ${result.coachNote ? `<div class="dojo-log-row win">${escapeAttr(result.coachNote)}</div>` : ''}
-      </div>
-    </details>` : ''}`;
+      ${done ? `<div class="dojo-result" id="dojo-result-panel">${dojoResultSummaryHtml(result)}</div>` : ''}`;
     })() : ''}
   </div>`;
 }
