@@ -3457,13 +3457,13 @@ async function createServerOutsideRuns(readyIndices, startTime) {
     showCareToast('Supabase is required to start outside runs.');
     return [];
   }
-  if (!CZ_USER) {
-    showCareToast('Sign in to send cats outside.');
-    return [];
-  }
   try {
-    await savePlayerToCloud();
-    const { data, error } = await db.rpc('start_outside_run', { p_selected_cat_indices: readyIndices });
+    if (CZ_USER) await savePlayerToCloud();
+    const rpcName = CZ_USER ? 'start_outside_run' : 'generate_outside_run';
+    const rpcArgs = CZ_USER
+      ? { p_selected_cat_indices: readyIndices }
+      : { p_cats: sbx.cats || [], p_selected_cat_indices: readyIndices };
+    const { data, error } = await db.rpc(rpcName, rpcArgs);
     if (error || !data || !Array.isArray(data.runs)) {
       console.warn('Server outside run unavailable', error);
       showCareToast('Could not start a server run. Please try again.');
