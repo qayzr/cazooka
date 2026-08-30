@@ -6686,6 +6686,9 @@ function tcShowBuy()   { TC_VIEW = 'buy';   TC_SELECTED = new Set(); renderTrade
 
 function tcSetFilter(key, val) { TC_FILTER[key] = val; renderTradeCenter(); }
 
+// Patches the selected card's badge/ring and the bulk bar in place —
+// no full re-render, so scrolling down and selecting a card doesn't
+// blow away scroll position the way replacing .trade-ov's innerHTML would.
 function tcToggleSelect(cardId) {
   if (TC_SELECTED.has(cardId)) {
     TC_SELECTED.delete(cardId);
@@ -6693,7 +6696,21 @@ function tcToggleSelect(cardId) {
     if (TC_SELECTED.size >= 10) { showCareToast('You can only pick up to 10 cards at a time.'); return; }
     TC_SELECTED.add(cardId);
   }
-  renderTradeCenter();
+  const sel = TC_SELECTED.has(cardId);
+  const cell = document.querySelector(`.trd-pickable[data-peek-card="${cardId}"]`);
+  if (cell) {
+    cell.classList.toggle('trd-selected', sel);
+    const badge = cell.querySelector('.gh-card-badge');
+    if (badge) {
+      badge.textContent = sel ? '✓ Selected' : 'Tap to select';
+      badge.classList.toggle('active', sel);
+      badge.classList.toggle('inactive', !sel);
+    }
+  }
+  const countEl = document.getElementById('trd-bulk-count');
+  if (countEl) countEl.textContent = `${TC_SELECTED.size} / 10 selected`;
+  const actionBtn = document.getElementById('trd-bulk-action-btn');
+  if (actionBtn) actionBtn.disabled = TC_SELECTED.size === 0;
 }
 
 // Only inactive cards can be sold/traded — same rule as the Cards tab's Send.
@@ -6802,8 +6819,8 @@ function tcRenderSell() {
       ${tcCardPickerGridHtml()}
     </div>
     <div class="trd-bulkbar">
-      <span class="trd-bulk-count">${TC_SELECTED.size} / 10 selected</span>
-      <button class="ob-btn-primary" style="width:auto;padding:10px 24px;margin-left:auto" ${TC_SELECTED.size?'':'disabled'} onclick="tcGetSellQuote()">Get Quote</button>
+      <span class="trd-bulk-count" id="trd-bulk-count">${TC_SELECTED.size} / 10 selected</span>
+      <button class="ob-btn-primary" id="trd-bulk-action-btn" style="width:auto;padding:10px 24px;margin-left:auto" ${TC_SELECTED.size?'':'disabled'} onclick="tcGetSellQuote()">Get Quote</button>
     </div>`;
 }
 
@@ -6931,7 +6948,7 @@ function tcRenderTrade() {
     </div>
     <div class="trd-bulkbar">
       <input class="ob-input" id="trd-trade-callsign" type="text" placeholder="Recipient's callsign" style="flex:1;min-width:0;padding:10px 14px">
-      <button class="ob-btn-primary" style="width:auto;padding:10px 20px;flex-shrink:0" ${TC_SELECTED.size ? '' : 'disabled'} onclick="tcSendTradeOffer()">Send Offer</button>
+      <button class="ob-btn-primary" id="trd-bulk-action-btn" style="width:auto;padding:10px 20px;flex-shrink:0" ${TC_SELECTED.size ? '' : 'disabled'} onclick="tcSendTradeOffer()">Send Offer</button>
     </div>`;
 }
 
@@ -7038,8 +7055,8 @@ function tcRenderRespond() {
     </div>
     <div class="trd-bulkbar">
       <button class="ob-btn-ghost" style="width:auto;padding:10px 20px" onclick="tcDeclineOffer('${offer.id}')">Decline</button>
-      <span class="trd-bulk-count">${TC_SELECTED.size} / 10 selected</span>
-      <button class="ob-btn-primary" style="width:auto;padding:10px 24px;margin-left:auto" ${TC_SELECTED.size ? '' : 'disabled'} onclick="tcCompleteOffer('${offer.id}')">Confirm Trade</button>
+      <span class="trd-bulk-count" id="trd-bulk-count">${TC_SELECTED.size} / 10 selected</span>
+      <button class="ob-btn-primary" id="trd-bulk-action-btn" style="width:auto;padding:10px 24px;margin-left:auto" ${TC_SELECTED.size ? '' : 'disabled'} onclick="tcCompleteOffer('${offer.id}')">Confirm Trade</button>
     </div>`;
 }
 
