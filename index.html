@@ -1015,6 +1015,8 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .dojo-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
 .dojo-title{font-family:var(--fd);font-size:18px;font-weight:800;color:var(--t1)}
 .dojo-sub{font-family:var(--fb);font-size:11.5px;color:var(--t3);margin-top:3px;line-height:1.4}
+.dojo-back{background:var(--s2);border:1px solid var(--bd);border-radius:var(--r-md);color:var(--t2);font-family:var(--fm);font-size:9px;letter-spacing:.06em;text-transform:uppercase;padding:8px 11px;cursor:pointer;white-space:nowrap}
+.dojo-back:hover{border-color:var(--acc);color:var(--acc2)}
 .dojo-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .dojo-field{display:flex;flex-direction:column;gap:5px}
 .dojo-label{font-family:var(--fm);font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--t3)}
@@ -1034,6 +1036,23 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .dojo-run-btn{flex:1;background:var(--acc);border:0;border-radius:var(--r-md);color:#0b0f15;font-family:var(--fd);font-weight:800;font-size:13px;padding:12px 14px;cursor:pointer}
 .dojo-run-btn:disabled{opacity:.45;cursor:default}
 .dojo-note{font-family:var(--fb);font-size:10.5px;color:var(--t3);line-height:1.4}
+.dojo-arena{display:flex;flex-direction:column;gap:9px;border:1px solid var(--bd);border-radius:var(--r-md);background:linear-gradient(180deg,var(--s1),rgba(17,24,39,.68));padding:12px;min-height:160px}
+.dojo-arena-head{display:flex;align-items:center;justify-content:space-between;gap:10px;font-family:var(--fm);font-size:8.5px;text-transform:uppercase;letter-spacing:.09em;color:var(--t3)}
+.dojo-vitals{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.dojo-vital{display:flex;flex-direction:column;gap:4px;font-family:var(--fm);font-size:8px;color:var(--t3)}
+.dojo-vital span:first-child{display:flex;justify-content:space-between;gap:8px}
+.dojo-vital-bar{height:5px;border-radius:999px;background:var(--s3);overflow:hidden}
+.dojo-vital-fill{height:100%;border-radius:999px;background:#60A5FA;transition:width .45s ease}
+.dojo-vital.opp .dojo-vital-fill{background:#F87171}
+.dojo-bubbles{display:flex;flex-direction:column;gap:7px;margin-top:2px}
+.dojo-bubble{max-width:82%;align-self:flex-start;background:var(--s2);border:1px solid var(--bd);border-left:3px solid #60A5FA;border-radius:var(--r-md);padding:9px 11px;font-family:var(--fb);font-size:11.5px;line-height:1.45;color:var(--t2);animation:dojo-bubble-in .22s ease both}
+.dojo-bubble.opp{align-self:flex-end;border-left-color:#F87171}
+.dojo-bubble.crit{border-color:rgba(248,113,113,.75);border-left-color:#EF4444;animation:dojo-bubble-in .22s ease both,dojo-crit-blink .42s ease 2}
+.dojo-bubble.stealth{border-left-color:#94A3B8;animation:dojo-bubble-in .22s ease both,dojo-stealth-fade 2.2s ease-in-out infinite}
+.dojo-bubble.win{border-left-color:#34D399}.dojo-bubble.loss{border-left-color:#F0A030}
+@keyframes dojo-bubble-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes dojo-crit-blink{50%{background:rgba(127,29,29,.5);box-shadow:0 0 18px rgba(239,68,68,.22)}}
+@keyframes dojo-stealth-fade{0%,100%{opacity:.58}50%{opacity:1}}
 .dojo-result{border:1px solid var(--bd);border-radius:var(--r-md);background:var(--s1);overflow:hidden}
 .dojo-result summary{list-style:none;cursor:pointer;padding:12px 14px;display:flex;flex-direction:column;gap:4px}
 .dojo-result summary::-webkit-details-marker{display:none}
@@ -1329,7 +1348,7 @@ let GH_HAS_UNREAD    = true; // demo: unread messages exist
 let GH_RETURN_DIFFS  = null; // {ci: {hungerDiff, moodDiff, energyDiff}} set on return from adventure
 let GH_ACTIVE_HOME_IDX = 0;  // which home card is active on the home tab
 const GH_CARD_FILTER = { search:'', type:'all', rarity:'all', view:'recent' };
-const DOJO_STATE = { catIdx:0, difficulty:'onpar', opponentId:null, result:null };
+const DOJO_STATE = { view:'visits', catIdx:0, difficulty:'onpar', opponentId:null, result:null, revealed:0, timer:null, running:false };
 
 // ── Trade Center ──
 let TC_VIEW = 'menu'; // 'menu' | 'sell' | 'buy' | 'trade' | 'respond'
@@ -3453,10 +3472,63 @@ function getDojoOpponent() {
   return found;
 }
 
+function openDojo() {
+  DOJO_STATE.view = 'dojo';
+  DOJO_STATE.result = null;
+  DOJO_STATE.revealed = 0;
+  clearDojoTimer();
+  renderGameHomeKeepScroll();
+}
+
+function closeDojo() {
+  DOJO_STATE.view = 'visits';
+  DOJO_STATE.result = null;
+  DOJO_STATE.revealed = 0;
+  clearDojoTimer();
+  renderGameHomeKeepScroll();
+}
+
+function clearDojoTimer() {
+  if (DOJO_STATE.timer) clearInterval(DOJO_STATE.timer);
+  DOJO_STATE.timer = null;
+  DOJO_STATE.running = false;
+}
+
 function dojoStatChips(stats) {
   return ['strength','agility','stamina','speed'].map(key =>
     `<span class="dojo-stat">${key.slice(0,3).toUpperCase()} ${Math.round(stats[key] || 0)}</span>`
   ).join('');
+}
+
+function classifyDojoBeat(line, result, idx, total) {
+  const meta = result && result.beatMeta && result.beatMeta[idx];
+  if (meta && meta.style) return meta.style;
+  const text = String(line || '').toLowerCase();
+  if (text.includes('critical') || text.includes(' crit')) return 'crit';
+  if (text.includes('stealth') || text.includes('shadow') || text.includes('ambush') || text.includes('slips') || text.includes('dodg')) return 'stealth';
+  if (idx === total - 1) return result.draw ? '' : result.won ? 'win' : 'loss';
+  if (text.includes(String(result.oppName || '').toLowerCase())) return 'opp';
+  return text.includes(String(result.catName || '').toLowerCase()) ? 'hit' : '';
+}
+
+function startDojoReveal() {
+  clearDojoTimer();
+  DOJO_STATE.revealed = 0;
+  DOJO_STATE.running = true;
+  const revealNext = () => {
+    const rows = getDojoDisplayLog();
+    DOJO_STATE.revealed = Math.min(rows.length, DOJO_STATE.revealed + 1);
+    if (DOJO_STATE.revealed >= rows.length) clearDojoTimer();
+    renderGameHomeKeepScroll();
+  };
+  revealNext();
+  DOJO_STATE.timer = setInterval(revealNext, 1050);
+}
+
+function getDojoDisplayLog() {
+  const result = DOJO_STATE.result;
+  if (!result) return [];
+  return result.aiLog && result.aiLog.length ? result.aiLog : result.log || [];
 }
 
 function summarizeFightStats(stats) {
@@ -3612,6 +3684,7 @@ async function decorateDojoResultWithAI(result) {
 }
 
 async function simulateDojoFight() {
+  if (DOJO_STATE.running) return;
   const cs = getDojoCatSetup();
   const opp = getDojoOpponent();
   if (!cs || !opp) return;
@@ -3625,8 +3698,10 @@ async function simulateDojoFight() {
   const oppMaxHp = oppHp;
   const catFirst = ((catStats.speed || 0) + (catStats.agility || 0) + Math.random() * 18) >= ((oppStats.speed || 0) + (oppStats.agility || 0) + Math.random() * 18);
   const log = [`${catName} squares up with ${oppName}. ${catFirst ? catName : oppName} moves first.`];
+  const beatMeta = [{ catHp, oppHp, style:'' }];
   const openingTactics = getFightTactics(catStats, oppStats, catHp / catMaxHp, oppHp / oppMaxHp);
   log.push(`Read: ${openingTactics[0]}.`);
+  beatMeta.push({ catHp, oppHp, style: openingTactics[0].includes('speed') ? 'stealth' : '' });
 
   for (let turn = 1; turn <= 6 && catHp > 0 && oppHp > 0; turn++) {
     const order = catFirst ? ['cat','opp'] : ['opp','cat'];
@@ -3636,10 +3711,12 @@ async function simulateDojoFight() {
         const hit = dojoRollDamage(catStats, oppStats, turn, 'cat', catHp / catMaxHp, oppHp / oppMaxHp);
         oppHp = Math.max(0, oppHp - hit.damage);
         log.push(`${catName} ${hit.text} for ${hit.damage}. ${oppName} has ${oppHp} stamina left.`);
+        beatMeta.push({ catHp, oppHp, style: hit.crit ? 'crit' : hit.text.includes('opening') ? 'hit' : '' });
       } else {
         const hit = dojoRollDamage(oppStats, catStats, turn, 'opp', oppHp / oppMaxHp, catHp / catMaxHp);
         catHp = Math.max(0, catHp - hit.damage);
         log.push(`${oppName} ${hit.text} for ${hit.damage}. ${catName} has ${catHp} stamina left.`);
+        beatMeta.push({ catHp, oppHp, style: hit.crit ? 'crit' : 'opp' });
       }
     }
   }
@@ -3649,6 +3726,7 @@ async function simulateDojoFight() {
   const won = catHp > 0 && (oppHp <= 0 || catScore >= oppScore);
   const draw = catHp > 0 && oppHp > 0 && Math.abs(catScore - oppScore) < 5;
   log.push(draw ? 'The dojo bell rings. This one ends even.' : won ? `${catName} takes the practice win.` : `${oppName} wins the exchange. ${catName} learned the shape of the fight.`);
+  beatMeta.push({ catHp, oppHp, style: draw ? '' : won ? 'win' : 'loss' });
   const result = {
     catName,
     oppName,
@@ -3660,32 +3738,48 @@ async function simulateDojoFight() {
     catStats: summarizeFightStats(catStats),
     oppStats: summarizeFightStats(oppStats),
     tactics: getFightTactics(catStats, oppStats, catHp / catMaxHp, oppHp / oppMaxHp),
+    beatMeta,
     log
   };
   DOJO_STATE.result = result;
-  renderGameHomeKeepScroll();
-  DOJO_STATE.result = await decorateDojoResultWithAI(result);
-  renderGameHomeKeepScroll();
+  startDojoReveal();
+  decorateDojoResultWithAI(result).then(directed => {
+    if (!DOJO_STATE.result || DOJO_STATE.result !== result) return;
+    const oldRows = result.log || [];
+    const aiRows = directed.aiLog && directed.aiLog.length ? directed.aiLog : [];
+    const keepCount = Math.min(DOJO_STATE.revealed, oldRows.length);
+    DOJO_STATE.result = {
+      ...directed,
+      aiLog: aiRows.length ? [...oldRows.slice(0, keepCount), ...aiRows.slice(keepCount)] : directed.aiLog
+    };
+    renderGameHomeKeepScroll();
+  });
 }
 
 function setDojoCatIdx(value) {
+  clearDojoTimer();
   DOJO_STATE.catIdx = Math.max(0, parseInt(value, 10) || 0);
   DOJO_STATE.opponentId = null;
   DOJO_STATE.result = null;
+  DOJO_STATE.revealed = 0;
   renderGameHomeKeepScroll();
 }
 
 function setDojoDifficulty(value) {
   if (!DOJO_DIFFICULTY[value]) return;
+  clearDojoTimer();
   DOJO_STATE.difficulty = value;
   DOJO_STATE.opponentId = null;
   DOJO_STATE.result = null;
+  DOJO_STATE.revealed = 0;
   renderGameHomeKeepScroll();
 }
 
 function setDojoOpponent(value) {
+  clearDojoTimer();
   DOJO_STATE.opponentId = value;
   DOJO_STATE.result = null;
+  DOJO_STATE.revealed = 0;
   renderGameHomeKeepScroll();
 }
 
@@ -3693,8 +3787,13 @@ function buildDojoHtml() {
   const cats = sbx.cats || [];
   if (!cats.length) {
     return `<div class="dojo-panel">
-      <div class="dojo-title">🥋 Cat Dojo</div>
-      <div class="dojo-sub">Assign a cat at home before entering sparring simulations.</div>
+      <div class="dojo-head">
+        <div>
+          <div class="dojo-title">🥋 Cat Dojo</div>
+          <div class="dojo-sub">Assign a cat at home before entering sparring simulations.</div>
+        </div>
+        <button class="dojo-back" onclick="closeDojo()">Back</button>
+      </div>
     </div>`;
   }
   const cs = getDojoCatSetup();
@@ -3708,6 +3807,7 @@ function buildDojoHtml() {
         <div class="dojo-title">🥋 Cat Dojo</div>
         <div class="dojo-sub">Run controlled practice encounters against neighbourhood cats. No loot, no rep changes, just fight reading.</div>
       </div>
+      <button class="dojo-back" onclick="closeDojo()">Back</button>
     </div>
     <div class="dojo-grid">
       <label class="dojo-field">
@@ -3744,18 +3844,45 @@ function buildDojoHtml() {
       </div>
     </div>
     <div class="dojo-actions">
-      <button class="dojo-run-btn" onclick="simulateDojoFight()" ${opp ? '' : 'disabled'}>Start Sparring</button>
+      <button class="dojo-run-btn" onclick="simulateDojoFight()" ${opp && !DOJO_STATE.running ? '' : 'disabled'}>${DOJO_STATE.running ? 'Sparring...' : 'Start Sparring'}</button>
     </div>
-    ${result ? `<details class="dojo-result" open>
+    ${result ? (() => {
+      const rows = getDojoDisplayLog();
+      const shown = rows.slice(0, Math.max(1, DOJO_STATE.revealed));
+      const currentMeta = (result.beatMeta && result.beatMeta[Math.max(0, shown.length - 1)]) || { catHp:result.catHp, oppHp:result.oppHp };
+      const catMax = 58 + ((catStats.stamina || 10) * 1.15);
+      const oppMax = 58 + (((opp && opp.stats.stamina) || 10) * 1.15);
+      const catPct = Math.max(0, Math.min(100, Math.round(((currentMeta.catHp ?? result.catHp) / catMax) * 100)));
+      const oppPct = Math.max(0, Math.min(100, Math.round(((currentMeta.oppHp ?? result.oppHp) / oppMax) * 100)));
+      const done = !DOJO_STATE.running;
+      return `<div class="dojo-arena">
+        <div class="dojo-arena-head">
+          <span>${done ? (result.draw ? 'Even Match' : result.won ? 'Practice Win' : 'Practice Loss') : 'Sparring'}</span>
+          <span>${Math.min(DOJO_STATE.revealed, rows.length)} / ${rows.length} beats</span>
+        </div>
+        <div class="dojo-vitals">
+          <div class="dojo-vital"><span><b>${escapeAttr(result.catName)}</b><em>${Math.max(0, Math.round(currentMeta.catHp ?? result.catHp))}</em></span><div class="dojo-vital-bar"><div class="dojo-vital-fill" style="width:${catPct}%"></div></div></div>
+          <div class="dojo-vital opp"><span><b>${escapeAttr(result.oppName)}</b><em>${Math.max(0, Math.round(currentMeta.oppHp ?? result.oppHp))}</em></span><div class="dojo-vital-bar"><div class="dojo-vital-fill" style="width:${oppPct}%"></div></div></div>
+        </div>
+        <div class="dojo-bubbles">
+          ${shown.map((line, idx) => {
+            const cls = classifyDojoBeat(line, result, idx, rows.length);
+            return `<div class="dojo-bubble ${cls}">${escapeAttr(line)}</div>`;
+          }).join('')}
+          ${result.coachNote && !DOJO_STATE.running ? `<div class="dojo-bubble win">${escapeAttr(result.coachNote)}</div>` : ''}
+        </div>
+      </div>
+      ${done ? `<details class="dojo-result">
       <summary>
         <span class="dojo-result-title">${result.draw ? 'Even match' : result.won ? 'Practice win' : 'Practice loss'} · ${escapeAttr(result.catName)} vs ${escapeAttr(result.oppName)}</span>
         <span class="dojo-result-line">${escapeAttr(result.aiSummary || `${result.difficulty} · ${result.catHp} / ${result.oppHp} stamina remaining`)} · click for full exchange</span>
       </summary>
       <div class="dojo-log">
-        ${(result.aiLog && result.aiLog.length ? result.aiLog : result.log).map((line, idx, rows) => `<div class="dojo-log-row ${idx === rows.length - 1 ? (result.draw ? '' : result.won ? 'win' : 'loss') : line.includes(result.catName) ? 'hit' : 'opp'}">${escapeAttr(line)}</div>`).join('')}
+        ${rows.map((line, idx) => `<div class="dojo-log-row ${classifyDojoBeat(line, result, idx, rows.length)}">${escapeAttr(line)}</div>`).join('')}
         ${result.coachNote ? `<div class="dojo-log-row win">${escapeAttr(result.coachNote)}</div>` : ''}
       </div>
-    </details>` : ''}
+    </details>` : ''}`;
+    })() : ''}
   </div>`;
 }
 
@@ -5958,6 +6085,7 @@ function renderGameHome() {
 
   // ── VISITS TAB ──
   const VISIT_LOCATIONS = [
+    { icon:'🥋', name:'Cat Dojo', desc:'Simulate controlled sparring against cats you choose.', open:true, action:'openDojo()' },
     { icon:'🏪', name:'Marketplace', desc:'Buy food, treats, gear and home items.', open:true,  action:'showMarket()' },
     { icon:'🤝', name:'Trade Center', desc:'Sell cards to the market, buy from other listings, or trade with other players.', open:true, action:'openTradeCenter()' },
     { icon:'🩺', name:'Veterinarian', desc:'Health checks, vaccinations, and recovery services for your cats.', open:false },
@@ -5969,8 +6097,7 @@ function renderGameHome() {
       <div class="gh-visits-title">📍 Nearby Places</div>
       <div class="gh-visits-sub">Explore your neighbourhood and surroundings.</div>
     </div>
-    ${buildDojoHtml()}
-    <div class="gh-visits-list">
+    ${DOJO_STATE.view === 'dojo' ? buildDojoHtml() : `<div class="gh-visits-list">
       ${VISIT_LOCATIONS.map(loc => `
         <div class="gh-visit-row ${loc.open ? '' : 'gh-visit-locked'}" ${loc.open ? `onclick="${loc.action}"` : ''}>
           <div class="gh-visit-icon">${loc.icon}</div>
@@ -5982,7 +6109,7 @@ function renderGameHome() {
             ? `<div class="gh-visit-badge open">Open</div>`
             : `<div class="gh-visit-badge locked">Soon</div>`}
         </div>`).join('')}
-    </div>
+    </div>`}
   </div>`;
 
   // ── INBOX TAB ──
