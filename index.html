@@ -1453,7 +1453,36 @@ function effectiveCard(card) {
   return normalizeAbilityCard(merged);
 }
 
-function getLibrary() { return [...baseLibrary().map(effectiveCard), ...CONSUMABLE_CARDS.map(effectiveCard), ...NPC_CARDS.map(effectiveCard), ...CUSTOM_CARDS.map(normalizeAbilityCard)]; }
+const STARTER_ABILITY_CARDS = [
+  {
+    id:'ability-coin-cup',
+    name:'Empty Busker Cup',
+    icon:'🥤',
+    type:'special_ability',
+    rarity:'common',
+    coin_cost:12,
+    series:'Street Charms',
+    is_starter:true,
+    description:'This used to belong to a popular busker, so strangers still occasionally drop money into it out of muscle memory.',
+    data:{
+      memory_slots_required:1,
+      min_intelligence_plus_loyalty:0,
+      stat_buffs:[],
+      ability_effects:[{
+        effect_type:'fight_win_coins',
+        chance_percent:100,
+        value:65,
+        min_value:25,
+        trigger:'after_win',
+        limit:'per_fight',
+        short_text:'25-65 COINS / win',
+        full_text:'After winning a street fight outside, gain 25-65 coins.'
+      }]
+    }
+  }
+];
+
+function getLibrary() { return [...baseLibrary().map(effectiveCard), ...STARTER_ABILITY_CARDS.map(effectiveCard), ...CONSUMABLE_CARDS.map(effectiveCard), ...NPC_CARDS.map(effectiveCard), ...CUSTOM_CARDS.map(normalizeAbilityCard)]; }
 
 function getCard(id) { return getLibrary().find(c => c.id === id) || null; }
 
@@ -1607,6 +1636,7 @@ const ABILITY_EFFECT_DEFS = {
   post_fight_heal: { label:'Post-Fight Heal', short:'HEAL', trigger:'after_fight', valueLabel:'stamina' },
   energy_cost_reduce: { label:'Energy Cost Reduce', short:'ENERGY SAVE', trigger:'run_start', valueLabel:'energy' },
   hunger_drain_reduce: { label:'Hunger Drain Reduce', short:'HUNGER SAVE', trigger:'run_end', valueLabel:'hunger' },
+  fight_win_coins: { label:'Fight Win Coins', short:'COINS', trigger:'after_win', valueLabel:'coins' },
 };
 const ABILITY_TRIGGER_LABELS = {
   fight_start:'fight', on_hit:'hit', after_win:'win', loot_roll:'loot', social:'social',
@@ -1643,6 +1673,11 @@ function abilityFullText(effect) {
     case 'post_fight_heal': return `${c}recover ${value || 12} stamina after a fight.`;
     case 'energy_cost_reduce': return `Reduce outside energy cost by ${value || 15}%.`;
     case 'hunger_drain_reduce': return `Reduce hunger drain after returning by ${value || 15}%.`;
+    case 'fight_win_coins': {
+      const min = Math.max(0, parseInt(effect.min_value) || 25);
+      const max = Math.max(min, value || 65);
+      return `${c}gain ${min}-${max} coins after winning a street fight outside.`;
+    }
     default: return `${c}${(effect.effect_type || 'trigger an effect').replace(/_/g,' ')}.`;
   }
 }
@@ -1659,6 +1694,7 @@ function inferAbilityEffects(card) {
   if (text.includes('smoke') || text.includes('escape')) return [mk('escape', 35, 0, 'fight_loss', 'once_per_run', '35% ESCAPE / loss')];
   if (text.includes('heal') || text.includes('rally') || text.includes('recover')) return [mk('post_fight_heal', 30, 14, 'after_fight', 'per_fight', '30% HEAL / fight')];
   if (text.includes('loot') || text.includes('treasure')) return [mk('loot_rarity_up', 15, 1, 'loot_roll', 'always', '15% LOOT UP')];
+  if (text.includes('coin') || text.includes('money') || text.includes('busker') || text.includes('cup')) return [mk('fight_win_coins', 100, 65, 'after_win', 'per_fight', '25-65 COINS / win')];
   if (text.includes('friend') || text.includes('ally') || text.includes('charm')) return [mk('befriend_chance', 25, 25, 'social', 'always', '+25% ALLY CHANCE')];
   if (text.includes('dodge')) return [mk('first_dodge', 25, 0, 'fight_start', 'per_fight', '25% FIRST DODGE')];
   if (text.includes('stun') || text.includes('catnip') || text.includes('confus') || text.includes('aoe')) return [mk('confuse', 22, 20, 'fight_start', 'per_fight', '22% CONFUSE')];
@@ -4197,6 +4233,72 @@ async function createServerOutsideRuns(readyIndices) {
   }
 }
 
+function pickStreetFightWinReward(stats = {}) {
+  const itemCards = getLibrary().filter(c =>
+    isOwnableCard(c) &&
+    ['home_item', 'battle_gear', 'consumable'].includes(c.type)
+  );
+  if (!itemCards.length) return null;
+  const intelligence = Number(stats.intelligence || 0);
+  const combat = Number(stats.strength || 0) + Number(stats.agility || 0) + Number(stats.speed || 0) + Number(stats.stamina || 0);
+  const clever = Number(stats.intelligence || 0) + Number(stats.stealth || 0);
+  const social = Number(stats.affection || 0) + Number(stats.amicability || 0) + Number(stats.loyalty || 0);
+  const typeWeights = [
+    { type:'battle_gear', weight: 32 + combat * 0.18 },
+    { type:'home_item',   weight: 32 + clever * 0.25 },
+    { type:'consumable',  weight: 32 + social * 0.16 + Number(stats.stamina || 0) * 0.08 },
+  ].filter(w => itemCards.some(c => c.type === w.type));
+  const totalWeight = typeWeights.reduce((sum, w) => sum + w.weight, 0);
+  let roll = Math.random() * Math.max(1, totalWeight);
+  const pickedType = (typeWeights.find(w => ((roll -= w.weight) <= 0)) || typeWeights[0])?.type;
+  const rarity = intelligence >= 55 && Math.random() < 0.18
+    ? 'rare'
+    : intelligence >= 30 && Math.random() < 0.42
+      ? 'uncommon'
+      : 'common';
+  const typedCards = itemCards.filter(c => c.type === pickedType);
+  return pick(typedCards.filter(c => c.rarity === rarity)) || pick(typedCards) || pick(itemCards);
+}
+
+function rollFightWinCoinAbility(cs, state, scope) {
+  const abilityCards = getEquippedAbilityCards(cs?.abilities || []);
+  const proc = rollAbilityProc(abilityCards, 'fight_win_coins', state, scope);
+  if (!proc) return null;
+  const min = Math.max(0, parseInt(proc.effect.min_value) || 25);
+  const max = Math.max(min, Math.min(65, parseInt(proc.effect.value) || 65));
+  return {
+    coins: min + Math.floor(Math.random() * (max - min + 1)),
+    cardName: proc.card.name
+  };
+}
+
+function guaranteeWonStreetFightRewards(runs) {
+  (runs || []).forEach(run => {
+    const cs = sbx.cats[run.catIdx];
+    const abilityState = {};
+    (run.encounters || []).forEach((enc, ei) => {
+      const existingRewards = [enc.loot, ...(enc.extraLoot || [])].filter(Boolean);
+      const isStreetWin = enc.type === 'battle' && enc.won && !enc.avoided && !enc.charmed;
+      if (!isStreetWin) return;
+      const coinProc = rollFightWinCoinAbility(cs, abilityState, `street-win-${ei}`);
+      if (coinProc) {
+        enc.coins = Math.max(Number(enc.coins || 0), coinProc.coins);
+        enc.abilityNotes = [...(enc.abilityNotes || []), `${coinProc.cardName}: +${enc.coins} coins`];
+      }
+      if (existingRewards.length || Number(enc.coins || 0) > 0) return;
+      const reward = pickStreetFightWinReward(run.stats || enc.statSummary || {});
+      if (reward) {
+        enc.loot = reward;
+        enc.abilityNotes = [...(enc.abilityNotes || []), `Won fight reward: ${reward.name}`];
+      } else {
+        enc.coins = 8 + Math.floor(Math.random() * 8);
+        enc.abilityNotes = [...(enc.abilityNotes || []), `Won fight reward: +${enc.coins} coins`];
+      }
+    });
+  });
+  return runs;
+}
+
 async function startRun(selectedCatIndices) {
   if (!sbx.cats.length) return false;
   if (sbx.activeRun && sbx.activeRun.timer) clearInterval(sbx.activeRun.timer);
@@ -4212,7 +4314,7 @@ async function startRun(selectedCatIndices) {
     return false;
   }
 
-  const runs = await createServerOutsideRuns(readyIndices);
+  const runs = guaranteeWonStreetFightRewards(await createServerOutsideRuns(readyIndices));
   if (!runs.length) return false;
   runs.forEach(run => {
     const cs = sbx.cats[run.catIdx];
@@ -4503,15 +4605,20 @@ function buildBattleEventHtml(enc) {
   const logHtml = `<div class="btl-log">${battleLog.map(l =>
     `<div class="btl-r ${l.cls}">${l.text}</div>`).join('')}</div>`;
 
+  const coinReward = Math.max(0, Math.round(Number(enc.coins || 0)));
   const persistHtml = `<div class="btl-persist-note ${enc.persistAfter?'yes':'no'}">${enc.persistAfter?'🌆':'🏡'} ${enc.persistText}</div>`;
+  const rewardHtml = coinReward > 0 ? `<div class="pvp-footer"><span class="pvp-coins">🪙 +${coinReward}</span></div>` : '';
   const outcome = enc.charmed ? 'Charm worked' : enc.avoided ? 'Clean escape' : realWin ? 'Won the fight' : 'Retreated';
   const lootCount = [enc.loot, ...(enc.extraLoot || [])].filter(Boolean).length;
-  const fallbackSummary = `${outcome} · ${battleLog.length} beat${battleLog.length === 1 ? '' : 's'}${lootCount ? ` · found ${lootCount} card${lootCount === 1 ? '' : 's'}` : ''}`;
+  const rewardSummary = lootCount
+    ? ` · found ${lootCount} card${lootCount === 1 ? '' : 's'}`
+    : coinReward > 0 ? ` · +${coinReward} coins` : '';
+  const fallbackSummary = `${outcome} · ${battleLog.length} beat${battleLog.length === 1 ? '' : 's'}${rewardSummary}`;
   const summary = enc.aiSummary || fallbackSummary;
 
   return `<div class="ev-ico ${icoClass}">${enc.icon}</div>
     <div class="ev-body">
-      ${battleSummaryDetailsHtml(title, summary, logHtml, persistHtml, enc.loot, enc.extraLoot)}
+      ${battleSummaryDetailsHtml(title, summary, logHtml, persistHtml + rewardHtml, enc.loot, enc.extraLoot)}
     </div>`;
 }
 
@@ -4725,8 +4832,14 @@ function finishRun() {
   if (skipBtn) skipBtn.style.display = 'none';
 
   const allLoot = runs.flatMap(r => r.encounters.flatMap(e => [e.loot, ...(e.extraLoot || [])].filter(Boolean)));
-  if (!sbx.activeRun.lootAwarded && allLoot.length) {
+  const streetFightCoins = runs.flatMap(r => r.encounters || []).reduce((sum, enc) =>
+    sum + (enc.type === 'battle' && enc.won && !enc.avoided && !enc.charmed ? Math.max(0, Math.round(Number(enc.coins || 0))) : 0), 0);
+  if (!sbx.activeRun.lootAwarded && (allLoot.length || streetFightCoins > 0)) {
     allLoot.forEach(card => awardOwnedCard(card.id));
+    if (streetFightCoins > 0) {
+      sbx.coins = Math.max(0, (sbx.coins || 0) + streetFightCoins);
+      if (PLAYER) PLAYER.coins = sbx.coins;
+    }
     sbx.activeRun.lootAwarded = true;
     savePlayer();
   }
@@ -4749,6 +4862,16 @@ function finishRun() {
         ${r.soloBonusCoins > 0 ? `<span class="solo-coins">+${r.soloBonusCoins} 🪙</span>` : ''}
       </div>
     </div>`).join('')}</div>` : '';
+  const streetCoinBannerHtml = streetFightCoins > 0 ? `<div class="solo-run-banners">
+    <div class="solo-run-banner">
+      <div class="solo-run-icon">🪙</div>
+      <div class="solo-run-body">
+        <div class="solo-run-title">Street fight winnings</div>
+        <div class="solo-run-desc">Victory never comes home empty-handed</div>
+      </div>
+      <div class="solo-run-rewards"><span class="solo-coins">+${streetFightCoins} 🪙</span></div>
+    </div>
+  </div>` : '';
 
   let lootInner = '';
   if (allLoot.length) {
@@ -4786,7 +4909,7 @@ function finishRun() {
   footDiv.id = 'run-loot-footer';
   footDiv.className = 'run-loot-footer';
   footDiv.innerHTML = `
-    <div class="run-loot-footer-scroll">${soloBannerHtml}${lootInner}</div>
+    <div class="run-loot-footer-scroll">${soloBannerHtml}${streetCoinBannerHtml}${lootInner}</div>
     <div class="run-loot-footer-btn">
       <button class="btn-go primary" style="width:100%;max-width:100%" onclick="returnToGameHome()">🏠 Back to Home</button>
     </div>`;
