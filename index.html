@@ -835,7 +835,7 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .gh-sleep-needs{width:min(320px,100%);margin-top:2px}
 .gh-sleep-needs .gh-need-lbl{color:#60A5FA}
 /* Home tab cat roster */
-.gh-home-cats{display:flex;flex-direction:column;gap:6px;padding:10px 14px;background:var(--s2);border:1px solid var(--bd);border-radius:0 0 var(--r-lg) var(--r-lg);border-top:none;margin-top:-4px}
+.gh-home-cats{display:grid;grid-template-columns:repeat(4,var(--gh-home-card-w));justify-content:center;align-items:start;gap:12px;width:100%}
 .gh-home-cat-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.05)}
 .gh-home-cat-row:last-child{border-bottom:none}
 .gh-home-cat-emoji{font-size:22px;flex-shrink:0}
@@ -850,7 +850,7 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .gh-tab.active{color:var(--acc2);border-top-color:var(--acc)}
 .gh-tab-icon{font-size:19px;line-height:1;margin-bottom:1px}
 /* Home tab */
-.gh-home-tab{display:flex;flex-direction:column;gap:14px;width:100%;max-width:860px}
+.gh-home-tab{--gh-home-card-w:190px;display:flex;flex-direction:column;gap:14px;width:100%;max-width:860px}
 .gh-home-card{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r-lg);padding:16px 18px;display:flex;flex-direction:column;gap:10px}
 .gh-home-card-title{font-family:var(--fd);font-size:15px;font-weight:700;color:var(--t1);display:flex;align-items:center;gap:8px}
 .gh-home-card-sub{font-family:var(--fm);font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--t3)}
@@ -882,6 +882,29 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .gh-food-name{font-family:var(--fb);font-size:12px;color:var(--t1)}
 .gh-food-qty{font-family:var(--fm);font-size:10px;color:var(--acc2);font-weight:700}
 .gh-food-empty{font-family:var(--fb);font-size:12px;color:var(--t3);padding:8px 0}
+.gh-home-card-showcase{display:grid;grid-template-columns:var(--gh-home-card-w) 1fr;gap:14px;align-items:start}
+.gh-home-card-showcase .gh-card-cell,.gh-home-card-grid .gh-card-cell{width:var(--gh-home-card-w)}
+.gh-home-card-showcase .gh-card-cell .cv,.gh-home-card-grid .gh-card-cell .cv{width:var(--gh-home-card-w);height:calc(var(--gh-home-card-w) * 1.4)}
+.gh-home-card-showcase .gh-card-cell .cv .cv-art,.gh-home-card-grid .gh-card-cell .cv .cv-art{height:62px!important;font-size:31px!important;flex-shrink:0!important}
+.gh-home-card-showcase .gh-card-cell .cv .cv-art::after,.gh-home-card-grid .gh-card-cell .cv .cv-art::after{display:none}
+.gh-home-card-showcase .gh-card-cell .cv .cv-hdr,.gh-home-card-grid .gh-card-cell .cv .cv-hdr{padding:7px 9px 6px!important}
+.gh-home-card-showcase .gh-card-cell .cv .cv-name,.gh-home-card-grid .gh-card-cell .cv .cv-name{font-size:11.5px!important}
+.gh-home-card-showcase .gh-card-cell .cv .cv-body,.gh-home-card-grid .gh-card-cell .cv .cv-body{flex:1;min-height:0;overflow:hidden;padding:7px 9px!important;gap:4px!important}
+.gh-home-card-showcase .gh-card-cell .cv .cv-desc,.gh-home-card-grid .gh-card-cell .cv .cv-desc{font-size:9px!important;line-height:1.35!important}
+.gh-home-card-showcase .gh-card-cell .cv .cv-subtext,.gh-home-card-grid .gh-card-cell .cv .cv-subtext{font-size:8px!important}
+.gh-home-card-showcase .gh-card-cell .cv .cv-foot,.gh-home-card-grid .gh-card-cell .cv .cv-foot{padding:5px 9px 6px!important}
+.gh-home-card-grid{display:grid;grid-template-columns:repeat(4,var(--gh-home-card-w));gap:12px;align-items:start;justify-content:center;width:100%}
+.gh-home-card-grid .gh-card-cell .cv{cursor:pointer;transition:transform .14s,box-shadow .14s}
+.gh-home-card-grid .gh-card-cell .cv:hover,.gh-home-card-showcase .gh-card-cell .cv:hover{transform:translateY(-3px);box-shadow:0 0 0 2px var(--cv-r,var(--cv-c)),0 16px 40px rgba(0,0,0,.48)}
+.gh-home-card-grid .gh-card-meta{min-height:auto;flex-wrap:wrap}
+.gh-home-card-grid .gh-card-badge{font-size:7.5px;padding:2px 6px}
+.gh-home-card-grid .gh-card-act-btn{font-size:7.5px;padding:3px 7px}
+.gh-home-section-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.gh-home-section-title{font-family:var(--fm);font-size:9.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--t2);display:flex;align-items:center;gap:6px}
+.gh-home-card-notes{display:flex;flex-direction:column;gap:5px;min-height:22px}
+@media(max-width:900px){.gh-home-card-grid,.gh-home-cats{grid-template-columns:repeat(3,var(--gh-home-card-w))}}
+@media(max-width:720px){.gh-home-tab{--gh-home-card-w:min(186px,calc((100vw - 66px)/2))}.gh-home-card-grid,.gh-home-cats{grid-template-columns:repeat(2,var(--gh-home-card-w));gap:10px}.gh-home-card-showcase{grid-template-columns:1fr}.gh-home-card-showcase .gh-card-cell{justify-self:center}}
+@media(max-width:480px){.gh-home-tab{--gh-home-card-w:min(152px,calc((100vw - 54px)/2))}.gh-home-card{padding:14px}.gh-home-card-showcase .gh-card-cell .cv .cv-art,.gh-home-card-grid .gh-card-cell .cv .cv-art{height:50px!important;font-size:26px!important}.gh-home-card-showcase .gh-card-cell .cv .cv-name,.gh-home-card-grid .gh-card-cell .cv .cv-name{font-size:9.5px!important}.gh-home-card-showcase .gh-card-cell .cv .cv-desc,.gh-home-card-grid .gh-card-cell .cv .cv-desc{font-size:7.5px!important}.gh-home-card-showcase .gh-card-cell .cv .cv-subtext,.gh-home-card-grid .gh-card-cell .cv .cv-subtext{font-size:6.8px!important}.gh-home-card-grid .gh-card-badge{font-size:7px}}
 /* Cats tab — horizontal scroll */
 .gh-cats-tab{display:flex;flex-direction:column;height:100%;overflow:hidden;position:relative}
 .gh-cats-scroll{display:flex;flex-direction:row;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;gap:0;padding:0;flex:1;scrollbar-width:none;align-items:stretch;position:relative;z-index:1}
@@ -6088,11 +6111,12 @@ function renderGameHome() {
   const homeItemUsage = getHomeUsageCounts().home_item;
 
   const careConsumableRows = allConsumableCards.map(c => {
-    const effects = formatConsumableEffects(c).slice(0, 4).map(e => `<span class="gh-gear-stat">${e}</span>`).join('');
-    return `<div class="gh-food-row clickable" onclick="openCardModal('${c.id}')">
-      <span class="gh-food-icon">${c.icon || TYPE_META.consumable.emoji}</span>
-      <div class="gh-food-info"><div class="gh-food-name">${c.name}</div>${effects ? `<div class="gh-gear-stats" style="margin-top:4px">${effects}</div>` : ''}</div>
-      <span class="gh-food-qty">${inv[c.id]} use${inv[c.id] === 1 ? '' : 's'}</span>
+    const uses = inv[c.id] || 0;
+    return `<div class="gh-card-cell">
+      ${buildCardFaceHtml(c, { onclick: `openCardModal('${c.id}')`, standardLayout: true })}
+      <div class="gh-card-meta">
+        <span class="gh-card-badge active">${uses} use${uses === 1 ? '' : 's'}</span>
+      </div>
     </div>`;
   }).join('');
   const itemRows2 = currentHomeItems.map((c, itemIdx) => {
@@ -6104,11 +6128,14 @@ function renderGameHome() {
       return `<span class="gh-gear-stat ${cls}" style="${dr.rate<0?'background:rgba(248,113,113,.12);color:#f87171':'background:rgba(52,211,153,.12);color:#34d399'}">${sign}${dr.rate} ${lbl}/24h</span>`;
     }).join('');
     const slotCost = getHomeSlotCost(c);
-    return `<div class="gh-item-row clickable" onclick="openCardModal('${c.id}')">
-      <span style="font-size:20px">📦</span>
-      <div style="flex:1"><div class="gh-item-name">${c.name}</div>${rateChips?`<div class="gh-gear-stats" style="margin-top:4px">${rateChips}</div>`:''}</div>
-      <span class="gh-home-slot-count">${slotCost} slot${slotCost === 1 ? '' : 's'}</span>
-      <button class="gh-item-remove" onclick="ghRemoveHomeItem(${itemIdx});event.stopPropagation()" title="Remove item">✕</button>
+    return `<div class="gh-card-cell">
+      ${buildCardFaceHtml(c, { onclick: `openCardModal('${c.id}')`, standardLayout: true })}
+      <div class="gh-card-meta">
+        <span class="gh-card-badge active">${slotCost} slot${slotCost === 1 ? '' : 's'}</span>
+        <div class="gh-card-actions-row" onclick="event.stopPropagation()">
+          <button class="gh-card-act-btn" onclick="ghRemoveHomeItem(${itemIdx})">Remove</button>
+        </div>
+      </div>
     </div>`;
   }).join('');
   const remainingItemSlots = Math.max(0, maxItemSlots - currentHomeLoad.usedSlots);
@@ -6168,19 +6195,21 @@ function renderGameHome() {
           else if (hrs < 24) elapsedStr = `${hrs.toFixed(1)}h in home`;
           else elapsedStr = `${(hrs/24).toFixed(1)} days in home`;
         }
-        return `<div class="gh-home-cat-row clickable" onclick="openCardModal('${cs.breed.id}')">
-          <div class="gh-home-cat-emoji">${_emoji}</div>
-          <div class="gh-home-cat-info">
-            <div class="gh-home-cat-name">${_catNameHtml}${traitLabel ? ` <span class="gh-dev-cat-trait">${traitLabel}</span>` : ''}${gearModStr ? `<span style="margin-left:4px;display:flex;gap:3px">${gearModStr}</span>` : ''}</div>
+        const _catCard = { ...cs.breed, name: _catNameHtml };
+        return `<div class="gh-card-cell">
+          ${buildCardFaceHtml(_catCard, { onclick: `openCardModal('${cs.breed.id}')`, standardLayout: true })}
+          <div class="gh-card-meta">
+            <span class="gh-card-badge active">${_hPct}% HNG</span>
+            <span class="gh-card-badge active">${_mPct}% MOOD</span>
+            <span class="gh-card-badge active">${_ePct}% STA</span>
+          </div>
+          ${(traitLabel || gearModStr || rateChips || gainChips || elapsedStr) ? `<div class="gh-home-card-notes">
+            ${traitLabel ? `<span class="gh-dev-cat-trait">${traitLabel}</span>` : ''}
+            ${gearModStr ? `<div class="gh-dev-mod-row">${gearModStr}</div>` : ''}
             ${rateChips ? `<div class="gh-dev-rates">${rateChips}</div>` : ''}
             ${gainChips ? `<div class="gh-dev-gains">${gainChips}</div>` : ''}
             ${elapsedStr ? `<div class="gh-dev-elapsed">⏱ ${elapsedStr}</div>` : ''}
-          </div>
-          <div class="gh-home-cat-bars">
-            <div class="gh-home-cat-bar" title="Hunger ${_hPct}%"><div class="gh-home-cat-bar-fill" style="width:${_hPct}%;background:#60a5fa"></div></div>
-            <div class="gh-home-cat-bar" title="Mood ${_mPct}%"><div class="gh-home-cat-bar-fill" style="width:${_mPct}%;background:#a78bfa"></div></div>
-            <div class="gh-home-cat-bar" title="Energy ${_ePct}%"><div class="gh-home-cat-bar-fill" style="width:${_ePct}%;background:#34d399"></div></div>
-          </div>
+          </div>` : ''}
         </div>`;
       }).join('')}
     </div>` : '';
@@ -6194,30 +6223,39 @@ function renderGameHome() {
     ${catRosterHtml}
     <div id="gh-add-cat-picker" style="display:none"></div>` : catRosterHtml;
 
+  const activeHomeCardHtml = activeHomeCard
+    ? `<div class="gh-card-cell">${buildCardFaceHtml(activeHomeCard, { onclick: `openCardModal('${activeHomeCard.id}')`, standardLayout: true })}</div>`
+    : '';
+
   const homeTabHtml = `<div class="gh-home-tab">
     ${homeSelectorHtml}
     <div class="gh-home-card">
       <div class="gh-home-card-title${activeHomeCard ? ' clickable' : ''}" ${activeHomeCard ? `onclick="openCardModal('${activeHomeCard.id}')"` : ''}>${activeHomeEnv.icon} ${activeHomeName}</div>
-      ${activeHomeCard ? `<div class="gh-home-stats">
-        <div class="gh-home-stat"><div class="gh-home-stat-lbl">Expansion Slots</div><div class="gh-home-stat-val">${hd.expansion_slots||'—'}</div></div>
-        <div class="gh-home-stat"><div class="gh-home-stat-lbl">Max Occupants</div><div class="gh-home-stat-val">${hd.max_occupants||'—'}</div></div>
-        <div class="gh-home-stat"><div class="gh-home-stat-lbl">Comfort</div><div class="gh-home-stat-val">${hd.comfort_multiplier||'—'}×</div></div>
-        <div class="gh-home-stat"><div class="gh-home-stat-lbl">Training Tier</div><div class="gh-home-stat-val" style="font-size:11px;text-transform:capitalize">${hd.training_tier||'—'}</div></div>
+      ${activeHomeCard ? `<div class="gh-home-card-showcase">
+        ${activeHomeCardHtml}
+        <div class="gh-home-stats">
+          <div class="gh-home-stat"><div class="gh-home-stat-lbl">Expansion Slots</div><div class="gh-home-stat-val">${hd.expansion_slots||'—'}</div></div>
+          <div class="gh-home-stat"><div class="gh-home-stat-lbl">Max Occupants</div><div class="gh-home-stat-val">${hd.max_occupants||'—'}</div></div>
+          <div class="gh-home-stat"><div class="gh-home-stat-lbl">Comfort</div><div class="gh-home-stat-val">${hd.comfort_multiplier||'—'}×</div></div>
+          <div class="gh-home-stat"><div class="gh-home-stat-lbl">Training Tier</div><div class="gh-home-stat-val" style="font-size:11px;text-transform:capitalize">${hd.training_tier||'—'}</div></div>
+        </div>
       </div>` : '<div class="gh-drop-empty">No home card in deck.</div>'}
       ${activeHomeCard ? `<div style="margin-top:4px">
-        <div class="gh-home-items-head">
-          <div class="gh-food-title" style="margin-bottom:0">📦 Active Home Items</div>
+        <div class="gh-home-section-head">
+          <div class="gh-home-section-title">📦 Active Home Items</div>
           <span class="gh-home-slot-count">${currentHomeLoad.usedSlots} / ${maxItemSlots} slots</span>
         </div>
-        ${itemRows2 ? `<div class="gh-home-items-list">${itemRows2}</div>` : '<div class="gh-food-empty">No items installed in this home.</div>'}
+        ${itemRows2 ? `<div class="gh-home-card-grid">${itemRows2}</div>` : '<div class="gh-food-empty">No items installed in this home.</div>'}
         <button class="gh-home-add-item" onclick="ghShowAddHomeItem()" ${remainingItemSlots <= 0 || !installableHomeItems.length ? 'disabled' : ''}>+ Add Item</button>
         <div id="gh-home-item-picker" class="gh-home-item-picker"></div>
       </div>` : ''}
     </div>
     ${addCatHtml}
     <div class="gh-food-section">
-      <div class="gh-food-title">🥣 Consumables</div>
-      ${careConsumableRows || '<div class="gh-food-empty">No consumable cards in deck. Visit the Market.</div>'}
+      <div class="gh-home-section-head">
+        <div class="gh-home-section-title">🥣 Consumables</div>
+      </div>
+      ${careConsumableRows ? `<div class="gh-home-card-grid">${careConsumableRows}</div>` : '<div class="gh-food-empty">No consumable cards in deck. Visit the Market.</div>'}
     </div>
   </div>`;
 
