@@ -850,8 +850,8 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .gh-tab.active{color:var(--acc2);border-top-color:var(--acc)}
 .gh-tab-icon{font-size:19px;line-height:1;margin-bottom:1px}
 /* Home tab */
-.gh-home-tab{--gh-home-card-w:190px;display:flex;flex-direction:column;gap:14px;width:100%;max-width:860px}
-.gh-home-card{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r-lg);padding:16px 18px;display:flex;flex-direction:column;gap:10px}
+.gh-home-tab{--gh-home-card-w:190px;display:flex;flex-direction:column;gap:20px;width:100%;max-width:1000px}
+.gh-home-card{padding:0;display:flex;flex-direction:column;gap:12px}
 .gh-home-card-title{font-family:var(--fd);font-size:15px;font-weight:700;color:var(--t1);display:flex;align-items:center;gap:8px}
 .gh-home-card-sub{font-family:var(--fm);font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--t3)}
 .gh-home-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
@@ -862,7 +862,7 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .gh-home-selector{display:flex;align-items:center;gap:10px;padding:10px 0 4px}
 .gh-home-sel-lbl{font-family:var(--fm);font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--t3);white-space:nowrap}
 .gh-home-sel-drop{flex:1;background:var(--s2);border:1px solid var(--bd);border-radius:var(--r-md);color:var(--t1);font-family:var(--fd);font-size:13px;padding:8px 10px;outline:none;cursor:pointer}
-.gh-add-cat-section{display:flex;align-items:center;justify-content:space-between;background:var(--s2);border:1px solid var(--bd);border-radius:var(--r-lg);padding:12px 14px}
+.gh-add-cat-section{display:flex;align-items:center;justify-content:space-between;padding:4px 0}
 .gh-add-cat-label{font-family:var(--fm);font-size:12px;color:var(--t2)}
 .gh-add-cat-btn{font-family:var(--fm);font-size:11px;font-weight:700;padding:7px 16px;border-radius:var(--r-md);border:none;background:var(--acc);color:#0D1117;cursor:pointer;transition:background .15s}
 .gh-add-cat-btn:hover{background:var(--acc2)}
@@ -871,7 +871,7 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .gh-add-cat-option:hover{background:var(--s1)}
 .gh-add-cat-opt-name{font-family:var(--fd);font-size:13px;color:var(--t1);flex:1}
 .gh-add-cat-opt-type{font-family:var(--fm);font-size:9px;color:var(--t3);text-transform:uppercase}
-.gh-food-section{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r-lg);padding:16px 18px}
+.gh-food-section{padding:0}
 .gh-food-title{font-family:var(--fm);font-size:9.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--t2);margin-bottom:12px;display:flex;align-items:center;gap:6px}
 .gh-food-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--bd)}
 .gh-food-row.clickable{cursor:pointer}
@@ -883,6 +883,7 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .gh-food-qty{font-family:var(--fm);font-size:10px;color:var(--acc2);font-weight:700}
 .gh-food-empty{font-family:var(--fb);font-size:12px;color:var(--t3);padding:8px 0}
 .gh-home-card-showcase{display:grid;grid-template-columns:var(--gh-home-card-w) 1fr;gap:14px;align-items:start}
+.gh-home-tab .gh-card-cell{--gh-card-w:var(--gh-home-card-w)}
 .gh-home-card-showcase .gh-card-cell,.gh-home-card-grid .gh-card-cell{width:var(--gh-home-card-w)}
 .gh-home-card-showcase .gh-card-cell .cv,.gh-home-card-grid .gh-card-cell .cv{width:var(--gh-home-card-w);height:calc(var(--gh-home-card-w) * 1.4)}
 .gh-home-card-showcase .gh-card-cell .cv .cv-art,.gh-home-card-grid .gh-card-cell .cv .cv-art{height:62px!important;font-size:31px!important;flex-shrink:0!important}
@@ -893,7 +894,7 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .gh-home-card-showcase .gh-card-cell .cv .cv-desc,.gh-home-card-grid .gh-card-cell .cv .cv-desc{font-size:9px!important;line-height:1.35!important}
 .gh-home-card-showcase .gh-card-cell .cv .cv-subtext,.gh-home-card-grid .gh-card-cell .cv .cv-subtext{font-size:8px!important}
 .gh-home-card-showcase .gh-card-cell .cv .cv-foot,.gh-home-card-grid .gh-card-cell .cv .cv-foot{padding:5px 9px 6px!important}
-.gh-home-card-grid{display:grid;grid-template-columns:repeat(4,var(--gh-home-card-w));gap:12px;align-items:start;justify-content:center;width:100%}
+.gh-home-card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,var(--gh-home-card-w)),var(--gh-home-card-w)));gap:12px;align-items:start;justify-content:center;width:100%;overflow:visible}
 .gh-home-card-grid .gh-card-cell .cv{cursor:pointer;transition:transform .14s,box-shadow .14s}
 .gh-home-card-grid .gh-card-cell .cv:hover,.gh-home-card-showcase .gh-card-cell .cv:hover{transform:translateY(-3px);box-shadow:0 0 0 2px var(--cv-r,var(--cv-c)),0 16px 40px rgba(0,0,0,.48)}
 .gh-home-card-grid .gh-card-meta{min-height:auto;flex-wrap:wrap}
@@ -902,6 +903,21 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .gh-home-section-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
 .gh-home-section-title{font-family:var(--fm);font-size:9.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--t2);display:flex;align-items:center;gap:6px}
 .gh-home-card-notes{display:flex;flex-direction:column;gap:5px;min-height:22px}
+.gh-mini-cell{gap:6px}
+.gh-mini-card{height:116px;border:1px solid var(--bd);border-radius:var(--r-lg);background:linear-gradient(180deg,var(--s2),var(--s1));display:flex;flex-direction:column;padding:10px;cursor:pointer;transition:transform .14s,border-color .14s,box-shadow .14s;position:relative;overflow:hidden}
+.gh-mini-card::before{content:"";position:absolute;inset:0 0 auto;height:4px;background:var(--mini-c,var(--acc));opacity:.9}
+.gh-mini-card:hover{transform:translateY(-2px);border-color:var(--mini-c,var(--acc));box-shadow:0 10px 26px rgba(0,0,0,.35)}
+.gh-mini-top{display:flex;align-items:flex-start;gap:8px;min-width:0}
+.gh-mini-art{width:36px;height:36px;border-radius:var(--r-md);background:var(--s3);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;overflow:hidden}
+.gh-mini-art img{width:100%;height:100%;object-fit:cover}
+.gh-mini-main{flex:1;min-width:0}
+.gh-mini-type{font-family:var(--fm);font-size:7.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--mini-c,var(--acc));white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gh-mini-name{font-family:var(--fd);font-size:12px;font-weight:700;color:var(--t1);line-height:1.22;margin-top:2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.gh-mini-rarity{font-family:var(--fm);font-size:7px;text-transform:uppercase;letter-spacing:.06em;color:var(--t3);border:1px solid var(--bd);border-radius:var(--r-f);padding:2px 6px;flex-shrink:0}
+.gh-mini-meta{display:flex;flex-wrap:wrap;gap:4px;margin-top:auto;padding-top:8px}
+.gh-mini-pill{font-family:var(--fm);font-size:8px;border-radius:var(--r-f);padding:2px 6px;background:var(--s3);color:var(--t2);border:1px solid rgba(255,255,255,.04)}
+.gh-mini-pill.good{background:rgba(52,211,153,.1);color:#34d399;border-color:rgba(52,211,153,.22)}
+.gh-mini-pill.warn{background:rgba(240,160,48,.1);color:var(--acc2);border-color:rgba(240,160,48,.24)}
 @media(max-width:900px){.gh-home-card-grid,.gh-home-cats{grid-template-columns:repeat(3,var(--gh-home-card-w))}}
 @media(max-width:720px){.gh-home-tab{--gh-home-card-w:min(186px,calc((100vw - 66px)/2))}.gh-home-card-grid,.gh-home-cats{grid-template-columns:repeat(2,var(--gh-home-card-w));gap:10px}.gh-home-card-showcase{grid-template-columns:1fr}.gh-home-card-showcase .gh-card-cell{justify-self:center}}
 @media(max-width:480px){.gh-home-tab{--gh-home-card-w:min(152px,calc((100vw - 54px)/2))}.gh-home-card{padding:14px}.gh-home-card-showcase .gh-card-cell .cv .cv-art,.gh-home-card-grid .gh-card-cell .cv .cv-art{height:50px!important;font-size:26px!important}.gh-home-card-showcase .gh-card-cell .cv .cv-name,.gh-home-card-grid .gh-card-cell .cv .cv-name{font-size:9.5px!important}.gh-home-card-showcase .gh-card-cell .cv .cv-desc,.gh-home-card-grid .gh-card-cell .cv .cv-desc{font-size:7.5px!important}.gh-home-card-showcase .gh-card-cell .cv .cv-subtext,.gh-home-card-grid .gh-card-cell .cv .cv-subtext{font-size:6.8px!important}.gh-home-card-grid .gh-card-badge{font-size:7px}}
@@ -6109,15 +6125,36 @@ function renderGameHome() {
   const activeHomeEnv = getHomeEnvProfile(activeHomeCard);
   const maxOccupants = hd.max_occupants || 0;
   const homeItemUsage = getHomeUsageCounts().home_item;
+  const homeMiniCardHtml = (card, opts = {}) => {
+    if (!card) return '';
+    const tm = TYPE_META[card.type] || {};
+    const rc = RAR_COLOR[card.rarity] || 'var(--t3)';
+    const name = opts.name || card.name || 'Card';
+    const typeLabel = opts.typeLabel || tm.label || card.type || 'Card';
+    const metaHtml = opts.metaHtml || '';
+    const actionHtml = opts.actionHtml || '';
+    const clickId = opts.clickId || card.id;
+    return `<div class="gh-card-cell gh-mini-cell">
+      <div class="gh-mini-card" style="--mini-c:${tm.color || rc};--mini-r:${rc}" onclick="openCardModal('${clickId}')">
+        <div class="gh-mini-top">
+          <div class="gh-mini-art">${cardArtHTML(card, tm)}</div>
+          <div class="gh-mini-main">
+            <div class="gh-mini-type">${escapeAttr(typeLabel)}</div>
+            <div class="gh-mini-name">${escapeAttr(name)}</div>
+          </div>
+          <div class="gh-mini-rarity">${escapeAttr(card.rarity || '')}</div>
+        </div>
+        ${metaHtml ? `<div class="gh-mini-meta">${metaHtml}</div>` : ''}
+      </div>
+      ${actionHtml ? `<div class="gh-card-meta" onclick="event.stopPropagation()">${actionHtml}</div>` : ''}
+    </div>`;
+  };
 
   const careConsumableRows = allConsumableCards.map(c => {
     const uses = inv[c.id] || 0;
-    return `<div class="gh-card-cell">
-      ${buildCardFaceHtml(c, { onclick: `openCardModal('${c.id}')`, standardLayout: true })}
-      <div class="gh-card-meta">
-        <span class="gh-card-badge active">${uses} use${uses === 1 ? '' : 's'}</span>
-      </div>
-    </div>`;
+    return homeMiniCardHtml(c, {
+      metaHtml: `<span class="gh-mini-pill good">${uses} use${uses === 1 ? '' : 's'}</span>`
+    });
   }).join('');
   const itemRows2 = currentHomeItems.map((c, itemIdx) => {
     const rates = (c.data && c.data.development_rates) || [];
@@ -6128,15 +6165,14 @@ function renderGameHome() {
       return `<span class="gh-gear-stat ${cls}" style="${dr.rate<0?'background:rgba(248,113,113,.12);color:#f87171':'background:rgba(52,211,153,.12);color:#34d399'}">${sign}${dr.rate} ${lbl}/24h</span>`;
     }).join('');
     const slotCost = getHomeSlotCost(c);
-    return `<div class="gh-card-cell">
-      ${buildCardFaceHtml(c, { onclick: `openCardModal('${c.id}')`, standardLayout: true })}
-      <div class="gh-card-meta">
+    return homeMiniCardHtml(c, {
+      metaHtml: `<span class="gh-mini-pill good">${slotCost} slot${slotCost === 1 ? '' : 's'}</span>${rateChips}`,
+      actionHtml: `
         <span class="gh-card-badge active">${slotCost} slot${slotCost === 1 ? '' : 's'}</span>
-        <div class="gh-card-actions-row" onclick="event.stopPropagation()">
+        <div class="gh-card-actions-row">
           <button class="gh-card-act-btn" onclick="ghRemoveHomeItem(${itemIdx})">Remove</button>
-        </div>
-      </div>
-    </div>`;
+        </div>`
+    });
   }).join('');
   const remainingItemSlots = Math.max(0, maxItemSlots - currentHomeLoad.usedSlots);
   const installableHomeItems = allItemCards.filter(c => {
@@ -6161,8 +6197,7 @@ function renderGameHome() {
         const _hPct = Math.round(Math.min(100, _care.hunger));
         const _mPct = Math.round(Math.min(100, _care.mood));
         const _ePct = Math.round(Math.min(100, _care.energy));
-        const _emoji = (cs.breed && cs.breed.data && cs.breed.data.emoji) ? cs.breed.data.emoji : '🐱';
-        const _catNameHtml = escapeAttr(getCatDisplayName(cs));
+        const _catName = getCatDisplayName(cs);
         const breedTraits = (cs.breed && cs.breed.data && cs.breed.data.home_dev_traits) || {};
         const traitLabel = breedTraits.label || '';
         const rates = computeEffectiveDevRates(cs, currentHomeItems);
@@ -6195,22 +6230,19 @@ function renderGameHome() {
           else if (hrs < 24) elapsedStr = `${hrs.toFixed(1)}h in home`;
           else elapsedStr = `${(hrs/24).toFixed(1)} days in home`;
         }
-        const _catCard = { ...cs.breed, name: _catNameHtml };
-        return `<div class="gh-card-cell">
-          ${buildCardFaceHtml(_catCard, { onclick: `openCardModal('${cs.breed.id}')`, standardLayout: true })}
-          <div class="gh-card-meta">
-            <span class="gh-card-badge active">${_hPct}% HNG</span>
-            <span class="gh-card-badge active">${_mPct}% MOOD</span>
-            <span class="gh-card-badge active">${_ePct}% STA</span>
-          </div>
-          ${(traitLabel || gearModStr || rateChips || gainChips || elapsedStr) ? `<div class="gh-home-card-notes">
+        const _catCard = { ...cs.breed, name: _catName };
+        return homeMiniCardHtml(_catCard, {
+          clickId: cs.breed.id,
+          metaHtml: `<span class="gh-mini-pill good">${_hPct}% HNG</span><span class="gh-mini-pill good">${_mPct}% MOOD</span><span class="gh-mini-pill good">${_ePct}% STA</span>`,
+          actionHtml: (traitLabel || gearModStr || rateChips || gainChips || elapsedStr) ? `
+          <div class="gh-home-card-notes">
             ${traitLabel ? `<span class="gh-dev-cat-trait">${traitLabel}</span>` : ''}
             ${gearModStr ? `<div class="gh-dev-mod-row">${gearModStr}</div>` : ''}
             ${rateChips ? `<div class="gh-dev-rates">${rateChips}</div>` : ''}
             ${gainChips ? `<div class="gh-dev-gains">${gainChips}</div>` : ''}
             ${elapsedStr ? `<div class="gh-dev-elapsed">⏱ ${elapsedStr}</div>` : ''}
-          </div>` : ''}
-        </div>`;
+          </div>` : ''
+        });
       }).join('')}
     </div>` : '';
 
@@ -6224,7 +6256,9 @@ function renderGameHome() {
     <div id="gh-add-cat-picker" style="display:none"></div>` : catRosterHtml;
 
   const activeHomeCardHtml = activeHomeCard
-    ? `<div class="gh-card-cell">${buildCardFaceHtml(activeHomeCard, { onclick: `openCardModal('${activeHomeCard.id}')`, standardLayout: true })}</div>`
+    ? homeMiniCardHtml(activeHomeCard, {
+        metaHtml: `<span class="gh-mini-pill good">${hd.max_occupants || 0} cats</span><span class="gh-mini-pill good">${hd.expansion_slots || 0} item slots</span><span class="gh-mini-pill warn">x${hd.comfort_multiplier || 1}</span>`
+      })
     : '';
 
   const homeTabHtml = `<div class="gh-home-tab">
