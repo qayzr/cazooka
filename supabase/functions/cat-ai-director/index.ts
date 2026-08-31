@@ -19,6 +19,7 @@ const MAX_RUNS = 5;
 const MAX_ENCOUNTERS = 8;
 const MAX_LOG_LINES = 8;
 const MAX_TEXT = 180;
+const COHERE_TIMEOUT_MS = 12000;
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -143,8 +144,11 @@ async function callCohere(mode: string, facts: unknown) {
     JSON.stringify(facts),
   ].join("\n");
 
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), COHERE_TIMEOUT_MS);
   const res = await fetch("https://api.cohere.com/v2/chat", {
     method: "POST",
+    signal: controller.signal,
     headers: {
       "Authorization": `Bearer ${apiKey}`,
       "Content-Type": "application/json",
@@ -155,7 +159,7 @@ async function callCohere(mode: string, facts: unknown) {
       max_tokens: 900,
       messages: [{ role: "user", content: prompt }],
     }),
-  });
+  }).finally(() => clearTimeout(timeout));
   if (!res.ok) throw new Error(`Cohere ${res.status}`);
   const data = await res.json();
   const text = data?.message?.content?.map((part: JsonObject) => part?.text || "").join("") || "";
