@@ -850,7 +850,7 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .gh-tab.active{color:var(--acc2);border-top-color:var(--acc)}
 .gh-tab-icon{font-size:19px;line-height:1;margin-bottom:1px}
 /* Home tab */
-.gh-home-tab{--gh-home-card-w:190px;display:flex;flex-direction:column;gap:20px;width:100%;max-width:1000px}
+.gh-home-tab{--gh-home-card-w:150px;display:flex;flex-direction:column;gap:20px;width:100%;max-width:1000px}
 .gh-home-card{padding:0;display:flex;flex-direction:column;gap:12px}
 .gh-home-card-title{font-family:var(--fd);font-size:15px;font-weight:700;color:var(--t1);display:flex;align-items:center;gap:8px}
 .gh-home-card-sub{font-family:var(--fm);font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--t3)}
@@ -886,13 +886,13 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .gh-home-tab .gh-card-cell{--gh-card-w:var(--gh-home-card-w)}
 .gh-home-card-showcase .gh-card-cell,.gh-home-card-grid .gh-card-cell{width:var(--gh-home-card-w)}
 .gh-home-card-showcase .gh-card-cell .cv,.gh-home-card-grid .gh-card-cell .cv{width:var(--gh-home-card-w);height:calc(var(--gh-home-card-w) * 1.4)}
-.gh-home-card-showcase .gh-card-cell .cv .cv-art,.gh-home-card-grid .gh-card-cell .cv .cv-art{height:62px!important;font-size:31px!important;flex-shrink:0!important}
+.gh-home-card-showcase .gh-card-cell .cv .cv-art,.gh-home-card-grid .gh-card-cell .cv .cv-art{height:64px!important;font-size:30px!important;flex-shrink:0!important}
 .gh-home-card-showcase .gh-card-cell .cv .cv-art::after,.gh-home-card-grid .gh-card-cell .cv .cv-art::after{display:none}
-.gh-home-card-showcase .gh-card-cell .cv .cv-hdr,.gh-home-card-grid .gh-card-cell .cv .cv-hdr{padding:7px 9px 6px!important}
-.gh-home-card-showcase .gh-card-cell .cv .cv-name,.gh-home-card-grid .gh-card-cell .cv .cv-name{font-size:11.5px!important}
-.gh-home-card-showcase .gh-card-cell .cv .cv-body,.gh-home-card-grid .gh-card-cell .cv .cv-body{flex:1;min-height:0;overflow:hidden;padding:7px 9px!important;gap:4px!important}
-.gh-home-card-showcase .gh-card-cell .cv .cv-desc,.gh-home-card-grid .gh-card-cell .cv .cv-desc{font-size:9px!important;line-height:1.35!important}
-.gh-home-card-showcase .gh-card-cell .cv .cv-subtext,.gh-home-card-grid .gh-card-cell .cv .cv-subtext{font-size:8px!important}
+.gh-home-card-showcase .gh-card-cell .cv .cv-hdr,.gh-home-card-grid .gh-card-cell .cv .cv-hdr{padding:8px 10px 6px!important}
+.gh-home-card-showcase .gh-card-cell .cv .cv-name,.gh-home-card-grid .gh-card-cell .cv .cv-name{font-size:12px!important}
+.gh-home-card-showcase .gh-card-cell .cv .cv-body,.gh-home-card-grid .gh-card-cell .cv .cv-body{flex:1!important;min-height:0!important;overflow:hidden!important;padding:6px 10px 6px!important;gap:5px!important;justify-content:flex-end!important}
+.gh-home-card-showcase .gh-card-cell .cv .cv-subtext,.gh-home-card-grid .gh-card-cell .cv .cv-subtext{font-size:8.5px!important}
+.gh-home-card-showcase .gh-card-cell .cv .cvs-n,.gh-home-card-showcase .gh-card-cell .cv .cvs-v,.gh-home-card-grid .gh-card-cell .cv .cvs-n,.gh-home-card-grid .gh-card-cell .cv .cvs-v{font-size:7px!important}
 .gh-home-card-showcase .gh-card-cell .cv .cv-foot,.gh-home-card-grid .gh-card-cell .cv .cv-foot{padding:5px 9px 6px!important}
 .gh-home-card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,var(--gh-home-card-w)),var(--gh-home-card-w)));gap:12px;align-items:start;justify-content:center;width:100%;overflow:visible}
 .gh-home-card-grid .gh-card-cell .cv{cursor:pointer;transition:transform .14s,box-shadow .14s}
@@ -904,17 +904,6 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .gh-home-section-title{font-family:var(--fm);font-size:9.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--t2);display:flex;align-items:center;gap:6px}
 .gh-home-card-notes{display:flex;flex-direction:column;gap:5px;min-height:22px}
 .gh-mini-cell{gap:6px}
-.gh-mini-card{height:116px;border:1px solid var(--bd);border-radius:var(--r-lg);background:linear-gradient(180deg,var(--s2),var(--s1));display:flex;flex-direction:column;padding:10px;cursor:pointer;transition:transform .14s,border-color .14s,box-shadow .14s;position:relative;overflow:hidden}
-.gh-mini-card::before{content:"";position:absolute;inset:0 0 auto;height:4px;background:var(--mini-c,var(--acc));opacity:.9}
-.gh-mini-card:hover{transform:translateY(-2px);border-color:var(--mini-c,var(--acc));box-shadow:0 10px 26px rgba(0,0,0,.35)}
-.gh-mini-top{display:flex;align-items:flex-start;gap:8px;min-width:0}
-.gh-mini-art{width:36px;height:36px;border-radius:var(--r-md);background:var(--s3);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;overflow:hidden}
-.gh-mini-art img{width:100%;height:100%;object-fit:cover}
-.gh-mini-main{flex:1;min-width:0}
-.gh-mini-type{font-family:var(--fm);font-size:7.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--mini-c,var(--acc));white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.gh-mini-name{font-family:var(--fd);font-size:12px;font-weight:700;color:var(--t1);line-height:1.22;margin-top:2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.gh-mini-rarity{font-family:var(--fm);font-size:7px;text-transform:uppercase;letter-spacing:.06em;color:var(--t3);border:1px solid var(--bd);border-radius:var(--r-f);padding:2px 6px;flex-shrink:0}
-.gh-mini-meta{display:flex;flex-wrap:wrap;gap:4px;margin-top:auto;padding-top:8px}
 .gh-mini-pill{font-family:var(--fm);font-size:8px;border-radius:var(--r-f);padding:2px 6px;background:var(--s3);color:var(--t2);border:1px solid rgba(255,255,255,.04)}
 .gh-mini-pill.good{background:rgba(52,211,153,.1);color:#34d399;border-color:rgba(52,211,153,.22)}
 .gh-mini-pill.warn{background:rgba(240,160,48,.1);color:var(--acc2);border-color:rgba(240,160,48,.24)}
@@ -6127,26 +6116,16 @@ function renderGameHome() {
   const homeItemUsage = getHomeUsageCounts().home_item;
   const homeMiniCardHtml = (card, opts = {}) => {
     if (!card) return '';
-    const tm = TYPE_META[card.type] || {};
-    const rc = RAR_COLOR[card.rarity] || 'var(--t3)';
-    const name = opts.name || card.name || 'Card';
-    const typeLabel = opts.typeLabel || tm.label || card.type || 'Card';
-    const metaHtml = opts.metaHtml || '';
+    const displayCard = {
+      ...card,
+      name: opts.name || card.name || 'Card'
+    };
     const actionHtml = opts.actionHtml || '';
     const clickId = opts.clickId || card.id;
+    const metaHtml = opts.metaHtml || '';
     return `<div class="gh-card-cell gh-mini-cell">
-      <div class="gh-mini-card" style="--mini-c:${tm.color || rc};--mini-r:${rc}" onclick="openCardModal('${clickId}')">
-        <div class="gh-mini-top">
-          <div class="gh-mini-art">${cardArtHTML(card, tm)}</div>
-          <div class="gh-mini-main">
-            <div class="gh-mini-type">${escapeAttr(typeLabel)}</div>
-            <div class="gh-mini-name">${escapeAttr(name)}</div>
-          </div>
-          <div class="gh-mini-rarity">${escapeAttr(card.rarity || '')}</div>
-        </div>
-        ${metaHtml ? `<div class="gh-mini-meta">${metaHtml}</div>` : ''}
-      </div>
-      ${actionHtml ? `<div class="gh-card-meta" onclick="event.stopPropagation()">${actionHtml}</div>` : ''}
+      ${buildCardFaceHtml(displayCard, { onclick: `openCardModal('${clickId}')`, showDesc: false, standardLayout: true })}
+      ${(metaHtml || actionHtml) ? `<div class="gh-card-meta" onclick="event.stopPropagation()">${metaHtml || ''}${actionHtml || ''}</div>` : ''}
     </div>`;
   };
 
