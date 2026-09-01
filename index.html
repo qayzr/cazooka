@@ -849,6 +849,7 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .gh-home-growth-summary{font-family:var(--fm);font-size:8.5px;color:var(--t3);line-height:1.35}
 .gh-home-growth-summary strong{color:#c084fc;font-weight:500}
 .gh-home-growth-more{width:100%;margin-top:2px}
+.gh-home-growth-more.gh-home-growth-wide{grid-column:2}
 .gh-home-growth-more summary{list-style:none;cursor:pointer;font-family:var(--fm);font-size:8px;text-transform:uppercase;letter-spacing:.08em;color:var(--t3);display:inline-flex;gap:5px;align-items:center}
 .gh-home-growth-more summary::-webkit-details-marker{display:none}
 .gh-home-growth-more summary:hover{color:#c084fc}
@@ -927,7 +928,7 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .gh-mini-pill.good{background:rgba(52,211,153,.1);color:#34d399;border-color:rgba(52,211,153,.22)}
 .gh-mini-pill.warn{background:rgba(240,160,48,.1);color:var(--acc2);border-color:rgba(240,160,48,.24)}
 @media(max-width:900px){.gh-home-card-grid{grid-template-columns:repeat(3,var(--gh-home-card-w))}}
-@media(max-width:720px){.gh-home-tab{--gh-home-card-w:min(186px,calc((100vw - 66px)/2))}.gh-home-card-grid{grid-template-columns:repeat(2,var(--gh-home-card-w));gap:10px}.gh-home-cats{gap:16px}.gh-home-cat-unit{gap:12px}.gh-home-card-showcase{grid-template-columns:1fr}.gh-home-card-showcase .gh-card-cell{justify-self:center}}
+@media(max-width:720px){.gh-home-tab{--gh-home-card-w:min(186px,calc((100vw - 66px)/2))}.gh-home-card-grid{grid-template-columns:repeat(2,var(--gh-home-card-w));gap:10px}.gh-home-cats{gap:16px}.gh-home-cat-unit{gap:12px}.gh-home-growth-more.gh-home-growth-wide{grid-column:1/-1}.gh-home-card-showcase{grid-template-columns:1fr}.gh-home-card-showcase .gh-card-cell{justify-self:center}}
 @media(max-width:480px){.gh-home-tab{--gh-home-card-w:min(152px,calc((100vw - 54px)/2))}.gh-home-card{padding:14px}.gh-home-card-showcase .gh-card-cell .cv .cv-art,.gh-home-card-grid .gh-card-cell .cv .cv-art,.gh-home-cat-unit .gh-card-cell .cv .cv-art{height:50px!important;font-size:26px!important}.gh-home-card-showcase .gh-card-cell .cv .cv-name,.gh-home-card-grid .gh-card-cell .cv .cv-name,.gh-home-cat-unit .gh-card-cell .cv .cv-name{font-size:9.5px!important}.gh-home-card-showcase .gh-card-cell .cv .cv-desc,.gh-home-card-grid .gh-card-cell .cv .cv-desc,.gh-home-cat-unit .gh-card-cell .cv .cv-desc{font-size:7.5px!important}.gh-home-card-showcase .gh-card-cell .cv .cv-subtext,.gh-home-card-grid .gh-card-cell .cv .cv-subtext,.gh-home-cat-unit .gh-card-cell .cv .cv-subtext{font-size:6.8px!important}.gh-home-card-grid .gh-card-badge{font-size:7px}}
 /* Cats tab — horizontal scroll */
 .gh-cats-tab{display:flex;flex-direction:column;height:100%;overflow:hidden;position:relative}
@@ -6345,7 +6346,7 @@ function renderGameHome() {
           return `<span class="gh-dev-rate ${cls}">${formatStatLabel(stat)} ${sign}${per24}/day</span>`;
         };
         const topRateChips = rateEntries.slice(0, 4).map(rateChip).join('');
-        const allRateChips = rateEntries.map(rateChip).join('');
+        const hiddenRateChips = rateEntries.slice(4).map(rateChip).join('');
         const gains = computeHomeDev(cs, currentHomeItems);
         const gainEntries = Object.entries(gains).filter(([,g]) => Math.abs(g) >= 0.01)
           .sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]));
@@ -6377,10 +6378,10 @@ function renderGameHome() {
         const _catCard = { ...cs.breed, name: _catName };
         const moreCount = Math.max(0, rateEntries.length - 4);
         const detailHtml = (moreCount || gainChips || gearModStr)
-          ? `<details class="gh-home-growth-more">
+          ? `<details class="gh-home-growth-more gh-home-growth-wide">
               <summary>${moreCount ? `${moreCount} more growth signal${moreCount === 1 ? '' : 's'}` : 'Growth details'}</summary>
               <div class="gh-home-growth-more-body">
-                ${allRateChips ? `<div class="gh-dev-rates">${allRateChips}</div>` : ''}
+                ${hiddenRateChips ? `<div class="gh-dev-rates">${hiddenRateChips}</div>` : ''}
                 ${gainChips ? `<div class="gh-dev-gains">${gainChips}</div>` : ''}
                 ${gearModStr ? `<div class="gh-dev-mod-row">${gearModStr}</div>` : ''}
               </div>
@@ -6398,7 +6399,6 @@ function renderGameHome() {
               ${traitLabel ? `<span class="gh-dev-cat-trait">${traitLabel}</span>` : ''}
               ${topRateChips ? `<div class="gh-home-growth-top">${topRateChips}</div>` : ''}
               ${summaryHtml}
-              ${detailHtml}
             </div>`
           : `<div class="gh-home-cat-growth"><div class="gh-dev-no-items">No development modifiers active.</div></div>`;
         return `<div class="gh-home-cat-unit">
@@ -6406,6 +6406,7 @@ function renderGameHome() {
             ${buildCardFaceHtml(_catCard, { onclick: `openCardModal('${cs.breed.id}')`, showDesc: false, standardLayout: true })}
           </div>
           ${growthHtml}
+          ${detailHtml}
         </div>`;
       }).join('')}
     </div>` : '';
