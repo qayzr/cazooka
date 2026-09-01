@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Cazooka Dashboard</title>
+<link rel="icon" type="image/svg+xml" href="/assets/cazooka-cat-icon.svg">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Mono:wght@400;500&family=Bodoni+Moda:wght@600;700&display=swap">
@@ -383,6 +384,7 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .loot-row-name{font-family:var(--fb);font-size:12px;font-weight:600;color:var(--t1);white-space:normal;word-break:break-word}
 .loot-row-effs{font-family:var(--fm);font-size:9px;color:var(--t3);white-space:normal;word-break:break-word}
 .loot-row-rar{font-family:var(--fm);font-size:8.5px;text-transform:uppercase;letter-spacing:.06em;flex-shrink:0}
+.loot-row-qty{min-width:18px;height:18px;padding:0 5px;border-radius:var(--r-f);display:inline-flex;align-items:center;justify-content:center;background:#F43F5E;color:white;font-family:var(--fm);font-size:9px;font-weight:700;box-shadow:0 0 0 2px rgba(244,63,94,.22);flex-shrink:0}
 .loot-row-arr{font-size:13px;color:var(--t3);flex-shrink:0}
 .loot-empty{font-family:var(--fm);font-size:11px;color:var(--t3);text-align:center;padding:12px 0}
 /* ── Loot footer — appended outside the scroll container ── */
@@ -835,7 +837,14 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .gh-sleep-needs{width:min(320px,100%);margin-top:2px}
 .gh-sleep-needs .gh-need-lbl{color:#60A5FA}
 /* Home tab cat roster */
-.gh-home-cats{display:grid;grid-template-columns:repeat(4,var(--gh-home-card-w));justify-content:center;align-items:start;gap:12px;width:100%}
+.gh-home-cats{display:flex;flex-direction:column;gap:18px;width:100%}
+.gh-home-cat-unit{display:grid;grid-template-columns:var(--gh-home-card-w) minmax(0,1fr);gap:16px;align-items:start;width:100%}
+.gh-home-cat-unit .gh-card-cell{width:var(--gh-home-card-w)}
+.gh-home-cat-growth{display:flex;flex-direction:column;align-items:flex-start;gap:8px;min-width:0;padding-top:4px}
+.gh-home-cat-growth-title{font-family:var(--fm);font-size:8.5px;text-transform:uppercase;letter-spacing:.09em;color:#c084fc}
+.gh-home-cat-growth .gh-dev-rates,.gh-home-cat-growth .gh-dev-gains,.gh-home-cat-growth .gh-dev-mod-row{gap:6px}
+.gh-home-cat-growth .gh-dev-rate{font-size:8.5px;line-height:1.25;padding:4px 8px;border-radius:var(--r-md)}
+.gh-home-cat-growth .gh-dev-gain,.gh-home-cat-growth .gh-dev-mod,.gh-home-cat-growth .gh-dev-cat-trait{font-size:8.5px;line-height:1.25;padding:4px 8px}
 .gh-home-cat-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.05)}
 .gh-home-cat-row:last-child{border-bottom:none}
 .gh-home-cat-emoji{font-size:22px;flex-shrink:0}
@@ -884,19 +893,19 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .gh-food-empty{font-family:var(--fb);font-size:12px;color:var(--t3);padding:8px 0}
 .gh-home-card-showcase{display:grid;grid-template-columns:var(--gh-home-card-w) 1fr;gap:14px;align-items:start}
 .gh-home-tab .gh-card-cell{--gh-card-w:var(--gh-home-card-w)}
-.gh-home-card-showcase .gh-card-cell,.gh-home-card-grid .gh-card-cell{width:var(--gh-home-card-w)}
-.gh-home-card-showcase .gh-card-cell .cv,.gh-home-card-grid .gh-card-cell .cv{width:var(--gh-home-card-w);height:calc(var(--gh-home-card-w) * 1.4)}
-.gh-home-card-showcase .gh-card-cell .cv .cv-art,.gh-home-card-grid .gh-card-cell .cv .cv-art{height:64px!important;font-size:30px!important;flex-shrink:0!important}
-.gh-home-card-showcase .gh-card-cell .cv .cv-art::after,.gh-home-card-grid .gh-card-cell .cv .cv-art::after{display:none}
-.gh-home-card-showcase .gh-card-cell .cv .cv-hdr,.gh-home-card-grid .gh-card-cell .cv .cv-hdr{padding:8px 10px 6px!important}
-.gh-home-card-showcase .gh-card-cell .cv .cv-name,.gh-home-card-grid .gh-card-cell .cv .cv-name{font-size:12px!important}
-.gh-home-card-showcase .gh-card-cell .cv .cv-body,.gh-home-card-grid .gh-card-cell .cv .cv-body{flex:1!important;min-height:0!important;overflow:hidden!important;padding:6px 10px 6px!important;gap:5px!important;justify-content:flex-end!important}
-.gh-home-card-showcase .gh-card-cell .cv .cv-subtext,.gh-home-card-grid .gh-card-cell .cv .cv-subtext{font-size:8.5px!important}
-.gh-home-card-showcase .gh-card-cell .cv .cvs-n,.gh-home-card-showcase .gh-card-cell .cv .cvs-v,.gh-home-card-grid .gh-card-cell .cv .cvs-n,.gh-home-card-grid .gh-card-cell .cv .cvs-v{font-size:7px!important}
-.gh-home-card-showcase .gh-card-cell .cv .cv-foot,.gh-home-card-grid .gh-card-cell .cv .cv-foot{padding:5px 9px 6px!important}
+.gh-home-card-showcase .gh-card-cell,.gh-home-card-grid .gh-card-cell,.gh-home-cat-unit .gh-card-cell{width:var(--gh-home-card-w)}
+.gh-home-card-showcase .gh-card-cell .cv,.gh-home-card-grid .gh-card-cell .cv,.gh-home-cat-unit .gh-card-cell .cv{width:var(--gh-home-card-w);height:calc(var(--gh-home-card-w) * 1.4)}
+.gh-home-card-showcase .gh-card-cell .cv .cv-art,.gh-home-card-grid .gh-card-cell .cv .cv-art,.gh-home-cat-unit .gh-card-cell .cv .cv-art{height:64px!important;font-size:30px!important;flex-shrink:0!important}
+.gh-home-card-showcase .gh-card-cell .cv .cv-art::after,.gh-home-card-grid .gh-card-cell .cv .cv-art::after,.gh-home-cat-unit .gh-card-cell .cv .cv-art::after{display:none}
+.gh-home-card-showcase .gh-card-cell .cv .cv-hdr,.gh-home-card-grid .gh-card-cell .cv .cv-hdr,.gh-home-cat-unit .gh-card-cell .cv .cv-hdr{padding:8px 10px 6px!important}
+.gh-home-card-showcase .gh-card-cell .cv .cv-name,.gh-home-card-grid .gh-card-cell .cv .cv-name,.gh-home-cat-unit .gh-card-cell .cv .cv-name{font-size:12px!important}
+.gh-home-card-showcase .gh-card-cell .cv .cv-body,.gh-home-card-grid .gh-card-cell .cv .cv-body,.gh-home-cat-unit .gh-card-cell .cv .cv-body{flex:1!important;min-height:0!important;overflow:hidden!important;padding:6px 10px 6px!important;gap:5px!important;justify-content:flex-end!important}
+.gh-home-card-showcase .gh-card-cell .cv .cv-subtext,.gh-home-card-grid .gh-card-cell .cv .cv-subtext,.gh-home-cat-unit .gh-card-cell .cv .cv-subtext{font-size:8.5px!important}
+.gh-home-card-showcase .gh-card-cell .cv .cvs-n,.gh-home-card-showcase .gh-card-cell .cv .cvs-v,.gh-home-card-grid .gh-card-cell .cv .cvs-n,.gh-home-card-grid .gh-card-cell .cv .cvs-v,.gh-home-cat-unit .gh-card-cell .cv .cvs-n,.gh-home-cat-unit .gh-card-cell .cv .cvs-v{font-size:7px!important}
+.gh-home-card-showcase .gh-card-cell .cv .cv-foot,.gh-home-card-grid .gh-card-cell .cv .cv-foot,.gh-home-cat-unit .gh-card-cell .cv .cv-foot{padding:5px 9px 6px!important}
 .gh-home-card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,var(--gh-home-card-w)),var(--gh-home-card-w)));gap:12px;align-items:start;justify-content:center;width:100%;overflow:visible}
 .gh-home-card-grid .gh-card-cell .cv{cursor:pointer;transition:transform .14s,box-shadow .14s}
-.gh-home-card-grid .gh-card-cell .cv:hover,.gh-home-card-showcase .gh-card-cell .cv:hover{transform:translateY(-3px);box-shadow:0 0 0 2px var(--cv-r,var(--cv-c)),0 16px 40px rgba(0,0,0,.48)}
+.gh-home-card-grid .gh-card-cell .cv:hover,.gh-home-card-showcase .gh-card-cell .cv:hover,.gh-home-cat-unit .gh-card-cell .cv:hover{transform:translateY(-3px);box-shadow:0 0 0 2px var(--cv-r,var(--cv-c)),0 16px 40px rgba(0,0,0,.48)}
 .gh-home-card-grid .gh-card-meta{min-height:auto;flex-wrap:wrap}
 .gh-home-card-grid .gh-card-badge{font-size:7.5px;padding:2px 6px}
 .gh-home-card-grid .gh-card-act-btn{font-size:7.5px;padding:3px 7px}
@@ -907,9 +916,9 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .gh-mini-pill{font-family:var(--fm);font-size:8px;border-radius:var(--r-f);padding:2px 6px;background:var(--s3);color:var(--t2);border:1px solid rgba(255,255,255,.04)}
 .gh-mini-pill.good{background:rgba(52,211,153,.1);color:#34d399;border-color:rgba(52,211,153,.22)}
 .gh-mini-pill.warn{background:rgba(240,160,48,.1);color:var(--acc2);border-color:rgba(240,160,48,.24)}
-@media(max-width:900px){.gh-home-card-grid,.gh-home-cats{grid-template-columns:repeat(3,var(--gh-home-card-w))}}
-@media(max-width:720px){.gh-home-tab{--gh-home-card-w:min(186px,calc((100vw - 66px)/2))}.gh-home-card-grid,.gh-home-cats{grid-template-columns:repeat(2,var(--gh-home-card-w));gap:10px}.gh-home-card-showcase{grid-template-columns:1fr}.gh-home-card-showcase .gh-card-cell{justify-self:center}}
-@media(max-width:480px){.gh-home-tab{--gh-home-card-w:min(152px,calc((100vw - 54px)/2))}.gh-home-card{padding:14px}.gh-home-card-showcase .gh-card-cell .cv .cv-art,.gh-home-card-grid .gh-card-cell .cv .cv-art{height:50px!important;font-size:26px!important}.gh-home-card-showcase .gh-card-cell .cv .cv-name,.gh-home-card-grid .gh-card-cell .cv .cv-name{font-size:9.5px!important}.gh-home-card-showcase .gh-card-cell .cv .cv-desc,.gh-home-card-grid .gh-card-cell .cv .cv-desc{font-size:7.5px!important}.gh-home-card-showcase .gh-card-cell .cv .cv-subtext,.gh-home-card-grid .gh-card-cell .cv .cv-subtext{font-size:6.8px!important}.gh-home-card-grid .gh-card-badge{font-size:7px}}
+@media(max-width:900px){.gh-home-card-grid{grid-template-columns:repeat(3,var(--gh-home-card-w))}}
+@media(max-width:720px){.gh-home-tab{--gh-home-card-w:min(186px,calc((100vw - 66px)/2))}.gh-home-card-grid{grid-template-columns:repeat(2,var(--gh-home-card-w));gap:10px}.gh-home-cats{gap:16px}.gh-home-cat-unit{gap:12px}.gh-home-card-showcase{grid-template-columns:1fr}.gh-home-card-showcase .gh-card-cell{justify-self:center}}
+@media(max-width:480px){.gh-home-tab{--gh-home-card-w:min(152px,calc((100vw - 54px)/2))}.gh-home-card{padding:14px}.gh-home-card-showcase .gh-card-cell .cv .cv-art,.gh-home-card-grid .gh-card-cell .cv .cv-art,.gh-home-cat-unit .gh-card-cell .cv .cv-art{height:50px!important;font-size:26px!important}.gh-home-card-showcase .gh-card-cell .cv .cv-name,.gh-home-card-grid .gh-card-cell .cv .cv-name,.gh-home-cat-unit .gh-card-cell .cv .cv-name{font-size:9.5px!important}.gh-home-card-showcase .gh-card-cell .cv .cv-desc,.gh-home-card-grid .gh-card-cell .cv .cv-desc,.gh-home-cat-unit .gh-card-cell .cv .cv-desc{font-size:7.5px!important}.gh-home-card-showcase .gh-card-cell .cv .cv-subtext,.gh-home-card-grid .gh-card-cell .cv .cv-subtext,.gh-home-cat-unit .gh-card-cell .cv .cv-subtext{font-size:6.8px!important}.gh-home-card-grid .gh-card-badge{font-size:7px}}
 /* Cats tab — horizontal scroll */
 .gh-cats-tab{display:flex;flex-direction:column;height:100%;overflow:hidden;position:relative}
 .gh-cats-scroll{display:flex;flex-direction:row;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;gap:0;padding:0;flex:1;scrollbar-width:none;align-items:stretch;position:relative;z-index:1}
@@ -1556,6 +1565,29 @@ const RAR_COLOR = {
 };
 const RARITIES = ['common','uncommon','rare','epic','legendary'];
 const STATS_ORDER = ['strength','speed','agility','stamina','intelligence','stealth','loyalty'];
+const STAT_DISPLAY_LABELS = {
+  strength:'Strength',
+  speed:'Speed',
+  agility:'Agility',
+  stamina:'Stamina',
+  intelligence:'Intelligence',
+  stealth:'Stealth',
+  loyalty:'Loyalty',
+  affection:'Affection',
+  amicability:'Amicability',
+  weight:'Weight',
+  memory_slots:'Memory Slot'
+};
+
+function formatStatLabel(stat) {
+  if (!stat) return 'Stat';
+  return STAT_DISPLAY_LABELS[stat] || String(stat).replace(/_/g, ' ').replace(/\b\w/g, ch => ch.toUpperCase());
+}
+
+function formatEffectChange(effect) {
+  const v = parseModifier(effect?.modifier);
+  return `${formatStatLabel(effect?.stat)} ${v >= 0 ? '+' : ''}${v}`;
+}
 
 const CONSUMABLE_CARDS = [
   { id:'cons-001', name:'Bag of Kibble', icon:'🥣', type:'consumable', rarity:'common', coin_cost:15, description:'Basic dry food. Reliable nutrition for a few meals.', data:{ consumable_type:'food', max_uses:3, hunger:22, statBoosts:{stamina:1} } },
@@ -4875,13 +4907,19 @@ function finishRun() {
 
   let lootInner = '';
   if (allLoot.length) {
-    const rows = allLoot.map(card => {
+    const groupedLoot = allLoot.reduce((groups, card) => {
+      const key = card.id || `${card.type || 'card'}:${card.name || 'unknown'}`;
+      if (!groups.has(key)) groups.set(key, { card, count: 0 });
+      groups.get(key).count += 1;
+      return groups;
+    }, new Map());
+    const rows = [...groupedLoot.values()].map(({ card, count }) => {
       const tm = TYPE_META[card.type] || { color:'var(--t3)', label:card.type };
       const rc = RAR_COLOR[card.rarity] || 'var(--t3)';
       const effs = card.type === 'consumable' ? [] : getEffects(card);
       const effStr = card.type === 'consumable'
         ? formatConsumableEffects(card).slice(0, 3).join(' · ')
-        : effs.map(e => { const v=parseModifier(e.modifier); return `${e.stat} ${v>=0?'+':''}${v}`; }).join(' · ');
+        : effs.map(formatEffectChange).join(' · ');
       return `<div class="loot-row" onclick="openCardModal('${card.id}')">
         <span class="loot-row-dot" style="background:${tm.color}"></span>
         <div class="loot-row-info">
@@ -4889,6 +4927,7 @@ function finishRun() {
           ${effStr ? `<span class="loot-row-effs">${effStr}</span>` : ''}
         </div>
         <span class="loot-row-rar" style="color:${rc}">${card.rarity}</span>
+        ${count > 1 ? `<span class="loot-row-qty">${count}</span>` : ''}
         <span class="loot-row-arr">›</span>
       </div>`;
     }).join('');
@@ -6295,10 +6334,6 @@ function renderGameHome() {
   const catRosterHtml = sbx.cats.length > 0 ? `
     <div class="gh-home-cats">
       ${sbx.cats.map((cs, _ri) => {
-        const _care = getLiveCatState(_ri, cs);
-        const _hPct = Math.round(Math.min(100, _care.hunger));
-        const _mPct = Math.round(Math.min(100, _care.mood));
-        const _ePct = Math.round(Math.min(100, _care.energy));
         const _catName = getCatDisplayName(cs);
         const breedTraits = (cs.breed && cs.breed.data && cs.breed.data.home_dev_traits) || {};
         const traitLabel = breedTraits.label || '';
@@ -6307,7 +6342,7 @@ function renderGameHome() {
           const per24 = +(rph * 24).toFixed(3);
           const sign = per24 >= 0 ? '+' : '';
           const cls = per24 >= 0 ? 'pos' : 'neg';
-          return `<span class="gh-dev-rate ${cls}">${sign}${per24} ${stat.slice(0,3).toUpperCase()}/24h</span>`;
+          return `<span class="gh-dev-rate ${cls}">${sign}${per24} ${formatStatLabel(stat)} / 24h</span>`;
         }).join('');
         const gains = computeHomeDev(cs, currentHomeItems);
         const gainChips = Object.entries(gains).filter(([,g]) => Math.abs(g) >= 0.01).map(([stat, g]) => {
@@ -6315,7 +6350,7 @@ function renderGameHome() {
           const whole = Math.floor(g);
           const sign = rounded >= 0 ? '+' : '';
           const applied = whole !== 0 ? ` (${whole >= 0 ? '+' : ''}${whole} applied)` : '';
-          return `<span class="gh-dev-gain">${sign}${rounded} ${stat.slice(0,3).toUpperCase()}${applied}</span>`;
+          return `<span class="gh-dev-gain">${sign}${rounded} ${formatStatLabel(stat)}${applied}</span>`;
         }).join('');
         const gearModStr = (cs.gear || []).map(g => {
           const gobj = typeof g === 'string' ? getCard(g) : g;
@@ -6333,18 +6368,22 @@ function renderGameHome() {
           else elapsedStr = `${(hrs/24).toFixed(1)} days in home`;
         }
         const _catCard = { ...cs.breed, name: _catName };
-        return homeMiniCardHtml(_catCard, {
-          clickId: cs.breed.id,
-          metaHtml: `<span class="gh-mini-pill good">${_hPct}% HNG</span><span class="gh-mini-pill good">${_mPct}% MOOD</span><span class="gh-mini-pill good">${_ePct}% STA</span>`,
-          actionHtml: (traitLabel || gearModStr || rateChips || gainChips || elapsedStr) ? `
-          <div class="gh-home-card-notes">
-            ${traitLabel ? `<span class="gh-dev-cat-trait">${traitLabel}</span>` : ''}
-            ${gearModStr ? `<div class="gh-dev-mod-row">${gearModStr}</div>` : ''}
-            ${rateChips ? `<div class="gh-dev-rates">${rateChips}</div>` : ''}
-            ${gainChips ? `<div class="gh-dev-gains">${gainChips}</div>` : ''}
-            ${elapsedStr ? `<div class="gh-dev-elapsed">⏱ ${elapsedStr}</div>` : ''}
-          </div>` : ''
-        });
+        const growthHtml = (traitLabel || gearModStr || rateChips || gainChips || elapsedStr)
+          ? `<div class="gh-home-cat-growth">
+              <div class="gh-home-cat-growth-title">Development Progress</div>
+              ${traitLabel ? `<span class="gh-dev-cat-trait">${traitLabel}</span>` : ''}
+              ${gearModStr ? `<div class="gh-dev-mod-row">${gearModStr}</div>` : ''}
+              ${rateChips ? `<div class="gh-dev-rates">${rateChips}</div>` : ''}
+              ${gainChips ? `<div class="gh-dev-gains">${gainChips}</div>` : ''}
+              ${elapsedStr ? `<div class="gh-dev-elapsed">⏱ ${elapsedStr}</div>` : ''}
+            </div>`
+          : `<div class="gh-home-cat-growth"><div class="gh-dev-no-items">No development modifiers active.</div></div>`;
+        return `<div class="gh-home-cat-unit">
+          <div class="gh-card-cell gh-mini-cell">
+            ${buildCardFaceHtml(_catCard, { onclick: `openCardModal('${cs.breed.id}')`, showDesc: false, standardLayout: true })}
+          </div>
+          ${growthHtml}
+        </div>`;
       }).join('')}
     </div>` : '';
 
