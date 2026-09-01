@@ -1082,13 +1082,18 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .dojo-stat-tile.clickable:hover{border-color:rgba(240,160,48,.42);background:rgba(240,160,48,.08)}
 .dojo-stat-name{font-family:var(--fm);font-size:7.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--t3)}
 .dojo-stat-val{font-family:var(--fd);font-size:16px;font-weight:800;color:var(--t1);margin-top:2px}
-.dojo-stepper{display:flex;flex-direction:column;gap:3px}
-.dojo-stepper button{width:22px;height:18px;display:flex;align-items:center;justify-content:center;background:rgba(240,160,48,.1);border:1px solid rgba(240,160,48,.28);border-radius:7px;color:var(--acc2);font-family:var(--fm);font-size:10px;line-height:1;cursor:pointer}
-.dojo-stepper button:hover{background:rgba(240,160,48,.18);border-color:rgba(240,160,48,.48)}
-.dojo-picker-strip{display:flex;gap:10px;overflow-x:auto;padding:4px 0 8px;scroll-snap-type:x mandatory}
-.dojo-picker-card{width:150px;flex:0 0 150px;scroll-snap-align:start;cursor:pointer}
-.dojo-picker-card .cv{width:150px!important}
-.dojo-picker-card.active .cv{box-shadow:0 0 0 2px var(--acc),0 10px 24px rgba(240,160,48,.18)}
+.dojo-stepper{display:flex;flex-direction:column;gap:4px}
+.dojo-stepper button{width:28px;height:22px;display:flex;align-items:center;justify-content:center;background:rgba(240,160,48,.16);border:1px solid rgba(240,160,48,.45);border-radius:8px;color:var(--acc2);font-family:var(--fm);font-size:12px;font-weight:800;line-height:1;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.16)}
+.dojo-stepper button:hover{background:rgba(240,160,48,.26);border-color:rgba(240,160,48,.7)}
+.dojo-picker-overlay{position:fixed;inset:0;z-index:9600;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.66);backdrop-filter:blur(4px);padding:18px}
+.dojo-picker-modal{width:min(520px,100%);max-height:min(760px,92dvh);display:flex;flex-direction:column;gap:12px;background:var(--s1);border:1px solid var(--bd);border-radius:var(--r-lg);padding:14px 0 16px;box-shadow:0 20px 60px rgba(0,0,0,.45)}
+.dojo-picker-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 16px}
+.dojo-picker-title{font-family:var(--fd);font-size:15px;font-weight:800;color:var(--t1)}
+.dojo-picker-close{width:34px;height:34px;border-radius:50%;border:1px solid var(--bd);background:var(--s2);color:var(--t2);font-size:18px;line-height:1;cursor:pointer}
+.dojo-picker-carousel{display:flex;gap:14px;overflow-x:auto;scroll-snap-type:x mandatory;padding:4px 10% 10px;scrollbar-width:thin;scrollbar-color:var(--bd) transparent}
+.dojo-picker-choice{flex:0 0 80%;max-width:340px;scroll-snap-align:center;cursor:pointer}
+.dojo-picker-choice .cv{width:100%!important}
+.dojo-picker-choice.active .cv{box-shadow:0 0 0 2px var(--acc),0 12px 30px rgba(240,160,48,.2)}
 .dojo-fighter{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r-md);padding:12px;min-width:0}
 .dojo-fighter-name{font-family:var(--fd);font-size:14px;font-weight:800;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .dojo-fighter-meta{font-family:var(--fm);font-size:8px;letter-spacing:.08em;text-transform:uppercase;color:var(--t3);margin-top:3px}
@@ -3655,6 +3660,16 @@ function resetDojoFight() {
 function toggleDojoOpponentPicker() {
   DOJO_STATE.opponentPickerOpen = !DOJO_STATE.opponentPickerOpen;
   renderGameHomeKeepScroll();
+  if (DOJO_STATE.opponentPickerOpen) {
+    requestAnimationFrame(() => {
+      document.querySelector('.dojo-picker-choice.active')?.scrollIntoView({ behavior: 'auto', block: 'nearest', inline: 'center' });
+    });
+  }
+}
+
+function closeDojoOpponentPicker() {
+  DOJO_STATE.opponentPickerOpen = false;
+  renderGameHomeKeepScroll();
 }
 
 function setDojoOpponentStat(key, value) {
@@ -3735,13 +3750,21 @@ function dojoStatPanelHtml(stats, opts = {}) {
 }
 
 function dojoOpponentPickerHtml(oppOptions, activeId, stats) {
-  return `<div class="dojo-picker-strip">
-    ${oppOptions.map(o => {
+  return `<div class="dojo-picker-overlay" onclick="closeDojoOpponentPicker()">
+    <div class="dojo-picker-modal" onclick="event.stopPropagation()">
+      <div class="dojo-picker-head">
+        <div class="dojo-picker-title">Choose Sparring Cat</div>
+        <button class="dojo-picker-close" type="button" onclick="closeDojoOpponentPicker()">×</button>
+      </div>
+      <div class="dojo-picker-carousel">
+        ${oppOptions.map(o => {
       const displayCard = dojoCardWithStats(o.card, stats);
-      return `<div class="dojo-picker-card ${o.card.id === activeId ? 'active' : ''}" onclick="setDojoOpponent('${escapeAttr(o.card.id)}')">
-        ${buildCardFaceHtml(displayCard, { showDesc: false, standardLayout: true })}
-      </div>`;
+      return `<div class="dojo-picker-choice ${o.card.id === activeId ? 'active' : ''}" onclick="setDojoOpponent('${escapeAttr(o.card.id)}')">
+          ${buildCardFaceHtml(displayCard, { standardLayout: true })}
+        </div>`;
     }).join('')}
+      </div>
+    </div>
   </div>`;
 }
 
