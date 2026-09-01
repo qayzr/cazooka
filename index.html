@@ -840,11 +840,21 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .gh-home-cats{display:flex;flex-direction:column;gap:18px;width:100%}
 .gh-home-cat-unit{display:grid;grid-template-columns:var(--gh-home-card-w) minmax(0,1fr);gap:16px;align-items:start;width:100%}
 .gh-home-cat-unit .gh-card-cell{width:var(--gh-home-card-w)}
-.gh-home-cat-growth{display:flex;flex-direction:column;align-items:flex-start;gap:8px;min-width:0;padding-top:4px}
+.gh-home-cat-growth{display:flex;flex-direction:column;align-items:flex-start;gap:7px;min-width:0;padding-top:4px;max-height:calc(var(--gh-home-card-w) * 1.4);overflow:visible}
 .gh-home-cat-growth-title{font-family:var(--fm);font-size:8.5px;text-transform:uppercase;letter-spacing:.09em;color:#c084fc}
 .gh-home-cat-growth .gh-dev-rates,.gh-home-cat-growth .gh-dev-gains,.gh-home-cat-growth .gh-dev-mod-row{gap:6px}
-.gh-home-cat-growth .gh-dev-rate{font-size:8.5px;line-height:1.25;padding:4px 8px;border-radius:var(--r-md)}
+.gh-home-cat-growth .gh-dev-rate{font-size:8px;line-height:1.2;padding:4px 8px;border-radius:var(--r-md)}
 .gh-home-cat-growth .gh-dev-gain,.gh-home-cat-growth .gh-dev-mod,.gh-home-cat-growth .gh-dev-cat-trait{font-size:8.5px;line-height:1.25;padding:4px 8px}
+.gh-home-growth-top{display:flex;flex-wrap:wrap;gap:6px;align-items:flex-start}
+.gh-home-growth-summary{font-family:var(--fm);font-size:8.5px;color:var(--t3);line-height:1.35}
+.gh-home-growth-summary strong{color:#c084fc;font-weight:500}
+.gh-home-growth-more{width:100%;margin-top:2px}
+.gh-home-growth-more summary{list-style:none;cursor:pointer;font-family:var(--fm);font-size:8px;text-transform:uppercase;letter-spacing:.08em;color:var(--t3);display:inline-flex;gap:5px;align-items:center}
+.gh-home-growth-more summary::-webkit-details-marker{display:none}
+.gh-home-growth-more summary:hover{color:#c084fc}
+.gh-home-growth-more summary::after{content:'›';transition:transform .18s}
+.gh-home-growth-more[open] summary::after{transform:rotate(90deg)}
+.gh-home-growth-more-body{display:flex;flex-direction:column;gap:6px;margin-top:7px;padding:8px;border-radius:var(--r-md);background:rgba(167,139,250,.06);border:1px solid rgba(167,139,250,.14)}
 .gh-home-cat-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.05)}
 .gh-home-cat-row:last-child{border-bottom:none}
 .gh-home-cat-emoji{font-size:22px;flex-shrink:0}
@@ -6338,20 +6348,29 @@ function renderGameHome() {
         const breedTraits = (cs.breed && cs.breed.data && cs.breed.data.home_dev_traits) || {};
         const traitLabel = breedTraits.label || '';
         const rates = computeEffectiveDevRates(cs, currentHomeItems);
-        const rateChips = Object.entries(rates).filter(([,r]) => r !== 0).map(([stat, rph]) => {
+        const rateEntries = Object.entries(rates).filter(([,r]) => r !== 0)
+          .sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]));
+        const rateChip = ([stat, rph]) => {
           const per24 = +(rph * 24).toFixed(3);
           const sign = per24 >= 0 ? '+' : '';
           const cls = per24 >= 0 ? 'pos' : 'neg';
-          return `<span class="gh-dev-rate ${cls}">${sign}${per24} ${formatStatLabel(stat)} / 24h</span>`;
-        }).join('');
+          return `<span class="gh-dev-rate ${cls}">${formatStatLabel(stat)} ${sign}${per24}/day</span>`;
+        };
+        const topRateChips = rateEntries.slice(0, 4).map(rateChip).join('');
+        const allRateChips = rateEntries.map(rateChip).join('');
         const gains = computeHomeDev(cs, currentHomeItems);
-        const gainChips = Object.entries(gains).filter(([,g]) => Math.abs(g) >= 0.01).map(([stat, g]) => {
+        const gainEntries = Object.entries(gains).filter(([,g]) => Math.abs(g) >= 0.01)
+          .sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]));
+        const gainChip = ([stat, g]) => {
           const rounded = +(g.toFixed(2));
           const whole = Math.floor(g);
           const sign = rounded >= 0 ? '+' : '';
           const applied = whole !== 0 ? ` (${whole >= 0 ? '+' : ''}${whole} applied)` : '';
           return `<span class="gh-dev-gain">${sign}${rounded} ${formatStatLabel(stat)}${applied}</span>`;
-        }).join('');
+        };
+        const gainChips = gainEntries.map(gainChip).join('');
+        const totalBanked = gainEntries.reduce((sum, [,g]) => sum + Math.max(0, g), 0);
+        const appliedStats = gainEntries.filter(([,g]) => Math.floor(g) !== 0).length;
         const gearModStr = (cs.gear || []).map(g => {
           const gobj = typeof g === 'string' ? getCard(g) : g;
           if (!gobj || !gobj.data || !gobj.data.home_dev_effect) return '';
@@ -6368,14 +6387,30 @@ function renderGameHome() {
           else elapsedStr = `${(hrs/24).toFixed(1)} days in home`;
         }
         const _catCard = { ...cs.breed, name: _catName };
-        const growthHtml = (traitLabel || gearModStr || rateChips || gainChips || elapsedStr)
+        const moreCount = Math.max(0, rateEntries.length - 4);
+        const detailHtml = (moreCount || gainChips || gearModStr)
+          ? `<details class="gh-home-growth-more">
+              <summary>${moreCount ? `${moreCount} more growth signal${moreCount === 1 ? '' : 's'}` : 'Growth details'}</summary>
+              <div class="gh-home-growth-more-body">
+                ${allRateChips ? `<div class="gh-dev-rates">${allRateChips}</div>` : ''}
+                ${gainChips ? `<div class="gh-dev-gains">${gainChips}</div>` : ''}
+                ${gearModStr ? `<div class="gh-dev-mod-row">${gearModStr}</div>` : ''}
+              </div>
+            </details>`
+          : '';
+        const summaryHtml = totalBanked >= 0.01 || elapsedStr
+          ? `<div class="gh-home-growth-summary">
+              ${totalBanked >= 0.01 ? `<strong>${totalBanked.toFixed(1)}</strong> total banked${appliedStats ? ` · ${appliedStats} applied` : ''}` : ''}
+              ${elapsedStr ? `${totalBanked >= 0.01 ? ' · ' : ''}${elapsedStr}` : ''}
+            </div>`
+          : '';
+        const growthHtml = (traitLabel || topRateChips || summaryHtml || detailHtml)
           ? `<div class="gh-home-cat-growth">
               <div class="gh-home-cat-growth-title">Development Progress</div>
               ${traitLabel ? `<span class="gh-dev-cat-trait">${traitLabel}</span>` : ''}
-              ${gearModStr ? `<div class="gh-dev-mod-row">${gearModStr}</div>` : ''}
-              ${rateChips ? `<div class="gh-dev-rates">${rateChips}</div>` : ''}
-              ${gainChips ? `<div class="gh-dev-gains">${gainChips}</div>` : ''}
-              ${elapsedStr ? `<div class="gh-dev-elapsed">⏱ ${elapsedStr}</div>` : ''}
+              ${topRateChips ? `<div class="gh-home-growth-top">${topRateChips}</div>` : ''}
+              ${summaryHtml}
+              ${detailHtml}
             </div>`
           : `<div class="gh-home-cat-growth"><div class="gh-dev-no-items">No development modifiers active.</div></div>`;
         return `<div class="gh-home-cat-unit">
