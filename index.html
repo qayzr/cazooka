@@ -840,7 +840,7 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .gh-home-cats{display:flex;flex-direction:column;gap:18px;width:100%}
 .gh-home-cat-unit{display:grid;grid-template-columns:var(--gh-home-card-w) minmax(0,1fr);gap:16px;align-items:start;width:100%}
 .gh-home-cat-unit .gh-card-cell{width:var(--gh-home-card-w)}
-.gh-home-cat-growth{display:flex;flex-direction:column;align-items:flex-start;gap:7px;min-width:0;padding-top:4px;max-height:calc(var(--gh-home-card-w) * 1.4);overflow:visible}
+.gh-home-cat-growth{display:flex;flex-direction:column;align-items:flex-start;gap:7px;min-width:0;padding-top:4px}
 .gh-home-cat-growth-title{font-family:var(--fm);font-size:8.5px;text-transform:uppercase;letter-spacing:.09em;color:#c084fc}
 .gh-home-cat-growth .gh-dev-rates,.gh-home-cat-growth .gh-dev-gains,.gh-home-cat-growth .gh-dev-mod-row{gap:6px}
 .gh-home-cat-growth .gh-dev-rate{font-size:8px;line-height:1.2;padding:4px 8px;border-radius:var(--r-md)}
@@ -6302,24 +6302,12 @@ function renderGameHome() {
   };
 
   const careConsumableRows = allConsumableCards.map(c => {
-    const uses = inv[c.id] || 0;
-    return homeMiniCardHtml(c, {
-      metaHtml: `<span class="gh-mini-pill good">${uses} use${uses === 1 ? '' : 's'}</span>`
-    });
+    return homeMiniCardHtml(c);
   }).join('');
   const itemRows2 = currentHomeItems.map((c, itemIdx) => {
-    const rates = (c.data && c.data.development_rates) || [];
-    const rateChips = rates.map(dr => {
-      const lbl = (dr.stat||'').slice(0,3).toUpperCase();
-      const sign = dr.rate >= 0 ? '+' : '';
-      const cls = dr.rate >= 0 ? 'pos' : 'neg';
-      return `<span class="gh-gear-stat ${cls}" style="${dr.rate<0?'background:rgba(248,113,113,.12);color:#f87171':'background:rgba(52,211,153,.12);color:#34d399'}">${sign}${dr.rate} ${lbl}/24h</span>`;
-    }).join('');
     const slotCost = getHomeSlotCost(c);
     return homeMiniCardHtml(c, {
-      metaHtml: `<span class="gh-mini-pill good">${slotCost} slot${slotCost === 1 ? '' : 's'}</span>${rateChips}`,
       actionHtml: `
-        <span class="gh-card-badge active">${slotCost} slot${slotCost === 1 ? '' : 's'}</span>
         <div class="gh-card-actions-row">
           <button class="gh-card-act-btn" onclick="ghRemoveHomeItem(${itemIdx})">Remove</button>
         </div>`
@@ -6432,9 +6420,7 @@ function renderGameHome() {
     <div id="gh-add-cat-picker" style="display:none"></div>` : catRosterHtml;
 
   const activeHomeCardHtml = activeHomeCard
-    ? homeMiniCardHtml(activeHomeCard, {
-        metaHtml: `<span class="gh-mini-pill good">${hd.max_occupants || 0} cats</span><span class="gh-mini-pill good">${hd.expansion_slots || 0} item slots</span><span class="gh-mini-pill warn">x${hd.comfort_multiplier || 1}</span>`
-      })
+    ? homeMiniCardHtml(activeHomeCard)
     : '';
 
   const homeTabHtml = `<div class="gh-home-tab">
