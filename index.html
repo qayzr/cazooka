@@ -6460,6 +6460,7 @@ function renderGameHome() {
   const VISIT_LOCATIONS = [
     { icon:'🥋', name:'Cat Dojo', desc:'Simulate controlled sparring against cats you choose.', open:true, action:'openDojo()' },
     { icon:'🏪', name:'Marketplace', desc:'Buy food, treats, gear and home items.', open:true,  action:'showMarket()' },
+    { icon:'🏢', name:'Real Estate Office', desc:'Buy and sell home cards for your cats.', open:true, action:'showRealEstateOffice()' },
     { icon:'🤝', name:'Trade Center', desc:'Sell cards to the market, buy from other listings, or trade with other players.', open:true, action:'openTradeCenter()' },
     { icon:'🩺', name:'Veterinarian', desc:'Health checks, vaccinations, and recovery services for your cats.', open:false },
     { icon:'🐟', name:'Fish Market',  desc:'Source rare ingredients and specialty food your cats will love.', open:false },
@@ -7557,8 +7558,14 @@ const MARKET_CONSUMABLES = CONSUMABLE_CARDS.map(c => ({
 }));
 
 function showMarket() {
+  if (MARKET_TAB === 'homes') MARKET_TAB = 'food';
   document.getElementById('market-ov').style.display = 'flex';
   renderMarket();
+}
+
+function showRealEstateOffice() {
+  document.getElementById('market-ov').style.display = 'flex';
+  renderRealEstateOffice();
 }
 
 function closeMarket() {
@@ -7580,7 +7587,6 @@ function renderMarket() {
     { id:'food',  label:'🥣 Consumables' },
     { id:'items', label:'🧸 Home Items' },
     { id:'gear',  label:'⚔️ Battle Gear' },
-    { id:'homes', label:'🏠 Homes' },
   ];
   const tabsHtml = tabDefs.map(t =>
     `<button class="mkt-tab${MARKET_TAB===t.id?' active':''}" onclick="setMarketTab('${t.id}')">${t.label}</button>`
@@ -7609,7 +7615,7 @@ function renderMarket() {
       </div>`;
     }).join('');
   } else {
-    const typeMap = { items:'home_item', gear:'battle_gear', homes:'home' };
+    const typeMap = { items:'home_item', gear:'battle_gear' };
     const t       = typeMap[MARKET_TAB];
     const items   = getLibrary().filter(c => isOwnableCard(c) && c.type === t && (c.coin_cost||0) > 0);
     if (!items.length) {
@@ -7648,7 +7654,7 @@ function renderMarket() {
   mkt.innerHTML = `
     <div class="mkt-hdr">
       <button class="mkt-back" onclick="closeMarket()">← Home</button>
-      <span class="mkt-title">🏪 Market</span>
+      <span class="mkt-title">🏪 Marketplace</span>
       ${marketDiscount ? `<span class="mkt-discount">Miso -${Math.round(marketDiscount * 100)}%</span>` : ''}
       <span class="mkt-coins">🪙 <span id="mkt-coin-num">${coins}</span></span>
     </div>
@@ -7687,6 +7693,111 @@ function buyCard(cardId) {
   savePlayer();
   showCareToast(`${card ? card.name : 'Card'} added to deck! ✨`);
   renderMarket();
+}
+
+function getHomeResalePrice(card) {
+  return Math.max(1, Math.floor(Math.max(0, (card && card.coin_cost) || 0) * 0.6));
+}
+
+function getRealEstateHomePrice(card) {
+  return Math.max(0, (card && card.coin_cost) || 0);
+}
+
+function renderRealEstateOffice() {
+  const mkt = document.getElementById('market-ov'); if (!mkt) return;
+  const coins  = PLAYER ? PLAYER.coins : sbx.coins;
+  const deckIds = (PLAYER && PLAYER.deckIds) || sbx.deck || [];
+  const ownedCounts = getOwnedCardCounts(deckIds);
+  const activeIds = getActiveCardIds();
+  const homes = getLibrary().filter(c => isOwnableCard(c) && c.type === 'home' && (c.coin_cost || 0) > 0);
+  const buyRows = homes.map(card => {
+    const owned = (ownedCounts[card.id] || 0) > 0;
+    const price = getRealEstateHomePrice(card);
+    const can = coins >= price;
+    const rc = RAR_COLOR[card.rarity] || 'var(--t3)';
+    return `<div class="mkt-card" style="border-color:color-mix(in srgb,${rc} 45%,transparent);background:color-mix(in srgb,${rc} 8%,var(--s1));${owned?'opacity:.6':''}" onclick="openCardModal('${card.id}')">
+      <div class="mkt-card-art" style="background:linear-gradient(135deg,color-mix(in srgb,${rc} 25%,var(--s3)),color-mix(in srgb,${rc} 6%,var(--s2)))">${TYPE_META.home.emoji}</div>
+      <div class="mkt-card-body">
+        <div class="mkt-card-name">${card.name}</div>
+        <div class="mkt-card-rar" style="color:${rc}">${card.rarity.toUpperCase()} HOME</div>
+        <div class="mkt-card-desc">${card.description || ''}</div>
+      </div>
+      <div class="mkt-card-foot" onclick="event.stopPropagation()">
+        <div class="mkt-card-price">🪙 ${price}</div>
+        ${owned
+          ? `<span class="mkt-owned">Owned</span>`
+          : `<button class="mkt-buy-btn"${!can?' disabled':''} onclick="buyRealEstateHome('${card.id}')">${can?'Buy':'Need coins'}</button>`}
+      </div>
+    </div>`;
+  }).join('');
+  const sellableHomes = deckIds
+    .map(entry => cardObjOf(entry))
+    .filter(card => card && card.type === 'home')
+    .filter(card => !activeIds.has(card.id));
+  const sellRows = sellableHomes.length ? sellableHomes.map(card => {
+    const rc = RAR_COLOR[card.rarity] || 'var(--t3)';
+    const quote = getHomeResalePrice(card);
+    return `<div class="mkt-card" style="border-color:color-mix(in srgb,${rc} 35%,transparent);background:color-mix(in srgb,${rc} 6%,var(--s1));" onclick="openCardModal('${card.id}')">
+      <div class="mkt-card-art" style="background:linear-gradient(135deg,color-mix(in srgb,${rc} 25%,var(--s3)),color-mix(in srgb,${rc} 6%,var(--s2)))">${TYPE_META.home.emoji}</div>
+      <div class="mkt-card-body">
+        <div class="mkt-card-name">${card.name}</div>
+        <div class="mkt-card-rar" style="color:${rc}">${card.rarity.toUpperCase()} HOME</div>
+        <div class="mkt-card-desc">${card.description || ''}</div>
+      </div>
+      <div class="mkt-card-foot" onclick="event.stopPropagation()">
+        <div class="mkt-card-price">🪙 ${quote}</div>
+        <button class="mkt-buy-btn" onclick="sellRealEstateHome('${card.id}')">Sell</button>
+      </div>
+    </div>`;
+  }).join('') : `<div class="mkt-empty">No inactive home cards to sell. The office will not buy a home while cats or items are using it.</div>`;
+
+  mkt.innerHTML = `
+    <div class="mkt-hdr">
+      <button class="mkt-back" onclick="closeMarket()">← Home</button>
+      <span class="mkt-title">🏢 Real Estate Office</span>
+      <span class="mkt-coins">🪙 <span id="mkt-coin-num">${coins}</span></span>
+    </div>
+    <div class="mkt-body">
+      <div class="gh-home-section-head" style="max-width:920px;margin:0 auto 12px">
+        <div class="gh-home-section-title">🏠 Homes For Sale</div>
+      </div>
+      <div class="mkt-grid" style="margin-bottom:28px">${buyRows || '<div class="mkt-empty">No homes listed right now.</div>'}</div>
+      <div class="gh-home-section-head" style="max-width:920px;margin:0 auto 12px">
+        <div class="gh-home-section-title">💰 Sell Home Cards</div>
+      </div>
+      <div class="mkt-grid">${sellRows}</div>
+    </div>`;
+}
+
+function buyRealEstateHome(cardId) {
+  if (!PLAYER) return;
+  const card = getCard(cardId);
+  if (!isOwnableCard(card) || card.type !== 'home') return;
+  const cost = getRealEstateHomePrice(card);
+  if (PLAYER.coins < cost) { showCareToast('Not enough coins! 🪙'); return; }
+  if ((PLAYER.deckIds || []).includes(cardId)) { showCareToast('Already owned!'); return; }
+  PLAYER.coins -= cost;
+  sbx.coins = PLAYER.coins;
+  PLAYER.deckIds = [...(PLAYER.deckIds || []), cardId];
+  sbx.deck = [...(sbx.deck || []), cardId];
+  savePlayer();
+  showCareToast(`🏠 Bought ${card.name}!`);
+  renderRealEstateOffice();
+}
+
+function sellRealEstateHome(cardId) {
+  if (!PLAYER) return;
+  const card = getCard(cardId);
+  if (!card || card.type !== 'home') return;
+  if (getActiveCardIds().has(cardId)) { showCareToast('Move cats and items out before selling this home.'); return; }
+  const price = getHomeResalePrice(card);
+  PLAYER.deckIds = (PLAYER.deckIds || []).filter((id, idx, arr) => id !== cardId || idx !== arr.indexOf(cardId));
+  sbx.deck = (sbx.deck || []).filter((entry, idx, arr) => cardIdOf(entry) !== cardId || idx !== arr.findIndex(e => cardIdOf(e) === cardId));
+  PLAYER.coins = (PLAYER.coins || 0) + price;
+  sbx.coins = PLAYER.coins;
+  savePlayer();
+  showCareToast(`💰 Sold ${card.name} for ${price} coins.`);
+  renderRealEstateOffice();
 }
 
 /* ══════════════════════════════════════════
