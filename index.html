@@ -1082,9 +1082,9 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .dojo-stat-tile.clickable:hover,.dojo-stat-tile.open{border-color:rgba(240,160,48,.42);background:rgba(240,160,48,.08)}
 .dojo-stat-name{font-family:var(--fm);font-size:7.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--t3)}
 .dojo-stat-val{font-family:var(--fd);font-size:16px;font-weight:800;color:var(--t1);margin-top:2px}
-.dojo-slider{display:grid;grid-template-columns:94px minmax(0,1fr) 34px;gap:8px;align-items:center;font-family:var(--fm);font-size:8px;color:var(--t2);text-transform:uppercase;letter-spacing:.07em}
-.dojo-slider.dojo-stat-slider{grid-column:1/-1;grid-template-columns:minmax(0,1fr) 30px;margin-top:8px}
-.dojo-slider input{width:100%;accent-color:var(--acc)}
+.dojo-stat-editor{grid-column:1/-1;display:flex;align-items:center;gap:7px;margin-top:8px;font-family:var(--fm);font-size:8px;color:var(--t2);text-transform:uppercase;letter-spacing:.07em}
+.dojo-stat-editor input{width:74px;background:var(--s0);border:1px solid rgba(240,160,48,.35);border-radius:var(--r-sm);color:var(--t1);font-family:var(--fm);font-size:10px;padding:6px 8px;outline:none}
+.dojo-stat-editor input:focus{border-color:var(--acc);box-shadow:0 0 0 2px rgba(240,160,48,.14)}
 .dojo-picker-strip{display:flex;gap:10px;overflow-x:auto;padding:4px 0 8px;scroll-snap-type:x mandatory}
 .dojo-picker-card{width:150px;flex:0 0 150px;scroll-snap-align:start;cursor:pointer}
 .dojo-picker-card .cv{width:150px!important}
@@ -1127,7 +1127,7 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .dojo-log{display:flex;flex-direction:column;gap:5px;padding:0 14px 14px}
 .dojo-log-row{font-family:var(--fb);font-size:11px;color:var(--t2);background:var(--s2);border-left:3px solid var(--bd);border-radius:var(--r-sm);padding:7px 9px}
 .dojo-log-row.hit{border-color:#60A5FA}.dojo-log-row.opp{border-color:#F87171}.dojo-log-row.win{border-color:#34D399}.dojo-log-row.loss{border-color:#F0A030}
-@media(max-width:760px){.dojo-card-row,.dojo-card-row.opp{grid-template-columns:1fr;justify-items:center}.dojo-card-row.opp .dojo-stat-panel{order:2}.dojo-card-row.opp .dojo-card-cell{order:1}.dojo-card-cell{max-width:310px}.dojo-stat-panel{width:100%;grid-template-columns:repeat(2,minmax(0,1fr))}.dojo-slider{grid-template-columns:84px minmax(0,1fr) 30px}.dojo-vs{padding:2px 0}.dojo-head{flex-direction:column}}
+@media(max-width:760px){.dojo-card-row,.dojo-card-row.opp{grid-template-columns:1fr;justify-items:center}.dojo-card-row.opp .dojo-stat-panel{order:2}.dojo-card-row.opp .dojo-card-cell{order:1}.dojo-card-cell{max-width:310px}.dojo-stat-panel{width:100%;grid-template-columns:repeat(2,minmax(0,1fr))}.dojo-stat-editor{justify-content:space-between}.dojo-vs{padding:2px 0}.dojo-head{flex-direction:column}}
 .gh-empty{text-align:center;color:var(--t3);font-family:var(--fb);font-size:13px;padding:60px 20px}
 /* Gear / items accordion */
 .gh-drop{border-top:1px solid var(--bd);margin-top:2px}
@@ -3709,9 +3709,9 @@ function dojoStatPanelHtml(stats, opts = {}) {
       return `<div class="dojo-stat-tile ${clickable ? 'clickable' : ''} ${open ? 'open' : ''}" ${clickable ? `onclick="setDojoTuningStat('${key}')"` : ''}>
       <div class="dojo-stat-name">${escapeAttr(formatStatLabel(key))}</div>
       <div class="dojo-stat-val">${value}</div>
-      ${open ? `<label class="dojo-slider dojo-stat-slider" onclick="event.stopPropagation()">
-        <input type="range" min="1" max="99" value="${value}" oninput="this.nextElementSibling.textContent=this.value" onchange="setDojoOpponentStat('${key}',this.value)">
-        <b>${value}</b>
+      ${open ? `<label class="dojo-stat-editor" onclick="event.stopPropagation()">
+        <span>Set</span>
+        <input type="number" min="1" max="99" value="${value}" inputmode="numeric" onkeydown="if(event.key==='Enter')this.blur()" onchange="setDojoOpponentStat('${key}',this.value)">
       </label>` : ''}
     </div>`;
     }).join('')}
@@ -3911,6 +3911,84 @@ function getFightTactics(catStats, oppStats, catHpPct = 1, oppHpPct = 1) {
   return tactics;
 }
 
+function pickDojoLine(lines) {
+  return lines[Math.floor(Math.random() * lines.length)] || lines[0] || '';
+}
+
+function getDojoGearCues(catSetup) {
+  return (catSetup && catSetup.gear || [])
+    .map(entry => typeof entry === 'string' ? getCard(entry) : entry)
+    .filter(Boolean)
+    .map(card => {
+      const effects = getEffects(card)
+        .map(e => ({ stat: e.stat, value: parseModifier(e.modifier) }))
+        .filter(e => DOJO_STAT_KEYS.includes(e.stat) && e.value !== 0);
+      return effects.length ? { card, effects } : null;
+    })
+    .filter(Boolean);
+}
+
+function dojoRelevantGearLine(gearCues, wantedStats) {
+  const matches = (gearCues || []).filter(cue =>
+    cue.effects.some(e => wantedStats.includes(e.stat) && e.value > 0)
+  );
+  if (!matches.length || Math.random() > 0.65) return '';
+  const cue = pickDojoLine(matches);
+  const best = cue.effects.find(e => wantedStats.includes(e.stat) && e.value > 0) || cue.effects[0];
+  return ` ${cue.card.name} matters here, lending ${formatStatLabel(best.stat).toLowerCase()} to the exchange.`;
+}
+
+function dojoMoveFlavor(name, targetName, hit, actor, attackerStats, defenderStats, gearCues, attackerHpPct, defenderHpPct) {
+  const tempo = (Number(attackerStats.speed) || 0) + (Number(attackerStats.agility) || 0);
+  const stealth = Number(attackerStats.stealth) || 0;
+  const force = (Number(attackerStats.strength) || 0) + (Number(attackerStats.stamina) || 0);
+  const intellect = Number(attackerStats.intelligence) || 0;
+  let statHooks = ['strength'];
+  let move = '';
+  if (hit.crit) {
+    statHooks = tempo >= force ? ['speed','agility'] : ['strength','stamina'];
+    move = pickDojoLine([
+      `${name} springs in with both paws and rakes a clean critical scratch across ${targetName}'s guard`,
+      `${name} catches ${targetName} mid-step, twists sideways, and lands a nasty critical swipe`,
+      `${name} waits half a beat, then snaps forward with a critical claw combo`
+    ]);
+  } else if (stealth >= 24 && Math.random() < 0.35) {
+    statHooks = ['stealth','speed','agility'];
+    move = pickDojoLine([
+      `${name} slips behind ${targetName} and scratches from the blind side`,
+      `${name} vanishes low, pops up near the flank, and clips ${targetName}`,
+      `${name} pads silently around the mat and lands a sly back-paw hit`
+    ]);
+  } else if (tempo >= force) {
+    statHooks = ['speed','agility'];
+    move = pickDojoLine([
+      `${name} hops over a paw swipe and counters with a quick scratch`,
+      `${name} darts in, taps the shoulder, and jumps clear before ${targetName} can answer`,
+      `${name} feints left, skids right, and lands a fast paw flurry`
+    ]);
+  } else if (intellect >= 24 && Math.random() < 0.35) {
+    statHooks = ['intelligence','speed'];
+    move = pickDojoLine([
+      `${name} reads the tail twitch, steps inside, and swats the opening`,
+      `${name} studies ${targetName}'s rhythm, then interrupts with a neat paw check`,
+      `${name} baits a lunge and turns it into a clean counter-scratch`
+    ]);
+  } else {
+    statHooks = ['strength','stamina'];
+    move = pickDojoLine([
+      `${name} plants their paws and shoves through with a heavy shoulder bump`,
+      `${name} absorbs the pressure, then answers with a firm scratch`,
+      `${name} leans into the clash and forces ${targetName} backward`
+    ]);
+  }
+  if (defenderHpPct < 0.35) {
+    move += `, noticing ${targetName} is breathing hard`;
+  } else if (attackerHpPct < 0.3) {
+    move += ', fighting through tired legs';
+  }
+  return `${move} for ${hit.damage}.${dojoRelevantGearLine(gearCues, statHooks)}`;
+}
+
 function dojoRollDamage(attacker, defender, turn, actor, attackerHpPct = 1, defenderHpPct = 1) {
   const tempo = (Number(attacker.speed) || 0) + (Number(attacker.agility) || 0);
   const guard = (Number(defender.stamina) || 0) * 0.35 + (Number(defender.agility) || 0) * 0.2;
@@ -4053,6 +4131,7 @@ async function simulateDojoFight() {
   const oppStats = opp.stats;
   const catName = getCatDisplayName(cs);
   const oppName = opp.card.name;
+  const catGearCues = getDojoGearCues(cs);
   let catHp = Math.round(58 + (Number(catStats.stamina) || 10) * 1.15);
   let oppHp = Math.round(58 + (Number(oppStats.stamina) || 10) * 1.15);
   const catMaxHp = catHp;
@@ -4063,6 +4142,11 @@ async function simulateDojoFight() {
   const openingTactics = getFightTactics(catStats, oppStats, catHp / catMaxHp, oppHp / oppMaxHp);
   log.push(`Read: ${openingTactics[0]}.`);
   beatMeta.push({ catHp, oppHp, style: openingTactics[0].includes('speed') ? 'stealth' : '' });
+  if (catGearCues.length) {
+    const names = catGearCues.slice(0, 3).map(cue => cue.card.name).join(', ');
+    log.push(`${catName} checks ${names} before the first exchange, carrying the setup into the dojo ring.`);
+    beatMeta.push({ catHp, oppHp, style: 'hit' });
+  }
 
   for (let turn = 1; turn <= 6 && catHp > 0 && oppHp > 0; turn++) {
     const order = catFirst ? ['cat','opp'] : ['opp','cat'];
@@ -4071,12 +4155,12 @@ async function simulateDojoFight() {
       if (actor === 'cat') {
         const hit = dojoRollDamage(catStats, oppStats, turn, 'cat', catHp / catMaxHp, oppHp / oppMaxHp);
         oppHp = Math.max(0, oppHp - hit.damage);
-        log.push(`${catName} ${hit.text} for ${hit.damage}. ${oppName} has ${oppHp} stamina left.`);
+        log.push(`${dojoMoveFlavor(catName, oppName, hit, 'cat', catStats, oppStats, catGearCues, catHp / catMaxHp, oppHp / oppMaxHp)} ${oppName} has ${oppHp} HP left.`);
         beatMeta.push({ catHp, oppHp, style: hit.crit ? 'crit' : hit.text.includes('opening') ? 'hit' : '' });
       } else {
         const hit = dojoRollDamage(oppStats, catStats, turn, 'opp', oppHp / oppMaxHp, catHp / catMaxHp);
         catHp = Math.max(0, catHp - hit.damage);
-        log.push(`${oppName} ${hit.text} for ${hit.damage}. ${catName} has ${catHp} stamina left.`);
+        log.push(`${dojoMoveFlavor(oppName, catName, hit, 'opp', oppStats, catStats, [], oppHp / oppMaxHp, catHp / catMaxHp)} ${catName} has ${catHp} HP left.`);
         beatMeta.push({ catHp, oppHp, style: hit.crit ? 'crit' : 'opp' });
       }
     }
