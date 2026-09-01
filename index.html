@@ -1046,6 +1046,7 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 @media(max-width:720px){.gh-cards-tab{--gh-card-w:min(186px,calc((100vw - 66px)/2))}.gh-card-grid{grid-template-columns:repeat(2,var(--gh-card-w));gap:10px}}
 @media(max-width:480px){.gh-cards-tab{--gh-card-w:min(152px,calc((100vw - 54px)/2))}.gh-cards-header{align-items:flex-start;flex-direction:column}.gh-card-tools{align-items:stretch}.gh-card-search,.gh-card-filter{width:100%;min-width:0}.gh-card-cell .cv .cv-art{height:50px!important;font-size:26px!important}.gh-card-cell .cv .cv-hdr{padding:5px 7px 4px!important}.gh-card-cell .cv .cv-tlbl{font-size:6.5px!important}.gh-card-cell .cv .cv-rpill{font-size:6px!important;padding:1px 5px!important}.gh-card-cell .cv .cv-name{font-size:9.5px!important}.gh-card-cell .cv .cv-body{padding:5px 7px!important;gap:3px!important}.gh-card-cell .cv .cv-desc{font-size:7.5px!important;line-height:1.35!important}.gh-card-cell .cv .cv-stats-grid{gap:1px 4px!important}.gh-card-cell .cvs-n{font-size:5.5px!important;width:18px!important}.gh-card-cell .cvs-v{font-size:5.5px!important;min-width:13px!important}.gh-card-cell .cvs-bar{height:2px!important}.gh-card-cell .cv .cv-eff{font-size:6.5px!important;padding:1px 4px!important}.gh-card-cell .cv .cv-hchip{font-size:7px!important;padding:2px 5px!important}.gh-card-cell .cv .cv-subtext{font-size:6.8px!important}.gh-card-cell .cv .cv-foot{padding:4px 7px 5px!important}.gh-card-cell .cv .cv-cost{font-size:9px!important}.gh-card-meta{min-height:20px}.gh-card-badge{font-size:7px;padding:2px 6px}.gh-card-act-btn{font-size:7px;padding:3px 6px}}
 .gh-visits-tab{display:flex;flex-direction:column;gap:14px;width:100%;max-width:860px}
+.gh-visits-tab.dojo-visits-tab{max-width:1180px}
 .gh-visits-header{padding:2px 0 4px}
 .gh-visits-title{font-family:var(--fd);font-size:17px;font-weight:700;color:var(--t1)}
 .gh-visits-sub{font-family:var(--fb);font-size:12px;color:var(--t3);margin-top:2px}
@@ -1060,7 +1061,9 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .gh-visit-badge{font-family:var(--fm);font-size:9px;text-transform:uppercase;letter-spacing:.07em;padding:4px 9px;border-radius:var(--r-f);flex-shrink:0}
 .gh-visit-badge.open{background:rgba(52,211,153,.15);color:#34D399;border:1px solid rgba(52,211,153,.3)}
 .gh-visit-badge.locked{background:var(--s3);color:var(--t3);border:1px solid var(--bd)}
-.dojo-panel{display:flex;flex-direction:column;gap:12px;background:var(--s0);border:1px solid var(--bd);border-radius:var(--r-lg);padding:16px}
+.dojo-panel{display:flex;flex-direction:column;gap:16px;width:100%;background:transparent;border:0;border-radius:0;padding:0}
+.dojo-topbar{display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--bd);padding:0 0 14px}
+.dojo-topbar .dojo-title{flex:1;text-align:center}
 .dojo-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
 .dojo-title{font-family:var(--fd);font-size:18px;font-weight:800;color:var(--t1)}
 .dojo-sub{font-family:var(--fb);font-size:11.5px;color:var(--t3);margin-top:3px;line-height:1.4}
@@ -1074,26 +1077,48 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .dojo-difficulty{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
 .dojo-diff-btn{background:var(--s2);border:1px solid var(--bd);border-radius:var(--r-md);color:var(--t2);font-family:var(--fm);font-size:9px;letter-spacing:.05em;text-transform:uppercase;padding:10px 8px;cursor:pointer}
 .dojo-diff-btn.active{border-color:var(--acc);background:var(--acc-bg);color:var(--acc2)}
-.dojo-matchup{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:stretch}
+.dojo-matchup{display:flex;flex-direction:column;gap:14px;align-items:stretch;width:100%}
+.dojo-card-row{display:grid;grid-template-columns:minmax(190px,260px) minmax(0,1fr);gap:18px;align-items:center}
+.dojo-card-row.opp{grid-template-columns:minmax(0,1fr) minmax(190px,260px)}
+.dojo-card-cell{width:100%;max-width:260px}
+.dojo-card-cell .cv{width:100%!important}
+.dojo-card-cell.opp-card{cursor:pointer}
+.dojo-card-cell.opp-card:hover .cv{box-shadow:0 0 0 2px rgba(240,160,48,.35),0 8px 28px rgba(0,0,0,.25)}
+.dojo-stat-panel{display:grid;grid-template-columns:repeat(4,minmax(90px,1fr));gap:8px;align-content:center}
+.dojo-stat-panel.clickable{cursor:pointer}
+.dojo-stat-panel.clickable:hover .dojo-stat-tile{border-color:rgba(240,160,48,.36)}
+.dojo-stat-tile{background:var(--s1);border:1px solid rgba(255,255,255,.06);border-radius:var(--r-md);padding:9px 10px;min-width:0}
+.dojo-stat-name{font-family:var(--fm);font-size:7.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--t3)}
+.dojo-stat-val{font-family:var(--fd);font-size:16px;font-weight:800;color:var(--t1);margin-top:2px}
+.dojo-tuner{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;background:rgba(124,58,237,.08);border:1px solid rgba(167,139,250,.22);border-radius:var(--r-md);padding:12px}
+.dojo-slider{display:grid;grid-template-columns:94px minmax(0,1fr) 34px;gap:8px;align-items:center;font-family:var(--fm);font-size:8px;color:var(--t2);text-transform:uppercase;letter-spacing:.07em}
+.dojo-slider input{width:100%;accent-color:var(--acc)}
+.dojo-picker-strip{display:flex;gap:10px;overflow-x:auto;padding:4px 0 8px;scroll-snap-type:x mandatory}
+.dojo-picker-card{width:150px;flex:0 0 150px;scroll-snap-align:start;cursor:pointer}
+.dojo-picker-card .cv{width:150px!important}
+.dojo-picker-card.active .cv{box-shadow:0 0 0 2px var(--acc),0 10px 24px rgba(240,160,48,.18)}
 .dojo-fighter{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r-md);padding:12px;min-width:0}
 .dojo-fighter-name{font-family:var(--fd);font-size:14px;font-weight:800;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .dojo-fighter-meta{font-family:var(--fm);font-size:8px;letter-spacing:.08em;text-transform:uppercase;color:var(--t3);margin-top:3px}
 .dojo-statline{display:flex;gap:4px;flex-wrap:wrap;margin-top:9px}
 .dojo-stat{font-family:var(--fm);font-size:8px;color:var(--t2);background:var(--s3);border:1px solid rgba(255,255,255,.04);border-radius:var(--r-sm);padding:3px 6px}
-.dojo-vs{display:flex;align-items:center;justify-content:center;font-family:var(--fm);font-size:10px;color:var(--acc2);letter-spacing:.12em}
+.dojo-vs{display:flex;align-items:center;justify-content:center;font-family:var(--fm);font-size:13px;color:var(--acc2);letter-spacing:.12em;text-transform:uppercase}
 .dojo-actions{display:flex;gap:8px;align-items:center}
 .dojo-run-btn{flex:1;background:var(--acc);border:0;border-radius:var(--r-md);color:#0b0f15;font-family:var(--fd);font-weight:800;font-size:13px;padding:12px 14px;cursor:pointer}
 .dojo-run-btn:disabled{opacity:.45;cursor:default}
 .dojo-note{font-family:var(--fb);font-size:10.5px;color:var(--t3);line-height:1.4}
-.dojo-arena{display:flex;flex-direction:column;gap:9px;border:1px solid var(--bd);border-radius:var(--r-md);background:linear-gradient(180deg,var(--s1),rgba(17,24,39,.68));padding:12px;min-height:160px}
+.dojo-arena{display:flex;flex-direction:column;gap:9px;border:1px solid var(--bd);border-radius:var(--r-md);background:linear-gradient(180deg,var(--s1),rgba(17,24,39,.68));padding:12px;min-height:220px;max-height:min(560px,calc(100dvh - 250px));overflow:hidden}
+.dojo-arena-sticky{position:relative;z-index:2;display:flex;flex-direction:column;gap:9px;background:linear-gradient(180deg,rgba(30,41,59,.98),rgba(30,41,59,.9));border:1px solid rgba(255,255,255,.04);border-radius:var(--r-sm);padding:10px}
 .dojo-arena-head{display:flex;align-items:center;justify-content:space-between;gap:10px;font-family:var(--fm);font-size:8.5px;text-transform:uppercase;letter-spacing:.09em;color:var(--t3)}
 .dojo-vitals{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.dojo-vital{display:flex;flex-direction:column;gap:4px;font-family:var(--fm);font-size:8px;color:var(--t3)}
+.dojo-vital{display:flex;flex-direction:column;gap:4px;font-family:var(--fm);font-size:8px;color:var(--t3);background:transparent;text-align:left;border:1px solid transparent;border-radius:var(--r-sm);padding:5px 6px;cursor:pointer;transition:border-color .15s,background .15s}
+.dojo-vital:hover{border-color:rgba(96,165,250,.4);background:rgba(96,165,250,.08)}
+.dojo-vital.opp:hover{border-color:rgba(248,113,113,.4);background:rgba(248,113,113,.08)}
 .dojo-vital span:first-child{display:flex;justify-content:space-between;gap:8px}
 .dojo-vital-bar{height:5px;border-radius:999px;background:var(--s3);overflow:hidden}
 .dojo-vital-fill{height:100%;border-radius:999px;background:#60A5FA;transition:width .45s ease}
 .dojo-vital.opp .dojo-vital-fill{background:#F87171}
-.dojo-bubbles{display:flex;flex-direction:column;gap:7px;margin-top:2px}
+.dojo-bubbles{display:flex;flex:1;min-height:0;flex-direction:column;gap:7px;margin-top:2px;overflow-y:auto;overflow-x:hidden;padding-right:2px;scrollbar-width:thin;scrollbar-color:var(--bd) transparent}
 .dojo-bubble{max-width:82%;align-self:flex-start;background:var(--s2);border:1px solid var(--bd);border-left:3px solid #60A5FA;border-radius:var(--r-md);padding:9px 11px;font-family:var(--fb);font-size:11.5px;line-height:1.45;color:var(--t2);animation:dojo-bubble-in .22s ease both}
 .dojo-bubble.opp{align-self:flex-end;border-left-color:#F87171}
 .dojo-bubble.crit{border-color:rgba(248,113,113,.75);border-left-color:#EF4444;animation:dojo-bubble-in .22s ease both,dojo-crit-blink .42s ease 2}
@@ -1110,7 +1135,7 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .dojo-log{display:flex;flex-direction:column;gap:5px;padding:0 14px 14px}
 .dojo-log-row{font-family:var(--fb);font-size:11px;color:var(--t2);background:var(--s2);border-left:3px solid var(--bd);border-radius:var(--r-sm);padding:7px 9px}
 .dojo-log-row.hit{border-color:#60A5FA}.dojo-log-row.opp{border-color:#F87171}.dojo-log-row.win{border-color:#34D399}.dojo-log-row.loss{border-color:#F0A030}
-@media(max-width:680px){.dojo-grid,.dojo-matchup{grid-template-columns:1fr}.dojo-vs{padding:2px 0}.dojo-head{flex-direction:column}.dojo-difficulty{grid-template-columns:1fr}}
+@media(max-width:760px){.dojo-card-row,.dojo-card-row.opp{grid-template-columns:1fr;justify-items:center}.dojo-card-row.opp .dojo-stat-panel{order:2}.dojo-card-row.opp .dojo-card-cell{order:1}.dojo-card-cell{max-width:230px}.dojo-stat-panel{width:100%;grid-template-columns:repeat(2,minmax(0,1fr))}.dojo-tuner{grid-template-columns:1fr}.dojo-slider{grid-template-columns:84px minmax(0,1fr) 30px}.dojo-grid{grid-template-columns:1fr}.dojo-vs{padding:2px 0}.dojo-head{flex-direction:column}.dojo-difficulty{grid-template-columns:1fr}}
 .gh-empty{text-align:center;color:var(--t3);font-family:var(--fb);font-size:13px;padding:60px 20px}
 /* Gear / items accordion */
 .gh-drop{border-top:1px solid var(--bd);margin-top:2px}
@@ -1410,7 +1435,7 @@ let GH_HAS_UNREAD    = true; // demo: unread messages exist
 let GH_RETURN_DIFFS  = null; // {ci: {hungerDiff, moodDiff, energyDiff}} set on return from adventure
 let GH_ACTIVE_HOME_IDX = 0;  // which home card is active on the home tab
 const GH_CARD_FILTER = { search:'', type:'all', rarity:'all', view:'recent' };
-const DOJO_STATE = { view:'visits', catIdx:0, difficulty:'onpar', opponentId:null, result:null, revealed:0, timer:null, running:false, coachShown:false };
+const DOJO_STATE = { view:'visits', catIdx:0, difficulty:'onpar', opponentId:null, opponentStats:null, tuningOpen:false, opponentPickerOpen:false, result:null, revealed:0, timer:null, running:false, coachShown:false };
 
 // ── Trade Center ──
 let TC_VIEW = 'menu'; // 'menu' | 'sell' | 'buy' | 'trade' | 'respond'
@@ -3566,20 +3591,39 @@ function getDojoOpponentOptions() {
   const cs = getDojoCatSetup();
   if (!cs) return [];
   const catStats = getEffectiveStats(cs, sbx.homeItems || [], DOJO_STATE.catIdx);
-  const target = dojoCombatPower(catStats) * (DOJO_DIFFICULTY[DOJO_STATE.difficulty]?.mult || 1);
   const currentBreedId = cardIdOf(cs.breed);
-  return getLibrary()
-    .filter(c => c.type === 'cat_breed' && c.id !== currentBreedId && c.data && c.data.stats)
+  const starters = getLibrary()
+    .filter(c => c.type === 'cat_breed' && c.is_starter === true && c.data && c.data.stats);
+  const pool = starters.length ? starters : getLibrary().filter(c => c.type === 'cat_breed' && c.data && c.data.stats);
+  return pool
     .map(card => {
-      const scaledStats = dojoScaleStats(card.data.stats, target);
+      const scaledStats = dojoMirroredOpponentStats(catStats);
       return {
         card,
         stats: scaledStats,
-        gap: Math.abs(dojoCombatPower(scaledStats) - target)
+        gap: card.id === currentBreedId ? 1 : 0
       };
     })
     .sort((a,b) => a.gap - b.gap || a.card.name.localeCompare(b.card.name))
-    .slice(0, 8);
+    .slice(0, 12);
+}
+
+function dojoMirroredOpponentStats(catStats) {
+  const stats = {};
+  DOJO_STAT_KEYS.forEach(key => {
+    stats[key] = Math.max(1, Math.round(Number(catStats && catStats[key]) || 10));
+  });
+  return stats;
+}
+
+function normalizeDojoOpponentStats(seedStats) {
+  const stats = DOJO_STATE.opponentStats || {};
+  const normalized = {};
+  DOJO_STAT_KEYS.forEach(key => {
+    normalized[key] = Math.max(1, Math.min(99, Math.round(Number(stats[key] ?? seedStats[key]) || 10)));
+  });
+  DOJO_STATE.opponentStats = normalized;
+  return normalized;
 }
 
 function getDojoOpponent() {
@@ -3590,7 +3634,19 @@ function getDojoOpponent() {
     found = opts[0];
     DOJO_STATE.opponentId = found.card.id;
   }
-  return found;
+  const tunedStats = normalizeDojoOpponentStats(found.stats);
+  return { ...found, stats: tunedStats };
+}
+
+function dojoCardWithStats(card, stats) {
+  if (!card) return null;
+  return {
+    ...card,
+    data: {
+      ...(card.data || {}),
+      stats: { ...((card.data && card.data.stats) || {}), ...(stats || {}) }
+    }
+  };
 }
 
 function openDojo() {
@@ -3611,6 +3667,40 @@ function closeDojo() {
   renderGameHomeKeepScroll();
 }
 
+function toggleDojoTuning() {
+  DOJO_STATE.tuningOpen = !DOJO_STATE.tuningOpen;
+  renderGameHomeKeepScroll();
+}
+
+function toggleDojoOpponentPicker() {
+  DOJO_STATE.opponentPickerOpen = !DOJO_STATE.opponentPickerOpen;
+  renderGameHomeKeepScroll();
+}
+
+function setDojoOpponentStat(key, value) {
+  if (!DOJO_STAT_KEYS.includes(key)) return;
+  const cs = getDojoCatSetup();
+  if (!cs) return;
+  const catStats = getEffectiveStats(cs, sbx.homeItems || [], DOJO_STATE.catIdx);
+  DOJO_STATE.opponentStats = DOJO_STATE.opponentStats || dojoMirroredOpponentStats(catStats);
+  DOJO_STATE.opponentStats[key] = Math.max(1, Math.min(99, Math.round(Number(value) || 1)));
+  DOJO_STATE.result = null;
+  DOJO_STATE.revealed = 0;
+  clearDojoTimer();
+  renderGameHomeKeepScroll();
+}
+
+function resetDojoOpponentStats() {
+  const cs = getDojoCatSetup();
+  if (!cs) return;
+  const catStats = getEffectiveStats(cs, sbx.homeItems || [], DOJO_STATE.catIdx);
+  DOJO_STATE.opponentStats = dojoMirroredOpponentStats(catStats);
+  DOJO_STATE.result = null;
+  DOJO_STATE.revealed = 0;
+  clearDojoTimer();
+  renderGameHomeKeepScroll();
+}
+
 function clearDojoTimer() {
   if (DOJO_STATE.timer) clearInterval(DOJO_STATE.timer);
   DOJO_STATE.timer = null;
@@ -3618,9 +3708,41 @@ function clearDojoTimer() {
 }
 
 function dojoStatChips(stats) {
-  return ['strength','agility','stamina','speed'].map(key =>
-    `<span class="dojo-stat">${key.slice(0,3).toUpperCase()} ${Math.round(stats[key] || 0)}</span>`
+  return DOJO_STAT_KEYS.map(key =>
+    `<span class="dojo-stat">${formatStatLabel(key)} ${Math.round(stats[key] || 0)}</span>`
   ).join('');
+}
+
+function dojoStatPanelHtml(stats, opts = {}) {
+  const { clickable = false, side = 'right' } = opts;
+  return `<div class="dojo-stat-panel ${clickable ? 'clickable' : ''}" ${clickable ? 'onclick="toggleDojoTuning()"' : ''}>
+    ${DOJO_STAT_KEYS.map(key => `<div class="dojo-stat-tile">
+      <div class="dojo-stat-name">${escapeAttr(formatStatLabel(key))}</div>
+      <div class="dojo-stat-val">${Math.round(Number(stats[key]) || 0)}</div>
+    </div>`).join('')}
+  </div>`;
+}
+
+function dojoTunerHtml(stats) {
+  return `<div class="dojo-tuner">
+    ${DOJO_STAT_KEYS.map(key => `<label class="dojo-slider">
+      <span>${escapeAttr(formatStatLabel(key))}</span>
+      <input type="range" min="1" max="99" value="${Math.round(Number(stats[key]) || 10)}" oninput="this.nextElementSibling.textContent=this.value" onchange="setDojoOpponentStat('${key}',this.value)">
+      <b>${Math.round(Number(stats[key]) || 10)}</b>
+    </label>`).join('')}
+    <button class="dojo-back" type="button" onclick="resetDojoOpponentStats()">Reset Stats</button>
+  </div>`;
+}
+
+function dojoOpponentPickerHtml(oppOptions, activeId, stats) {
+  return `<div class="dojo-picker-strip">
+    ${oppOptions.map(o => {
+      const displayCard = dojoCardWithStats(o.card, stats);
+      return `<div class="dojo-picker-card ${o.card.id === activeId ? 'active' : ''}" onclick="setDojoOpponent('${escapeAttr(o.card.id)}')">
+        ${buildCardFaceHtml(displayCard, { showDesc: false, standardLayout: true })}
+      </div>`;
+    }).join('')}
+  </div>`;
 }
 
 function classifyDojoBeat(line, result, idx, total) {
@@ -3690,8 +3812,28 @@ function dojoPatchReveal(result, rows, finished) {
   if (finished) dojoApplyFinishedUi(result);
 
   requestAnimationFrame(() => {
-    (bubbles.lastElementChild || bubbleEl).scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    bubbles.scrollTo({ top: bubbles.scrollHeight, behavior: 'smooth' });
   });
+}
+
+function showDojoHpInfo(side) {
+  const result = DOJO_STATE.result;
+  const info = result && result.hpFormula && result.hpFormula[side];
+  if (!info) return;
+  const currentText = side === 'opp'
+    ? document.getElementById('dojo-opp-hp')?.textContent
+    : document.getElementById('dojo-cat-hp')?.textContent;
+  const source = side === 'opp'
+    ? 'This sparring partner uses the selected dojo difficulty scaling, then HP is calculated from its scaled stamina.'
+    : 'This uses your cat’s effective stamina after permanent growth, home effects, gear, abilities, and current care boosts.';
+  showCarePopup(`
+    <div class="care-popup-icon">❤</div>
+    <div class="care-popup-title">${escapeAttr(info.name)} HP</div>
+    <div class="care-popup-desc">${escapeAttr(source)}</div>
+    <div class="care-popup-desc" style="font-family:var(--fm);color:var(--t1)">HP = ${info.base} + ${info.stamina} stamina × ${info.multiplier} = ${info.maxHp}</div>
+    <div class="care-popup-desc">Current HP: ${escapeAttr(currentText || info.maxHp)} / ${info.maxHp}</div>
+    <button class="care-popup-btn primary" onclick="dismissCarePopup()">Got it</button>
+  `);
 }
 
 // Idempotent — safe to call once when the reveal finishes, and again later
@@ -3971,6 +4113,10 @@ async function simulateDojoFight() {
     oppHp,
     catMaxHp,
     oppMaxHp,
+    hpFormula: {
+      cat: { name: catName, stamina: Math.round(Number(catStats.stamina) || 10), base: 58, multiplier: 1.15, maxHp: catMaxHp },
+      opp: { name: oppName, stamina: Math.round(Number(oppStats.stamina) || 10), base: 58, multiplier: 1.15, maxHp: oppMaxHp }
+    },
     difficulty: DOJO_DIFFICULTY[DOJO_STATE.difficulty]?.label || 'On Par',
     catStats: summarizeFightStats(catStats),
     oppStats: summarizeFightStats(oppStats),
@@ -4005,6 +4151,7 @@ function setDojoCatIdx(value) {
   clearDojoTimer();
   DOJO_STATE.catIdx = Math.max(0, parseInt(value, 10) || 0);
   DOJO_STATE.opponentId = null;
+  DOJO_STATE.opponentStats = null;
   DOJO_STATE.result = null;
   DOJO_STATE.revealed = 0;
   renderGameHomeKeepScroll();
@@ -4023,6 +4170,9 @@ function setDojoDifficulty(value) {
 function setDojoOpponent(value) {
   clearDojoTimer();
   DOJO_STATE.opponentId = value;
+  const cs = getDojoCatSetup();
+  if (cs) DOJO_STATE.opponentStats = dojoMirroredOpponentStats(getEffectiveStats(cs, sbx.homeItems || [], DOJO_STATE.catIdx));
+  DOJO_STATE.opponentPickerOpen = false;
   DOJO_STATE.result = null;
   DOJO_STATE.revealed = 0;
   renderGameHomeKeepScroll();
@@ -4046,47 +4196,30 @@ function buildDojoHtml() {
   const oppOptions = getDojoOpponentOptions();
   const opp = getDojoOpponent();
   const result = DOJO_STATE.result;
+  const playerCard = dojoCardWithStats({ ...cs.breed, name: getCatDisplayName(cs) }, catStats);
+  const oppCard = opp ? dojoCardWithStats(opp.card, opp.stats) : null;
   return `<div class="dojo-panel">
-    <div class="dojo-head">
-      <div>
-        <div class="dojo-title">🥋 Cat Dojo</div>
-        <div class="dojo-sub">Run controlled practice encounters against neighbourhood cats. No loot, no rep changes, just fight reading.</div>
-      </div>
-      <button class="dojo-back" onclick="closeDojo()">Back</button>
-    </div>
-    <div class="dojo-grid">
-      <label class="dojo-field">
-        <span class="dojo-label">Your Cat</span>
-        <select class="dojo-select" onchange="setDojoCatIdx(this.value)">
-          ${cats.map((cat, idx) => `<option value="${idx}" ${idx === DOJO_STATE.catIdx ? 'selected' : ''}>${escapeAttr(getCatDisplayName(cat))}</option>`).join('')}
-        </select>
-      </label>
-      <label class="dojo-field">
-        <span class="dojo-label">Sparring Partner</span>
-        <select class="dojo-select" onchange="setDojoOpponent(this.value)">
-          ${oppOptions.map(o => `<option value="${escapeAttr(o.card.id)}" ${o.card.id === DOJO_STATE.opponentId ? 'selected' : ''}>${escapeAttr(o.card.name)}</option>`).join('')}
-        </select>
-      </label>
-    </div>
-    <div class="dojo-field">
-      <span class="dojo-label">Match Level</span>
-      <div class="dojo-difficulty">
-        ${Object.entries(DOJO_DIFFICULTY).map(([key, cfg]) => `<button class="dojo-diff-btn ${DOJO_STATE.difficulty === key ? 'active' : ''}" onclick="setDojoDifficulty('${key}')">${cfg.label}</button>`).join('')}
-      </div>
-      <div class="dojo-note">${DOJO_DIFFICULTY[DOJO_STATE.difficulty]?.note || ''}</div>
+    <div class="dojo-topbar">
+      <button class="dojo-back" onclick="closeDojo()">← Visits</button>
+      <div class="dojo-title">🥋 Cat Dojo</div>
+      <span class="dojo-note">Power ${Math.round(dojoCombatPower(catStats))}</span>
     </div>
     <div class="dojo-matchup">
-      <div class="dojo-fighter">
-        <div class="dojo-fighter-name">${escapeAttr(getCatDisplayName(cs))}</div>
-        <div class="dojo-fighter-meta">Power ${Math.round(dojoCombatPower(catStats))}</div>
-        <div class="dojo-statline">${dojoStatChips(catStats)}</div>
+      <div class="dojo-card-row player">
+        <div class="dojo-card-cell">
+          ${buildCardFaceHtml(playerCard, { onclick: `openCardModal('${cs.breed.id}')`, showDesc: false, standardLayout: true })}
+        </div>
+        ${dojoStatPanelHtml(catStats)}
       </div>
       <div class="dojo-vs">VS</div>
-      <div class="dojo-fighter">
-        <div class="dojo-fighter-name">${escapeAttr(opp ? opp.card.name : 'No partner')}</div>
-        <div class="dojo-fighter-meta">Projected power ${opp ? Math.round(dojoCombatPower(opp.stats)) : 0}</div>
-        <div class="dojo-statline">${opp ? dojoStatChips(opp.stats) : ''}</div>
+      <div class="dojo-card-row opp">
+        ${opp ? dojoStatPanelHtml(opp.stats, { clickable: true }) : '<div class="dojo-note">No starter opponent found.</div>'}
+        <div class="dojo-card-cell opp-card" onclick="toggleDojoOpponentPicker()">
+          ${oppCard ? buildCardFaceHtml(oppCard, { showDesc: false, standardLayout: true }) : ''}
+        </div>
       </div>
+      ${DOJO_STATE.tuningOpen && opp ? dojoTunerHtml(opp.stats) : ''}
+      ${DOJO_STATE.opponentPickerOpen ? dojoOpponentPickerHtml(oppOptions, DOJO_STATE.opponentId, opp ? opp.stats : catStats) : ''}
     </div>
     <div class="dojo-actions">
       <button class="dojo-run-btn" id="dojo-run-btn" onclick="simulateDojoFight()" ${opp && !DOJO_STATE.running ? '' : 'disabled'}>${DOJO_STATE.running ? 'Sparring...' : 'Start Sparring'}</button>
@@ -4095,19 +4228,21 @@ function buildDojoHtml() {
       const rows = getDojoDisplayLog();
       const shown = rows.slice(0, Math.max(1, DOJO_STATE.revealed));
       const currentMeta = (result.beatMeta && result.beatMeta[Math.max(0, shown.length - 1)]) || { catHp:result.catHp, oppHp:result.oppHp };
-      const catMax = 58 + ((catStats.stamina || 10) * 1.15);
-      const oppMax = 58 + (((opp && opp.stats.stamina) || 10) * 1.15);
+      const catMax = result.catMaxHp || Math.round(58 + ((catStats.stamina || 10) * 1.15));
+      const oppMax = result.oppMaxHp || Math.round(58 + (((opp && opp.stats.stamina) || 10) * 1.15));
       const catPct = Math.max(0, Math.min(100, Math.round(((currentMeta.catHp ?? result.catHp) / catMax) * 100)));
       const oppPct = Math.max(0, Math.min(100, Math.round(((currentMeta.oppHp ?? result.oppHp) / oppMax) * 100)));
       const done = !DOJO_STATE.running;
       return `<div class="dojo-arena">
-        <div class="dojo-arena-head">
-          <span id="dojo-arena-title">${done ? (result.draw ? 'Even Match' : result.won ? 'Practice Win' : 'Practice Loss') : 'Sparring'}</span>
-          <span id="dojo-beat-counter">${Math.min(DOJO_STATE.revealed, rows.length)} / ${rows.length} beats</span>
-        </div>
-        <div class="dojo-vitals">
-          <div class="dojo-vital"><span><b>${escapeAttr(result.catName)}</b><em id="dojo-cat-hp">${Math.max(0, Math.round(currentMeta.catHp ?? result.catHp))}</em></span><div class="dojo-vital-bar"><div class="dojo-vital-fill" id="dojo-cat-bar" style="width:${catPct}%"></div></div></div>
-          <div class="dojo-vital opp"><span><b>${escapeAttr(result.oppName)}</b><em id="dojo-opp-hp">${Math.max(0, Math.round(currentMeta.oppHp ?? result.oppHp))}</em></span><div class="dojo-vital-bar"><div class="dojo-vital-fill" id="dojo-opp-bar" style="width:${oppPct}%"></div></div></div>
+        <div class="dojo-arena-sticky">
+          <div class="dojo-arena-head">
+            <span id="dojo-arena-title">${done ? (result.draw ? 'Even Match' : result.won ? 'Practice Win' : 'Practice Loss') : 'Sparring'}</span>
+            <span id="dojo-beat-counter">${Math.min(DOJO_STATE.revealed, rows.length)} / ${rows.length} beats</span>
+          </div>
+          <div class="dojo-vitals">
+            <button type="button" class="dojo-vital" onclick="showDojoHpInfo('cat')"><span><b>${escapeAttr(result.catName)}</b><em id="dojo-cat-hp">${Math.max(0, Math.round(currentMeta.catHp ?? result.catHp))}</em></span><div class="dojo-vital-bar"><div class="dojo-vital-fill" id="dojo-cat-bar" style="width:${catPct}%"></div></div></button>
+            <button type="button" class="dojo-vital opp" onclick="showDojoHpInfo('opp')"><span><b>${escapeAttr(result.oppName)}</b><em id="dojo-opp-hp">${Math.max(0, Math.round(currentMeta.oppHp ?? result.oppHp))}</em></span><div class="dojo-vital-bar"><div class="dojo-vital-fill" id="dojo-opp-bar" style="width:${oppPct}%"></div></div></button>
+          </div>
         </div>
         <div class="dojo-bubbles" id="dojo-bubbles">
           ${shown.map((line, idx) => {
@@ -6480,12 +6615,14 @@ function renderGameHome() {
     { icon:'🐟', name:'Fish Market',  desc:'Source rare ingredients and specialty food your cats will love.', open:false },
     { icon:'🪄', name:'Specialty Apothecary', desc:'Unique potions, tonics, and enchantments for adventuring cats.', open:false },
   ];
-  const visitsTabHtml = `<div class="gh-visits-tab">
+  const visitsTabHtml = DOJO_STATE.view === 'dojo'
+    ? `<div class="gh-visits-tab dojo-visits-tab">${buildDojoHtml()}</div>`
+    : `<div class="gh-visits-tab">
     <div class="gh-visits-header">
       <div class="gh-visits-title">📍 Nearby Places</div>
       <div class="gh-visits-sub">Explore your neighbourhood and surroundings.</div>
     </div>
-    ${DOJO_STATE.view === 'dojo' ? buildDojoHtml() : `<div class="gh-visits-list">
+    <div class="gh-visits-list">
       ${VISIT_LOCATIONS.map(loc => `
         <div class="gh-visit-row ${loc.open ? '' : 'gh-visit-locked'}" ${loc.open ? `onclick="${loc.action}"` : ''}>
           <div class="gh-visit-icon">${loc.icon}</div>
@@ -6497,7 +6634,7 @@ function renderGameHome() {
             ? `<div class="gh-visit-badge open">Open</div>`
             : `<div class="gh-visit-badge locked">Soon</div>`}
         </div>`).join('')}
-    </div>`}
+    </div>
   </div>`;
 
   // ── INBOX TAB ──
