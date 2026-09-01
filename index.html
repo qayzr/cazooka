@@ -849,7 +849,7 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .gh-home-growth-summary{font-family:var(--fm);font-size:8.5px;color:var(--t3);line-height:1.35}
 .gh-home-growth-summary strong{color:#c084fc;font-weight:500}
 .gh-home-growth-more{width:100%;margin-top:2px}
-.gh-home-growth-more.gh-home-growth-wide{grid-column:2}
+.gh-home-growth-more.gh-home-growth-wide{grid-column:1/-1}
 .gh-home-growth-more summary{list-style:none;cursor:pointer;font-family:var(--fm);font-size:8px;text-transform:uppercase;letter-spacing:.08em;color:var(--t3);display:inline-flex;gap:5px;align-items:center}
 .gh-home-growth-more summary::-webkit-details-marker{display:none}
 .gh-home-growth-more summary:hover{color:#c084fc}
@@ -874,8 +874,9 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .gh-home-card{padding:0;display:flex;flex-direction:column;gap:12px}
 .gh-home-card-title{font-family:var(--fd);font-size:15px;font-weight:700;color:var(--t1);display:flex;align-items:center;gap:8px}
 .gh-home-card-sub{font-family:var(--fm);font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--t3)}
-.gh-home-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.gh-home-stat{background:var(--s2);border-radius:var(--r-md);padding:8px 12px}
+.gh-home-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-self:stretch;max-height:calc(var(--gh-home-card-w) * 1.4);overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--bd) transparent}
+.gh-home-stat{background:var(--s2);border-radius:var(--r-md);padding:8px 12px;border:1px solid transparent;cursor:pointer;transition:border-color .15s,background .15s,transform .15s}
+.gh-home-stat:hover{border-color:var(--col-home);background:rgba(34,197,94,.08);transform:translateY(-1px)}
 .gh-home-stat-lbl{font-family:var(--fm);font-size:8px;text-transform:uppercase;letter-spacing:.07em;color:var(--t3);margin-bottom:3px}
 .gh-home-stat-val{font-family:var(--fd);font-size:14px;font-weight:700;color:var(--t1)}
 /* Home selector & Add Cat */
@@ -928,8 +929,8 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .gh-mini-pill.good{background:rgba(52,211,153,.1);color:#34d399;border-color:rgba(52,211,153,.22)}
 .gh-mini-pill.warn{background:rgba(240,160,48,.1);color:var(--acc2);border-color:rgba(240,160,48,.24)}
 @media(max-width:900px){.gh-home-card-grid{grid-template-columns:repeat(3,var(--gh-home-card-w))}}
-@media(max-width:720px){.gh-home-tab{--gh-home-card-w:min(186px,calc((100vw - 66px)/2))}.gh-home-card-grid{grid-template-columns:repeat(2,var(--gh-home-card-w));gap:10px}.gh-home-cats{gap:16px}.gh-home-cat-unit{gap:12px}.gh-home-growth-more.gh-home-growth-wide{grid-column:1/-1}.gh-home-card-showcase{grid-template-columns:1fr}.gh-home-card-showcase .gh-card-cell{justify-self:center}}
-@media(max-width:480px){.gh-home-tab{--gh-home-card-w:min(152px,calc((100vw - 54px)/2))}.gh-home-card{padding:14px}.gh-home-card-showcase .gh-card-cell .cv .cv-art,.gh-home-card-grid .gh-card-cell .cv .cv-art,.gh-home-cat-unit .gh-card-cell .cv .cv-art{height:50px!important;font-size:26px!important}.gh-home-card-showcase .gh-card-cell .cv .cv-name,.gh-home-card-grid .gh-card-cell .cv .cv-name,.gh-home-cat-unit .gh-card-cell .cv .cv-name{font-size:9.5px!important}.gh-home-card-showcase .gh-card-cell .cv .cv-desc,.gh-home-card-grid .gh-card-cell .cv .cv-desc,.gh-home-cat-unit .gh-card-cell .cv .cv-desc{font-size:7.5px!important}.gh-home-card-showcase .gh-card-cell .cv .cv-subtext,.gh-home-card-grid .gh-card-cell .cv .cv-subtext,.gh-home-cat-unit .gh-card-cell .cv .cv-subtext{font-size:6.8px!important}.gh-home-card-grid .gh-card-badge{font-size:7px}}
+@media(max-width:720px){.gh-home-tab{--gh-home-card-w:min(186px,calc((100vw - 66px)/2))}.gh-home-card-grid{grid-template-columns:repeat(2,var(--gh-home-card-w));gap:10px}.gh-home-cats{gap:16px}.gh-home-cat-unit{gap:12px}.gh-home-card-showcase{grid-template-columns:var(--gh-home-card-w) minmax(0,1fr);gap:12px}}
+@media(max-width:480px){.gh-home-tab{--gh-home-card-w:min(152px,calc((100vw - 54px)/2))}.gh-home-card{padding:14px}.gh-home-stats{grid-template-columns:1fr}.gh-home-card-showcase .gh-card-cell .cv .cv-art,.gh-home-card-grid .gh-card-cell .cv .cv-art,.gh-home-cat-unit .gh-card-cell .cv .cv-art{height:50px!important;font-size:26px!important}.gh-home-card-showcase .gh-card-cell .cv .cv-name,.gh-home-card-grid .gh-card-cell .cv .cv-name,.gh-home-cat-unit .gh-card-cell .cv .cv-name{font-size:9.5px!important}.gh-home-card-showcase .gh-card-cell .cv .cv-desc,.gh-home-card-grid .gh-card-cell .cv .cv-desc,.gh-home-cat-unit .gh-card-cell .cv .cv-desc{font-size:7.5px!important}.gh-home-card-showcase .gh-card-cell .cv .cv-subtext,.gh-home-card-grid .gh-card-cell .cv .cv-subtext,.gh-home-cat-unit .gh-card-cell .cv .cv-subtext{font-size:6.8px!important}.gh-home-card-grid .gh-card-badge{font-size:7px}}
 /* Cats tab — horizontal scroll */
 .gh-cats-tab{display:flex;flex-direction:column;height:100%;overflow:hidden;position:relative}
 .gh-cats-scroll{display:flex;flex-direction:row;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;gap:0;padding:0;flex:1;scrollbar-width:none;align-items:stretch;position:relative;z-index:1}
@@ -6431,10 +6432,10 @@ function renderGameHome() {
       ${activeHomeCard ? `<div class="gh-home-card-showcase">
         ${activeHomeCardHtml}
         <div class="gh-home-stats">
-          <div class="gh-home-stat"><div class="gh-home-stat-lbl">Expansion Slots</div><div class="gh-home-stat-val">${hd.expansion_slots||'—'}</div></div>
-          <div class="gh-home-stat"><div class="gh-home-stat-lbl">Max Occupants</div><div class="gh-home-stat-val">${hd.max_occupants||'—'}</div></div>
-          <div class="gh-home-stat"><div class="gh-home-stat-lbl">Comfort</div><div class="gh-home-stat-val">${hd.comfort_multiplier||'—'}×</div></div>
-          <div class="gh-home-stat"><div class="gh-home-stat-lbl">Training Tier</div><div class="gh-home-stat-val" style="font-size:11px;text-transform:capitalize">${hd.training_tier||'—'}</div></div>
+          <div class="gh-home-stat" onclick="showHomeStatInfo('expansion_slots','${hd.expansion_slots||'—'}')"><div class="gh-home-stat-lbl">Expansion Slots</div><div class="gh-home-stat-val">${hd.expansion_slots||'—'}</div></div>
+          <div class="gh-home-stat" onclick="showHomeStatInfo('max_occupants','${hd.max_occupants||'—'}')"><div class="gh-home-stat-lbl">Max Occupants</div><div class="gh-home-stat-val">${hd.max_occupants||'—'}</div></div>
+          <div class="gh-home-stat" onclick="showHomeStatInfo('comfort','${hd.comfort_multiplier||'—'}×')"><div class="gh-home-stat-lbl">Comfort</div><div class="gh-home-stat-val">${hd.comfort_multiplier||'—'}×</div></div>
+          <div class="gh-home-stat" onclick="showHomeStatInfo('training_tier','${hd.training_tier||'—'}')"><div class="gh-home-stat-lbl">Training Tier</div><div class="gh-home-stat-val" style="font-size:11px;text-transform:capitalize">${hd.training_tier||'—'}</div></div>
         </div>
       </div>` : '<div class="gh-drop-empty">No home card in deck.</div>'}
       ${activeHomeCard ? `<div style="margin-top:4px">
@@ -7798,6 +7799,37 @@ function sellRealEstateHome(cardId) {
   savePlayer();
   showCareToast(`💰 Sold ${card.name} for ${price} coins.`);
   renderRealEstateOffice();
+}
+
+const HOME_STAT_INFO = {
+  expansion_slots: {
+    label: 'Expansion Slots',
+    desc: 'How many home item slots this house can support. More slots means more passive growth items can be active at once.'
+  },
+  max_occupants: {
+    label: 'Max Occupants',
+    desc: 'How many cats can live in this home at the same time.'
+  },
+  comfort: {
+    label: 'Comfort',
+    desc: 'A multiplier for home development. Higher comfort makes cats benefit more from time spent at home.'
+  },
+  training_tier: {
+    label: 'Training Tier',
+    desc: 'The general training level this home supports for future home-based activities.'
+  }
+};
+
+function showHomeStatInfo(key, value) {
+  const info = HOME_STAT_INFO[key];
+  if (!info) return;
+  showCarePopup(`
+    <div class="care-popup-icon">🏠</div>
+    <div class="care-popup-title">${info.label}</div>
+    <div class="care-popup-desc">${info.desc}</div>
+    <div class="care-popup-desc" style="color:var(--t1);font-family:var(--fm)">Current: ${value}</div>
+    <button class="care-popup-btn primary" onclick="dismissCarePopup()">Got it</button>
+  `);
 }
 
 /* ══════════════════════════════════════════
