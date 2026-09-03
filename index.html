@@ -1560,7 +1560,7 @@ const STARTER_GEAR_CARDS = [
   }
 ];
 
-function getLibrary() { return [...baseLibrary().map(effectiveCard), ...STARTER_GEAR_CARDS.map(effectiveCard), ...STARTER_ABILITY_CARDS.map(effectiveCard), ...CONSUMABLE_CARDS.map(effectiveCard), ...NPC_CARDS.map(effectiveCard), ...CUSTOM_CARDS.map(normalizeAbilityCard)]; }
+function getLibrary() { return uniqueCards([...baseLibrary().map(effectiveCard), ...STARTER_GEAR_CARDS.map(effectiveCard), ...STARTER_ABILITY_CARDS.map(effectiveCard), ...CONSUMABLE_CARDS.map(effectiveCard), ...NPC_CARDS.map(effectiveCard), ...CUSTOM_CARDS.map(normalizeAbilityCard)]); }
 
 function getCard(id) { return getLibrary().find(c => c.id === id) || null; }
 

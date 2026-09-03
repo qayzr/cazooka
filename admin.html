@@ -1128,7 +1128,25 @@ let DOT_DRAW_BOUND = false;
 const CAT_STATS = ['weight','strength','stamina','loyalty','affection','amicability','intelligence','speed','agility','stealth'];
 const TYPE_LABELS = {cat_breed:'Cat Breed',battle_gear:'Battle Gear',home_item:'Home Item',special_ability:'Special Ability',home:'Home'};
 const RARITY_BADGE = {common:'badge-gray',uncommon:'badge-green',rare:'badge-blue',legendary:'badge-yellow'};
-const KNOWN_SPECIAL_PROPS = ['ranged_attack','first_strike','aoe_confusion','armor_pierce','team_sync','post_fight_recovery','free_escape','charm_disarm','post_win_rally','memory_boost','treasure_sense'];
+const KNOWN_SPECIAL_PROPS = ['ranged_attack','first_strike','aoe_confusion','armor_pierce','team_sync','post_fight_recovery','free_escape','charm_disarm','post_win_rally','memory_boost','treasure_sense','guaranteed_outside_fight'];
+const BUILT_IN_STARTER_CARDS = [
+  {
+    id:'gear-tuna-necklace',
+    name:'Tuna Necklace',
+    icon:'🐟',
+    type:'battle_gear',
+    rarity:'common',
+    coin_cost:18,
+    series:'Street Charms',
+    is_starter:true,
+    description:'Cats mistake it for real tuna. Fights start getting very stupid.',
+    data:{
+      gear_slot:1,
+      special_properties:'guaranteed_outside_fight',
+      effects:[{ stat:'strength', modifier:'+4' }]
+    }
+  }
+];
 let CURRENT_IMAGE_URL = null;
 let CURRENT_ART = null; // { mode, position:{x,y}, zoom, overlay:{enabled,color,opacity} }
 let ART_DRAG_STATE = null;
@@ -2476,7 +2494,11 @@ async function loadCards() {
     return;
   }
   await migrateLegacyAbilityCards(data || []);
-  ALL_CARDS = (data || []).map(normalizeAbilityCard);
+  const byId = new Map();
+  [...(data || []), ...BUILT_IN_STARTER_CARDS].forEach(card => {
+    if (card && card.id && !byId.has(card.id)) byId.set(card.id, card);
+  });
+  ALL_CARDS = [...byId.values()].map(normalizeAbilityCard);
   renderCards(ALL_CARDS);
 }
 
