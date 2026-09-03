@@ -505,6 +505,9 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .btl-r{font-family:var(--fm);font-size:11.5px;line-height:1.55;padding:1px 0;display:flex;gap:5px;align-items:baseline}
 .btl-r::before{content:'▸';flex-shrink:0;font-size:8px;opacity:.6}
 .btl-r.hit{color:#F87171}
+.btl-r.opp{color:#F87171}
+.btl-r.crit{color:#FCA5A5;animation:dojo-crit-blink .42s ease 2}
+.btl-r.stealth{color:#94A3B8;font-style:italic}
 .btl-r.atk{color:#94A3B8}
 .btl-r.dodge{color:#34D399}
 .btl-r.charm{color:#A855F7}
@@ -1538,7 +1541,26 @@ const STARTER_ABILITY_CARDS = [
   }
 ];
 
-function getLibrary() { return [...baseLibrary().map(effectiveCard), ...STARTER_ABILITY_CARDS.map(effectiveCard), ...CONSUMABLE_CARDS.map(effectiveCard), ...NPC_CARDS.map(effectiveCard), ...CUSTOM_CARDS.map(normalizeAbilityCard)]; }
+const STARTER_GEAR_CARDS = [
+  {
+    id:'gear-tuna-necklace',
+    name:'Tuna Necklace',
+    icon:'🐟',
+    type:'battle_gear',
+    rarity:'common',
+    coin_cost:18,
+    series:'Street Charms',
+    is_starter:true,
+    description:'Cats mistake it for real tuna. Fights start getting very stupid.',
+    data:{
+      gear_slot:1,
+      special_properties:'guaranteed_outside_fight',
+      effects:[{ stat:'strength', modifier:'+4' }]
+    }
+  }
+];
+
+function getLibrary() { return [...baseLibrary().map(effectiveCard), ...STARTER_GEAR_CARDS.map(effectiveCard), ...STARTER_ABILITY_CARDS.map(effectiveCard), ...CONSUMABLE_CARDS.map(effectiveCard), ...NPC_CARDS.map(effectiveCard), ...CUSTOM_CARDS.map(normalizeAbilityCard)]; }
 
 function getCard(id) { return getLibrary().find(c => c.id === id) || null; }
 
@@ -1637,16 +1659,16 @@ function formatEffectChange(effect) {
 }
 
 const CONSUMABLE_CARDS = [
-  { id:'cons-001', name:'Bag of Kibble', icon:'🥣', type:'consumable', rarity:'common', coin_cost:15, description:'Basic dry food. Reliable nutrition for a few meals.', data:{ consumable_type:'food', max_uses:3, hunger:22, statBoosts:{stamina:1} } },
-  { id:'cons-002', name:'Gourmet Wet Food', icon:'🍱', type:'consumable', rarity:'uncommon', coin_cost:24, description:'Rich wet food most cats love. Good for recovery and a little resilience.', data:{ consumable_type:'food', max_uses:2, hunger:38, mood:4, statBoosts:{stamina:2} } },
-  { id:'cons-003', name:'Salmon Fillet', icon:'🐟', type:'consumable', rarity:'rare', coin_cost:18, description:'Premium protein for one excellent meal. Builds stamina and trust.', data:{ consumable_type:'food', max_uses:1, hunger:55, statBoosts:{stamina:4, affection:1} } },
-  { id:'cons-004', name:'Energy Treat', icon:'⚡', type:'consumable', rarity:'common', coin_cost:16, description:'A quick boost for a tired cat. Slightly sharpens reflexes.', data:{ consumable_type:'treat', max_uses:2, energy:20, statBoosts:{speed:1} } },
-  { id:'cons-005', name:'Catnip Bundle', icon:'🌿', type:'consumable', rarity:'uncommon', coin_cost:20, description:'Instant happiness in herb form. Loosens up movement and play.', data:{ consumable_type:'treat', max_uses:2, mood:28, statBoosts:{agility:1} } },
-  { id:'cons-006', name:'Vitamin Paste', icon:'💊', type:'consumable', rarity:'uncommon', coin_cost:30, description:'Balanced supplement that restores appetite and energy while improving endurance.', data:{ consumable_type:'treat', max_uses:2, hunger:15, energy:15, statBoosts:{stamina:2} } },
-  { id:'cons-007', name:'Soft Brush', icon:'🪮', type:'consumable', rarity:'common', coin_cost:24, description:'A gentle brush for regular grooming. Builds affection over repeated care.', data:{ consumable_type:'groom', max_uses:4, mood:18, statBoosts:{affection:1} } },
-  { id:'cons-008', name:'Detangling Comb', icon:'🪮', type:'consumable', rarity:'uncommon', coin_cost:30, description:'Works out knots without fuss. Cats move more freely after.', data:{ consumable_type:'groom', max_uses:3, mood:22, statBoosts:{affection:2, agility:1} } },
-  { id:'cons-009', name:'Aromatic Shampoo', icon:'🧴', type:'consumable', rarity:'rare', coin_cost:36, description:'Luxury bath formula. Leaves a gleam that makes rivals hesitate.', data:{ consumable_type:'groom', max_uses:2, mood:32, statBoosts:{affection:3, speed:1} } },
-  { id:'cons-010', name:'Conditioning Spray', icon:'✨', type:'consumable', rarity:'uncommon', coin_cost:36, description:'No-rinse coat conditioner. Hydrates and subtly boosts endurance.', data:{ consumable_type:'groom', max_uses:3, mood:25, statBoosts:{affection:2, stamina:2} } },
+  { id:'cons-001', name:'Bag of Kibble', icon:'🥣', type:'consumable', rarity:'common', coin_cost:15, description:'Basic dry food. Reliable nutrition for a few meals.', data:{ consumable_type:'food', max_uses:3, hunger:22, energy:2 } },
+  { id:'cons-002', name:'Gourmet Wet Food', icon:'🍱', type:'consumable', rarity:'uncommon', coin_cost:24, description:'Rich wet food most cats love. Good for recovery and a little comfort.', data:{ consumable_type:'food', max_uses:2, hunger:38, mood:4, energy:3 } },
+  { id:'cons-003', name:'Salmon Fillet', icon:'🐟', type:'consumable', rarity:'rare', coin_cost:18, description:'Premium protein for one excellent meal. Restores appetite and trust for now.', data:{ consumable_type:'food', max_uses:1, hunger:55, mood:3, energy:4 } },
+  { id:'cons-004', name:'Energy Treat', icon:'⚡', type:'consumable', rarity:'common', coin_cost:16, description:'A quick boost for a tired cat. No long-term promises.', data:{ consumable_type:'treat', max_uses:2, energy:20 } },
+  { id:'cons-005', name:'Catnip Bundle', icon:'🌿', type:'consumable', rarity:'uncommon', coin_cost:20, description:'Instant happiness in herb form. Dignity expires immediately.', data:{ consumable_type:'treat', max_uses:2, mood:28, energy:4 } },
+  { id:'cons-006', name:'Vitamin Paste', icon:'💊', type:'consumable', rarity:'uncommon', coin_cost:30, description:'Balanced supplement that restores appetite and energy.', data:{ consumable_type:'treat', max_uses:2, hunger:15, energy:15 } },
+  { id:'cons-007', name:'Soft Brush', icon:'🪮', type:'consumable', rarity:'common', coin_cost:24, description:'A gentle brush for regular grooming. Temporary peace treaty.', data:{ consumable_type:'groom', max_uses:4, mood:18 } },
+  { id:'cons-008', name:'Detangling Comb', icon:'🪮', type:'consumable', rarity:'uncommon', coin_cost:30, description:'Works out knots without fuss. Cats move on emotionally.', data:{ consumable_type:'groom', max_uses:3, mood:22 } },
+  { id:'cons-009', name:'Aromatic Shampoo', icon:'🧴', type:'consumable', rarity:'rare', coin_cost:36, description:'Luxury bath formula. Leaves a gleam and several opinions.', data:{ consumable_type:'groom', max_uses:2, mood:32 } },
+  { id:'cons-010', name:'Conditioning Spray', icon:'✨', type:'consumable', rarity:'uncommon', coin_cost:36, description:'No-rinse coat conditioner. Smooths the coat, not the personality.', data:{ consumable_type:'groom', max_uses:3, mood:25 } },
 ];
 
 const NPC_CARDS = [
@@ -2719,7 +2741,6 @@ function normalizeCatCareState(raw, breedId) {
   const now = Date.now();
   const lastUpdated = Number(raw && raw.lastUpdated);
   return {
-    ...(raw || {}),
     breedId,
     hunger: clampCareValue(raw && raw.hunger, 82),
     mood: clampCareValue(raw && raw.mood, 75),
@@ -2740,7 +2761,7 @@ function getLiveCatState(ci, catSetup) {
     return {...s};
   }
   const clean = normalizeCatCareState(raw, bid);
-  if (clean.hunger !== raw.hunger || clean.mood !== raw.mood || clean.energy !== raw.energy || clean.lastUpdated !== raw.lastUpdated || clean.isResting !== raw.isResting) {
+  if (clean.hunger !== raw.hunger || clean.mood !== raw.mood || clean.energy !== raw.energy || clean.lastUpdated !== raw.lastUpdated || clean.isResting !== raw.isResting || raw.statBoosts) {
     CAT_CARE[key] = clean;
     saveCareStore();
   }
@@ -3534,15 +3555,6 @@ function getEffectiveStats(catSetup, homeItems, catIdx) {
       if (stats[e.stat] !== undefined) stats[e.stat] = Math.max(1, stats[e.stat] + v);
     });
   });
-  // Care-item stat boosts (grooming items, etc.)
-  if (catIdx !== undefined) {
-    const care = CAT_CARE[String(catIdx)];
-    if (care && care.statBoosts) {
-      Object.entries(care.statBoosts).forEach(([stat, val]) => {
-        if (stats[stat] !== undefined) stats[stat] = Math.max(1, stats[stat] + val);
-      });
-    }
-  }
   return stats;
 }
 
@@ -4570,9 +4582,55 @@ function rollFightWinCoinAbility(cs, state, scope) {
   };
 }
 
+function hasGuaranteedOutsideFight(cs) {
+  return (cs?.gear || []).some(g => {
+    const card = cardObjOf(g);
+    return card && card.data && card.data.special_properties === 'guaranteed_outside_fight';
+  });
+}
+
+function rollGuaranteedOutsideFight(catStats = {}) {
+  const catPower = dojoCombatPower(catStats);
+  const enemyStats = outsideDefaultEnemyStats(catStats, { won:false });
+  const enemyPower = dojoCombatPower(enemyStats);
+  const chance = Math.max(0.28, Math.min(0.78, 0.5 + (catPower - enemyPower) / 220));
+  return Math.random() < chance;
+}
+
+function ensureGuaranteedOutsideFights(runs) {
+  (runs || []).forEach(run => {
+    const cs = sbx.cats[run.catIdx];
+    if (!cs || !hasGuaranteedOutsideFight(cs)) return;
+    run.stats = run.stats || getEffectiveStats(cs, sbx.homeItems || [], run.catIdx);
+    const hasFight = (run.encounters || []).some(enc =>
+      (enc.type === 'battle' || enc.type === 'pvp-battle') && !enc.avoided && !enc.charmed && !enc.friendly
+    );
+    if (hasFight) return;
+    run.encounters = run.encounters || [];
+    const won = rollGuaranteedOutsideFight(run.stats);
+    const fight = {
+      type:'battle',
+      icon:'⚔',
+      enemy:'tuna-confused street cat',
+      intro:`${run.name || getCatDisplayName(cs)}'s Tuna Necklace attracts a deeply unreasonable challenger.`,
+      outcome: won ? 'The necklace survives the nonsense.' : 'The challenger proves extremely committed to imaginary tuna.',
+      won,
+      avoided:false,
+      charmed:false,
+      persistAfter: won,
+      persistText: won ? 'Stayed outside after the fight.' : 'Came home after the scuffle.',
+      abilityNotes:['Tuna Necklace: guaranteed street fight']
+    };
+    const insertAt = Math.min(run.encounters.length, Math.max(1, Math.ceil(run.encounters.length / 2)));
+    run.encounters.splice(insertAt, 0, fight);
+  });
+  return runs;
+}
+
 function guaranteeWonStreetFightRewards(runs) {
   (runs || []).forEach(run => {
     const cs = sbx.cats[run.catIdx];
+    if (cs && !run.stats) run.stats = getEffectiveStats(cs, sbx.homeItems || [], run.catIdx);
     const abilityState = {};
     (run.encounters || []).forEach((enc, ei) => {
       const existingRewards = [enc.loot, ...(enc.extraLoot || [])].filter(Boolean);
@@ -4597,6 +4655,137 @@ function guaranteeWonStreetFightRewards(runs) {
   return runs;
 }
 
+function outsideDefaultEnemyStats(catStats = {}, enc = {}) {
+  const baseline = {
+    strength: 16,
+    agility: 16,
+    stamina: 16,
+    speed: 16,
+    intelligence: 12,
+    stealth: 12,
+    affection: 8,
+    amicability: 8
+  };
+  const raw = enc.enemyStats || enc.enemy_stats || enc.opponentStats || enc.opponent_stats || {};
+  const scale = enc.type === 'pvp-battle' ? 1 : enc.won ? 0.94 : 1.04;
+  const stats = {};
+  DOJO_STAT_KEYS.forEach(key => {
+    const source = Number(raw[key]);
+    const mirrored = Number(catStats[key]) || baseline[key] || 10;
+    stats[key] = Math.max(1, Math.round(Number.isFinite(source) ? source : ((mirrored * scale) + (baseline[key] * (1 - scale)))));
+  });
+  return stats;
+}
+
+function outsideGearCuesForCat(cs) {
+  if (!cs) return [];
+  const gearCards = (cs.gear || []).map(g => {
+    if (typeof g === 'string') return getCard(g);
+    const card = g.id ? getCard(g.id) : null;
+    if (card) return card;
+    return {
+      id: g.id || g.name,
+      name: g.name || 'Gear',
+      type: g.type || 'battle_gear',
+      data: { ...(g.data || {}), effects: g.effects || (g.data && g.data.effects) || [] }
+    };
+  }).filter(Boolean);
+  return getDojoGearCues({ gear: gearCards });
+}
+
+function outsideFightRewardText(enc) {
+  const cards = [enc.loot, ...(enc.extraLoot || [])].filter(Boolean);
+  const coinReward = Math.max(0, Math.round(Number(enc.coins || 0)));
+  const bits = [];
+  if (cards.length) bits.push(`${cards.length} card${cards.length === 1 ? '' : 's'}`);
+  if (coinReward) bits.push(`${coinReward} coins`);
+  return bits.length ? ` and brings home ${bits.join(' plus ')}` : '';
+}
+
+function buildOutsideFightLog(enc, run, cs) {
+  const catName = run.name || (cs ? getCatDisplayName(cs) : 'Your cat');
+  const enemyName = enc.type === 'pvp-battle'
+    ? (enc.opponent && enc.opponent.catName) || enc.enemy || 'another cat'
+    : enc.enemy || 'street cat';
+  const catStats = run.stats || (cs ? getEffectiveStats(cs, sbx.homeItems || [], run.catIdx) : {});
+  const enemyStats = outsideDefaultEnemyStats(catStats, enc);
+  const catGearCues = outsideGearCuesForCat(cs);
+  const charmed = !!enc.charmed || !!enc.friendly;
+  const avoided = !!enc.avoided || !!enc.allyAssist;
+  const won = !!enc.won && !avoided && !charmed;
+  const draw = !!enc.draw;
+  const catHpMax = Math.round(58 + (Number(catStats.stamina) || 10) * 1.15);
+  const enemyHpMax = Math.round(58 + (Number(enemyStats.stamina) || 10) * 1.15);
+  let catHp = catHpMax;
+  let enemyHp = enemyHpMax;
+  const lines = [];
+  const opening = getFightTactics(catStats, enemyStats, 1, 1)[0];
+
+  if (charmed) {
+    lines.push({ cls:'open', text:`${catName} slows down and reads ${enemyName} before claws come out.` });
+    lines.push({ cls:'stealth', text:`A soft blink and careful tail position turn the meeting into a truce.` });
+    lines.push({ cls:'win', text:`${enemyName} lets ${catName} pass without a fight${outsideFightRewardText(enc)}.` });
+    return lines;
+  }
+  if (avoided) {
+    lines.push({ cls:'open', text:`${enemyName} blocks the path, but ${catName} studies the gap.` });
+    lines.push({ cls:'stealth', text:`${catName} uses timing instead of pride, slipping past the worst angle.` });
+    lines.push({ cls:'win', text:`No clean hit lands before the route opens again${outsideFightRewardText(enc)}.` });
+    return lines;
+  }
+
+  lines.push({ cls:'open', text:`${catName} meets ${enemyName}. Read: ${opening}.` });
+  if (catGearCues.length) {
+    const gearNames = catGearCues.slice(0, 2).map(cue => cue.card.name).join(' and ');
+    lines.push({ cls:'hit', text:`${catName}'s ${gearNames} shape the first exchange.` });
+  }
+
+  const catFirst = ((Number(catStats.speed) || 0) + (Number(catStats.agility) || 0) + Math.random() * 18) >=
+    ((Number(enemyStats.speed) || 0) + (Number(enemyStats.agility) || 0) + Math.random() * 18);
+  const order = catFirst ? ['cat', 'enemy', 'cat'] : ['enemy', 'cat', 'enemy'];
+  order.forEach((actor, idx) => {
+    if (actor === 'cat') {
+      const hit = dojoRollDamage(catStats, enemyStats, idx + 1, 'cat', catHp / catHpMax, enemyHp / enemyHpMax);
+      enemyHp = Math.max(0, enemyHp - hit.damage);
+      lines.push({
+        cls: hit.crit ? 'crit' : 'hit',
+        text: dojoMoveFlavor(catName, enemyName, hit, 'cat', catStats, enemyStats, catGearCues, catHp / catHpMax, enemyHp / enemyHpMax)
+      });
+    } else {
+      const hit = dojoRollDamage(enemyStats, catStats, idx + 1, 'opp', enemyHp / enemyHpMax, catHp / catHpMax);
+      catHp = Math.max(0, catHp - hit.damage);
+      lines.push({
+        cls: hit.crit ? 'crit' : 'opp',
+        text: dojoMoveFlavor(enemyName, catName, hit, 'opp', enemyStats, catStats, [], enemyHp / enemyHpMax, catHp / catHpMax)
+      });
+    }
+  });
+
+  if (draw) {
+    lines.push({ cls:'open', text:`The stand-off breaks even, and both cats decide the street is big enough.` });
+  } else if (won) {
+    lines.push({ cls:'win', text:`${catName} wins the exchange${outsideFightRewardText(enc)}.` });
+  } else {
+    lines.push({ cls:'lose', text:`${enemyName} controls the last beat, so ${catName} retreats cleanly and gets home.` });
+  }
+  return lines.slice(-4).length >= 3 ? lines : fallbackBattleLog(enc, `Faced ${enemyName}`);
+}
+
+function decorateOutsideRunFightLogs(runs) {
+  (runs || []).forEach(run => {
+    const cs = sbx.cats[run.catIdx];
+    if (cs) {
+      run.name = run.name || getCatDisplayName(cs);
+      run.stats = run.stats || getEffectiveStats(cs, sbx.homeItems || [], run.catIdx);
+    }
+    (run.encounters || []).forEach(enc => {
+      if (enc.type !== 'battle' && enc.type !== 'pvp-battle') return;
+      enc.battleLog = buildOutsideFightLog(enc, run, cs);
+    });
+  });
+  return runs;
+}
+
 async function startRun(selectedCatIndices) {
   if (!sbx.cats.length) return false;
   if (sbx.activeRun && sbx.activeRun.timer) clearInterval(sbx.activeRun.timer);
@@ -4612,7 +4801,7 @@ async function startRun(selectedCatIndices) {
     return false;
   }
 
-  const runs = guaranteeWonStreetFightRewards(await createServerOutsideRuns(readyIndices));
+  const runs = decorateOutsideRunFightLogs(guaranteeWonStreetFightRewards(ensureGuaranteedOutsideFights(await createServerOutsideRuns(readyIndices))));
   if (!runs.length) return false;
   runs.forEach(run => {
     const cs = sbx.cats[run.catIdx];
@@ -4826,10 +5015,10 @@ function battleSummaryDetailsHtml(title, summary, logHtml, footerHtml = '', loot
   return `<details class="btl-details">
     <summary class="btl-details-summary">
       <span class="btl-summary-top">
-        <span class="btl-summary-title">${title}</span>
+        <span class="btl-summary-title">${escapeAttr(title)}</span>
         <span class="btl-summary-chev">›</span>
       </span>
-      <span class="btl-summary-line">${summary}</span>
+      <span class="btl-summary-line">${escapeAttr(summary)}</span>
     </summary>
     ${logHtml}${footerHtml}
   </details>${lootPillHtml(loot, extraLoot)}`;
@@ -4901,7 +5090,7 @@ function buildBattleEventHtml(enc) {
     ? enc.aiLog.map(text => ({ cls:'open', text }))
     : ((enc.battleLog || []).length >= 3 ? enc.battleLog : fallbackBattleLog(enc, title));
   const logHtml = `<div class="btl-log">${battleLog.map(l =>
-    `<div class="btl-r ${l.cls}">${l.text}</div>`).join('')}</div>`;
+    `<div class="btl-r ${escapeAttr(l.cls || 'open')}">${escapeAttr(l.text || l)}</div>`).join('')}</div>`;
 
   const coinReward = Math.max(0, Math.round(Number(enc.coins || 0)));
   const persistHtml = `<div class="btl-persist-note ${enc.persistAfter?'yes':'no'}">${enc.persistAfter?'🌆':'🏡'} ${enc.persistText}</div>`;
@@ -4938,6 +5127,7 @@ function buildPersistBonusHtml(enc) {
 
 function buildPvPBattleHtml(enc) {
   const { opponent, won, draw, friendly, pvpResult, repDelta, coins } = enc;
+  const result = pvpResult || {};
   const repSign  = repDelta > 0 ? '+' : '';
   const repClass = repDelta > 0 ? 'pvp-rep-pos' : repDelta < 0 ? 'pvp-rep-neg' : 'pvp-rep-zero';
   let icoClass, title;
@@ -4956,13 +5146,13 @@ function buildPvPBattleHtml(enc) {
   }
   const pvpLog = enc.aiLog && enc.aiLog.length >= 3
     ? enc.aiLog.map(text => ({ cls:'open', text }))
-    : ((pvpResult.log || []).length >= 3 ? pvpResult.log : fallbackBattleLog({ ...enc, enemy: opponent.catName }, title));
+    : ((result.log || []).length >= 3 ? result.log : fallbackBattleLog({ ...enc, enemy: opponent.catName }, title));
   const logHtml = `<div class="btl-log">${pvpLog.map(l =>
-    `<div class="btl-r ${l.cls}">${l.text}</div>`).join('')}</div>`;
+    `<div class="btl-r ${escapeAttr(l.cls || 'open')}">${escapeAttr(l.text || l)}</div>`).join('')}</div>`;
   const footerHtml = `<div class="pvp-footer">
     <span class="pvp-rep-delta ${repClass}">⭐ ${repSign}${repDelta} REP</span>
     ${coins > 0 ? `<span class="pvp-coins">🪙 +${coins}</span>` : ''}
-    ${enc.befriendable ? `<span class="pvp-befriended">🐾 New ally: ${enc.opponent.catName}</span>` : enc.pvpResult.outcome === 'submission' && won ? `<span class="pvp-ally">🤝 Possible ally</span>` : ''}
+    ${enc.befriendable ? `<span class="pvp-befriended">🐾 New ally: ${enc.opponent.catName}</span>` : result.outcome === 'submission' && won ? `<span class="pvp-ally">🤝 Possible ally</span>` : ''}
     ${enc.allyAssist ? `<span class="pvp-assist">🛡 ${enc.allyAssist.catName} had your back</span>` : ''}
   </div>`;
   const outcome = friendly ? 'Peaceful pass' : draw ? 'No clear winner' : won ? 'Victory' : 'Retreated';
@@ -5885,7 +6075,6 @@ function formatConsumableEffects(card) {
     d.hunger ? `+${d.hunger} Hunger` : '',
     d.energy ? `+${d.energy} Energy` : '',
     d.mood ? `+${d.mood} Mood` : '',
-    ...(d.statBoosts ? Object.entries(d.statBoosts).map(([stat, val]) => `+${val} ${stat}`) : []),
     `${d.max_uses || 1} use${(d.max_uses || 1) === 1 ? '' : 's'}`
   ].filter(Boolean);
 }
@@ -7404,14 +7593,6 @@ function ghFeedWith(ci, consId) {
   if (Number.isFinite(hungerGain) && hungerGain !== 0) patch.hunger = clampCareValue(state.hunger + hungerGain, state.hunger);
   if (Number.isFinite(energyGain) && energyGain !== 0) patch.energy = clampCareValue(state.energy + energyGain, state.energy);
   if (Number.isFinite(moodGain) && moodGain !== 0) patch.mood = clampCareValue(state.mood + moodGain, state.mood);
-  if (data.statBoosts) {
-    const _care = CAT_CARE[String(ci)] || {};
-    patch.statBoosts = {...(_care.statBoosts||{})};
-    Object.entries(data.statBoosts).forEach(([stat, val]) => {
-      const boost = Number(val);
-      if (Number.isFinite(boost)) patch.statBoosts[stat] = (Number(patch.statBoosts[stat]) || 0) + boost;
-    });
-  }
   setCatCare(ci, cs, patch);
   consumeCardUse(consId);
   if (PLAYER) { PLAYER.inventory = inv; savePlayer(); }
@@ -7459,14 +7640,6 @@ function ghGroomWith(ci, consId) {
   if (Number.isFinite(moodGain) && moodGain !== 0) patch.mood = clampCareValue(state.mood + moodGain, state.mood);
   if (Number.isFinite(hungerGain) && hungerGain !== 0) patch.hunger = clampCareValue(state.hunger + hungerGain, state.hunger);
   if (Number.isFinite(energyGain) && energyGain !== 0) patch.energy = clampCareValue(state.energy + energyGain, state.energy);
-  if (data.statBoosts) {
-    const _care = CAT_CARE[String(ci)] || {};
-    patch.statBoosts = {...(_care.statBoosts||{})};
-    Object.entries(data.statBoosts).forEach(([stat, val]) => {
-      const boost = Number(val);
-      if (Number.isFinite(boost)) patch.statBoosts[stat] = (Number(patch.statBoosts[stat]) || 0) + boost;
-    });
-  }
   setCatCare(ci, cs, patch);
   consumeCardUse(consId);
   if (PLAYER) { PLAYER.inventory = inv; savePlayer(); }
