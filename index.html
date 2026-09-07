@@ -5961,10 +5961,10 @@ function startSimulation() {
 }
 
 async function initApp() {
-  renderLibrary();
   // Paint a usable entry screen immediately. Cloud data can be slow or
   // unavailable on a static host, and should never leave the page blank.
   showOnboardStep('register');
+  try { renderLibrary(); } catch (e) { console.error('Card library render failed:', e); }
   // Pull the live card library from Supabase; a slow/dead network just
   // means we keep whatever baseLibrary() already fell back to.
   try {
