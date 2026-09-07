@@ -630,6 +630,20 @@
                   </select>
                 </label>
                 <label class="dot-control">
+                  <span class="dot-lbl">Cat Size</span>
+                  <span class="dot-control-row">
+                    <input class="dot-range" id="dot-cat-scale" type="range" min="60" max="140" step="5" value="100" oninput="dotMatrixApplyControls()">
+                    <span class="dot-value" id="dot-cat-scale-val">100%</span>
+                  </span>
+                </label>
+                <label class="dot-control">
+                  <span class="dot-lbl">Scene Depth</span>
+                  <span class="dot-control-row">
+                    <input class="dot-range" id="dot-depth" type="range" min="0" max="100" step="5" value="65" oninput="dotMatrixApplyControls()">
+                    <span class="dot-value" id="dot-depth-val">65%</span>
+                  </span>
+                </label>
+                <label class="dot-control">
                   <span class="dot-lbl">Dot Size</span>
                   <span class="dot-control-row">
                     <input class="dot-range" id="dot-size" type="range" min="3" max="10" value="6" oninput="dotMatrixApplyControls()">
@@ -1113,7 +1127,7 @@ let DOT_MATRIX_FRAME = null;
 let DOT_MATRIX_STARTED_AT = 0;
 let DOT_MATRIX_STATE = {
   event:'walking', environment:'alley', weather:'clear', time:'night', object:'observe-marker',
-  mood:'happy', catCount:1, furPreset:'gold', accentColor:'#ffc860',
+  mood:'happy', catCount:1, catScale:100, depth:65, furPreset:'gold', accentColor:'#ffc860',
   reaction:'advance', envAction:'scroll', pacing:'loop',
   palette:'cool', dotSize:6, speed:7, glow:4, motion:true, grid:true, bubble:true, fx:true,
   copy:'Cazooka pads through the back alley, scanning for the next interesting thing.'
@@ -1673,6 +1687,8 @@ function dotMatrixApplyControls() {
   DOT_MATRIX_STATE.accentColor = getVal('dot-accent-color') || DOT_MATRIX_STATE.accentColor;
   DOT_MATRIX_STATE.palette = getVal('dot-palette') || DOT_MATRIX_STATE.palette;
   DOT_MATRIX_STATE.dotSize = parseInt(getVal('dot-size'), 10) || 6;
+  DOT_MATRIX_STATE.catScale = Math.max(60, Math.min(140, Number(getVal('dot-cat-scale')) || 100));
+  DOT_MATRIX_STATE.depth = Math.max(0, Math.min(100, Number(getVal('dot-depth')) || 0));
   DOT_MATRIX_STATE.speed = parseInt(getVal('dot-speed'), 10) || 0;
   DOT_MATRIX_STATE.glow = parseInt(getVal('dot-glow'), 10) || 0;
   DOT_MATRIX_STATE.copy = getVal('dot-copy') || '';
@@ -1719,6 +1735,8 @@ function dotMatrixApplySavedRecipe(recipe, eventKey) {
     pacing:recipe.pacing || DOT_MATRIX_STATE.pacing,
     mood:recipe.cat?.mood || DOT_MATRIX_STATE.mood,
     catCount:recipe.cat?.count || DOT_MATRIX_STATE.catCount,
+    catScale:Math.max(60, Math.min(140, Number(recipe.cat?.scale) || 100)),
+    depth:Math.max(0, Math.min(100, Number(recipe.renderer?.depth ?? 65) || 0)),
     furPreset:recipe.cat?.fur || DOT_MATRIX_STATE.furPreset,
     accentColor:recipe.cat?.accent || DOT_MATRIX_STATE.accentColor,
     palette:recipe.renderer?.palette || DOT_MATRIX_STATE.palette,
@@ -1758,6 +1776,8 @@ function dotMatrixSetFormFromState() {
   setVal('dot-accent-color', DOT_MATRIX_STATE.accentColor);
   setVal('dot-palette', DOT_MATRIX_STATE.palette);
   setVal('dot-size', DOT_MATRIX_STATE.dotSize);
+  setVal('dot-cat-scale', DOT_MATRIX_STATE.catScale);
+  setVal('dot-depth', DOT_MATRIX_STATE.depth);
   setVal('dot-speed', DOT_MATRIX_STATE.speed);
   setVal('dot-glow', DOT_MATRIX_STATE.glow);
   setVal('dot-copy', DOT_MATRIX_STATE.copy);
@@ -1779,6 +1799,8 @@ function dotMatrixUsePreset(key) {
 function dotMatrixSyncLabels() {
   const setText = (id, text) => { const el = document.getElementById(id); if (el) el.textContent = text; };
   setText('dot-size-val', `${DOT_MATRIX_STATE.dotSize}px`);
+  setText('dot-cat-scale-val', `${DOT_MATRIX_STATE.catScale}%`);
+  setText('dot-depth-val', `${DOT_MATRIX_STATE.depth}%`);
   setText('dot-speed-val', String(DOT_MATRIX_STATE.speed));
   setText('dot-glow-val', String(DOT_MATRIX_STATE.glow));
   setText('dot-brush-size-val', String(DOT_DRAW.brushSize));
@@ -1839,6 +1861,7 @@ function dotMatrixRecipe() {
     cat: {
       mood: DOT_MATRIX_STATE.mood,
       count: DOT_MATRIX_STATE.catCount,
+      scale: DOT_MATRIX_STATE.catScale,
       fur: DOT_MATRIX_STATE.furPreset,
       accent: DOT_MATRIX_STATE.accentColor
     },
@@ -1849,6 +1872,7 @@ function dotMatrixRecipe() {
       baseline_event: 'walking',
       infinite_environment_loop: DOT_MATRIX_STATE.event === 'walking' || DOT_MATRIX_STATE.envAction === 'scroll',
       dot_size: DOT_MATRIX_STATE.dotSize,
+      depth: DOT_MATRIX_STATE.depth,
       speed: DOT_MATRIX_STATE.speed,
       glow: DOT_MATRIX_STATE.glow,
       motion: DOT_MATRIX_STATE.motion,
@@ -2200,7 +2224,9 @@ function dotMatrixDraw(now) {
     ctx.fillRect(0, 0, w, h);
   }
   const environmentY = 308 - DOT_LAYER_SPECS.environment.rows * pixelSize;
+  dotMatrixDepthBackdrop(ctx, w, environmentY, envShift, pixelSize);
   dotMatrixPreviewEnvironment(ctx, DOT_LAYERS.environment, envShift + envShake, environmentY, w, pixelSize, envAlpha);
+  dotMatrixDepthFloor(ctx, w, h, envShift, pixelSize);
   if (DOT_MATRIX_STATE.grid) dotMatrixZoneGuides(ctx, w, h);
   if (DOT_MATRIX_STATE.envAction === 'rain-pulse') dotWeather(ctx, w, h, d, t * 1.6);
   if (DOT_MATRIX_STATE.event !== 'walking') {
@@ -2229,6 +2255,8 @@ function dotMatrixPreviewLayer(ctx, layer, ox, oy, unit, alpha = 1) {
 
 function dotMatrixAnimatedCat(ctx, layer, position, unit, time, index) {
   if (!layer) return;
+  const size = Math.max(60, Math.min(140, DOT_MATRIX_STATE.catScale || 100)) / 100;
+  const renderedLayer = dotMatrixResizeSprite(layer, size);
   const moving = DOT_MATRIX_STATE.motion && DOT_MATRIX_STATE.speed > 0;
   const walking = moving && (DOT_MATRIX_STATE.event === 'walking' || DOT_MATRIX_STATE.pacing === 'pass' || (DOT_MATRIX_STATE.pacing !== 'pause' && ['chase', 'advance', 'back-away'].includes(DOT_MATRIX_STATE.reaction)));
   const phase = time * (DOT_MATRIX_STATE.reaction === 'chase' ? 11 : 7) + index * 1.9;
@@ -2238,28 +2266,77 @@ function dotMatrixAnimatedCat(ctx, layer, position, unit, time, index) {
   ctx.save();
   ctx.fillStyle = 'rgba(0,0,0,.24)';
   ctx.beginPath();
-  ctx.ellipse(position.x + 31 * unit, position.groundY + 32 * unit, 18 * unit, 2 * unit, 0, 0, Math.PI * 2);
+  ctx.ellipse(position.x + 31 * unit, position.groundY + 32 * unit, 18 * unit * size, 2 * unit * size, 0, 0, Math.PI * 2);
   ctx.fill();
-  ctx.translate(position.x, position.y + (crouching ? 8 * unit : 0));
+  ctx.translate(position.x + 31 * unit * (1 - size), position.y + 32 * unit * (1 - size) + (crouching ? 8 * unit * size : 0));
   ctx.globalAlpha = index === 0 ? 1 : 0.92;
-  layer.forEach((row, rowIndex) => row.forEach((color, columnIndex) => {
+  renderedLayer.forEach((row, rowIndex) => row.forEach((color, columnIndex) => {
     if (!color) return;
     let shiftX = 0;
     let shiftY = 0;
-    if (rowIndex >= 26 && walking && !crouching) {
-      const legPhase = phase + (columnIndex < 29 ? 0 : Math.PI) + (columnIndex % 8 < 4 ? Math.PI : 0);
-      const leverage = (rowIndex - 25) / 7;
+    if (rowIndex >= 26 * size && walking && !crouching) {
+      const legPhase = phase + (columnIndex / size < 29 ? 0 : Math.PI) + ((columnIndex / size) % 8 < 4 ? Math.PI : 0);
+      const leverage = (rowIndex / size - 25) / 7;
       shiftX = Math.sin(legPhase) * 1.7 * leverage;
       shiftY = -Math.max(0, Math.cos(legPhase)) * 1.2 * leverage;
-    } else if (columnIndex < 18 && rowIndex < 23 && moving) {
-      shiftX = Math.sin(time * 2.4 + index) * (23 - rowIndex) * 0.065;
-    } else if (rowIndex < 26) {
+    } else if (columnIndex < 18 * size && rowIndex < 23 * size && moving) {
+      shiftX = Math.sin(time * 2.4 + index) * (23 * size - rowIndex) * 0.065;
+    } else if (rowIndex < 26 * size) {
       shiftY = breath;
     }
     ctx.fillStyle = color;
     const poseRow = crouching ? Math.round(rowIndex * 0.75) : rowIndex;
     ctx.fillRect((columnIndex + shiftX) * unit, (poseRow + shiftY) * unit, unit + 0.2, unit + 0.2);
   }));
+  ctx.restore();
+}
+
+function dotMatrixResizeSprite(layer, scale) {
+  if (scale === 1) return layer;
+  const rows = Math.max(1, Math.round(layer.length * scale));
+  const columns = Math.max(1, Math.round(layer[0].length * scale));
+  return Array.from({ length:rows }, (_, row) => Array.from({ length:columns }, (_, column) =>
+    layer[Math.min(layer.length - 1, Math.floor(row / scale))][Math.min(layer[0].length - 1, Math.floor(column / scale))]));
+}
+
+function dotMatrixDepthBackdrop(ctx, width, wallTop, offset, pixel) {
+  const depth = (DOT_MATRIX_STATE.depth || 0) / 100;
+  if (!depth) return;
+  ctx.save();
+  ctx.globalAlpha = depth * 0.65;
+  const spacing = 40 * pixel;
+  const drift = ((offset * 0.18) % spacing + spacing) % spacing;
+  for (let column = -spacing; column < width + spacing; column += spacing) {
+    const origin = Math.round((column + drift) / pixel) * pixel;
+    for (let row = 0; row < 24; row++) {
+      for (let cell = 0; cell < 32; cell++) {
+        if (row < 4 && cell > 20) continue;
+        ctx.fillStyle = row > 6 && row % 5 === 0 && cell % 6 === 2 ? '#657c80' : '#233139';
+        ctx.fillRect(origin + cell * pixel, wallTop - (24 - row) * pixel, pixel + 0.2, pixel + 0.2);
+      }
+    }
+  }
+  ctx.restore();
+}
+
+function dotMatrixDepthFloor(ctx, width, height, offset, pixel) {
+  const depth = (DOT_MATRIX_STATE.depth || 0) / 100;
+  if (!depth) return;
+  ctx.save();
+  ctx.globalAlpha = depth;
+  const horizon = 278;
+  const length = Math.max(pixel, height - horizon);
+  for (let row = 0; row < Math.ceil(length / pixel); row++) {
+    const distance = row * pixel / length;
+    const spacing = (12 + distance * 36) * pixel;
+    const drift = offset * (0.35 + distance * 0.65);
+    for (let column = 0; column < Math.ceil(width / pixel); column++) {
+      const phase = ((column * pixel - width / 2 + drift) % spacing + spacing) % spacing;
+      const cross = Math.floor(Math.sqrt(distance) * 7) !== Math.floor(Math.sqrt(Math.max(0, distance - pixel / length)) * 7);
+      ctx.fillStyle = phase < pixel || cross ? '#45545c' : row % 2 ? '#222d34' : '#263139';
+      ctx.fillRect(column * pixel, horizon + row * pixel, pixel + 0.2, pixel + 0.2);
+    }
+  }
   ctx.restore();
 }
 
