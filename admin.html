@@ -1939,14 +1939,32 @@ function dotMatrixEnvironmentTemplate(kind) {
     dotMatrixRect(layer, 16, 16, 36, 1, '#7c3aed');
     dotMatrixRect(layer, 60, 8, 10, 9, '#78350f');
   } else {
-    dotMatrixRect(layer, 2, 9, 90, 7, pal.grid);
-    [6, 24, 43, 62, 81].forEach((x, i) => dotMatrixRect(layer, x, 11 + (i % 2), 7, 1, '#475569'));
+    dotMatrixRect(layer, 0, 3, 96, 14, pal.grid);
+    for (let row = 4; row < 16; row += 3) {
+      for (let column = (row % 2) * 4; column < 96; column += 8) {
+        dotMatrixRect(layer, column, row, 7, 1, '#35404a');
+        dotMatrixPut(layer, column + 6, row + 1, '#222a32');
+      }
+    }
+    [12, 48, 80].forEach(column => {
+      dotMatrixRect(layer, column, 5, 9, 8, '#10191e');
+      dotMatrixRect(layer, column + 1, 6, 7, 5, '#809d9c');
+      dotMatrixRect(layer, column + 2, 6, 2, 4, '#b5c8b4');
+      dotMatrixRect(layer, column + 4, 6, 1, 5, '#26363c');
+      dotMatrixRect(layer, column, 12, 10, 1, '#596b70');
+    });
+    dotMatrixRect(layer, 32, 3, 1, 14, '#748084');
+    dotMatrixRect(layer, 33, 3, 1, 14, '#38464c');
+    dotMatrixRect(layer, 0, 16, 96, 1, '#657477');
+    dotMatrixMap(layer, 62, 11, [' ssssss ','dddddddd',' sggggs ',' sgsggs ',' sggsgs ',' ssssss '], {s:'#61766b',g:'#42594e',d:'#9ba69a'});
+    dotMatrixMap(layer, 4, 13, ['  ll ',' llll','  ss ',' dddd'], {l:'#6f9878',s:'#a8b19a',d:'#697f88'});
+    [22, 54, 86].forEach(column => dotMatrixRect(layer, column, 18, 5, 1, '#687e84'));
   }
   return layer;
 }
 
-function dotMatrixCatTemplate() {
-  const fur = DOT_FURS[DOT_MATRIX_STATE.furPreset] || DOT_FURS.gold;
+function dotMatrixCatTemplate(furPreset = DOT_MATRIX_STATE.furPreset, mood = DOT_MATRIX_STATE.mood) {
+  const fur = DOT_FURS[furPreset] || DOT_FURS.gold;
   const palette = { o:fur.o, s:fur.s, d:fur.d, w:fur.w, e:'#101820', p:'#d99191', g:'#a3c775' };
   const layer = dotMatrixBlankLayer('cat');
   dotMatrixMap(layer, 8, 8, [
@@ -1983,7 +2001,6 @@ function dotMatrixCatTemplate() {
       }
     }
   });
-  const mood = DOT_MATRIX_STATE.mood;
   if (mood === 'tired' || mood === 'hurt') {
     dotMatrixRect(layer, 44, 14, 2, 1, palette.e);
   } else if (mood === 'spicy') {
@@ -1999,13 +2016,21 @@ function dotMatrixCatTemplate() {
 
 function dotMatrixEncounterTemplate(kind) {
   const layer = dotMatrixBlankLayer('encounter');
-  if (kind === 'loot-card') dotMatrixMap(layer, 12, 8, ['bbbbbb','byyyyb','byccyb','byyyyb','bbbbbb'], { b:'#a16207', y:'#facc15', c:'#60a5fa' });
-  else if (kind === 'friend-cat' || kind === 'rebuff-cat' || kind === 'ally-cat' || kind === 'market-cat' || kind === 'pvp-rival') dotMatrixMap(layer, 11, 7, [' g   g ','ggggggg','gegeggg','ggwgggg',' ggggg ','  g g  '], { g:kind === 'market-cat' ? '#d1a65d' : kind === 'pvp-rival' ? '#ef4444' : kind === 'ally-cat' ? '#34d399' : kind === 'rebuff-cat' ? '#64748b' : '#94a3b8', e:'#05080c', w:'#fef3c7' });
-  else if (kind === 'fight-threat') dotMatrixMap(layer, 12, 8, ['  rr  ',' rrrrr','rereer',' rrrr ',' r  r '], { r:'#ef4444', e:'#05080c' });
+  if (kind === 'loot-card') dotMatrixMap(layer, 9, 7, ['   ssssssss  ','  swwwwwwwws ',' swwwwwwwwwws','sgggggggggggs','sddddyyd ddds','sddddyyddddds','sddddddddddds','sddddddddddds',' sssssssssss '], { s:'#405962', w:'#97b4b8', g:'#647c85', d:'#34515e', y:'#e6c875' });
+  else if (['friend-cat','rebuff-cat','ally-cat','market-cat','pvp-rival','fight-threat'].includes(kind)) {
+    const hostile = ['rebuff-cat','pvp-rival','fight-threat'].includes(kind);
+    const sprite = dotMatrixCatTemplate(kind === 'market-cat' ? 'gold' : hostile ? 'charcoal' : 'cream', hostile ? 'spicy' : 'happy');
+    for (let row = 0; row < 20; row++) {
+      for (let column = 0; column < 32; column++) {
+        const sourceColumn = (31 - column) * 2;
+        layer[row][column] = sprite[row * 2][sourceColumn] || sprite[row * 2 + 1][sourceColumn] || sprite[row * 2][sourceColumn + 1];
+      }
+    }
+  }
   else if (kind === 'escape-route') dotMatrixMap(layer, 10, 9, ['  s     ',' sss    ','ssssssss','   sss  ','    s   '], { s:'#94a3b8' });
-  else if (kind === 'return-door') dotMatrixMap(layer, 12, 7, ['bbbbbbb','byyyyb','byyyyb','bydyyb','bbbbbbb','  bb   '], { b:'#78350f', y:'#fbbf24', d:'#05080c' });
-  else if (kind === 'sleep-bed') dotMatrixMap(layer, 9, 11, ['ppppppppp','pbbbbbbbp','pbbbbbbbp','sssssssss'], { p:'#a78bfa', b:'#312e81', s:'#475569' });
-  else dotMatrixMap(layer, 10, 6, ['yyyyyyyy','y      y','yyyyyyyy','   y    ','   y    ','   y    '], { y:'#ca8a04' });
+  else if (kind === 'return-door') dotMatrixMap(layer, 11, 4, ['sssssssss','sddddddds','sdwwwwwds','sdwgwgwds','sdwwwwwds','sddddddds','sdgggggds','sdgggggys','sdgggggds','sddddddds','sdgggggds','sddddddds','sssssssss'], { s:'#7e9b9b', d:'#314c53', w:'#afc6be', g:'#4e7379', y:'#edd592' });
+  else if (kind === 'sleep-bed') dotMatrixMap(layer, 8, 11, ['   sssssssss   ',' sswwwwwwwwwss ','swwbbbbbbbbbwws','swbbbbbbbbbbbws','swwbbbbbbbbbwws',' sswwwwwwwwwss ','   sssssssss   '], { s:'#526c76', w:'#a4bdc0', b:'#778eaa' });
+  else dotMatrixMap(layer, 12, 8, ['    ss    ','  swwwws  ',' sw    ws ','sw      ws',' sw    ws ','  swwwwss ','    ss sds','        sds','         s '], { s:'#72999f', w:'#bdd9d6', d:'#445a69' });
   return layer;
 }
 
@@ -2045,7 +2070,8 @@ function dotMatrixLayerCanvas(id, layer) {
   layer.forEach((row, y) => row.forEach((color, x) => {
     if (!color) return;
     ctx.fillStyle = color;
-    ctx.fillRect(x * cw + 1, y * ch + 1, cw - 2, ch - 2);
+    const gap = DOT_MATRIX_STATE.grid ? Math.min(0.5, cw * 0.04) : 0;
+    ctx.fillRect(x * cw + gap, y * ch + gap, cw - gap * 2, ch - gap * 2);
   }));
 }
 
@@ -2179,7 +2205,7 @@ function dotMatrixDraw(now) {
   } else {
     dotMatrixPreviewLayerFit(ctx, DOT_LAYERS.environment, envShake, 108, w, 200, envAlpha);
   }
-  dotMatrixZoneGuides(ctx, w, h);
+  if (DOT_MATRIX_STATE.grid) dotMatrixZoneGuides(ctx, w, h);
   if (DOT_MATRIX_STATE.envAction === 'rain-pulse') dotWeather(ctx, w, h, d, t * 1.6);
   const unit = Math.max(5, d * 1.05);
   if (DOT_MATRIX_STATE.event !== 'walking') {
@@ -2188,7 +2214,7 @@ function dotMatrixDraw(now) {
   }
   const catPositions = dotMatrixCatPositions(t, unit);
   catPositions.forEach((pos, i) => {
-    dotMatrixPreviewLayer(ctx, DOT_LAYERS.cat, pos.x, pos.y, unit * 32 / DOT_LAYER_SPECS.cat.cols, i === 0 ? 1 : 0.82);
+    dotMatrixAnimatedCat(ctx, DOT_LAYERS.cat, pos, unit * 32 / DOT_LAYER_SPECS.cat.cols, t, i);
   });
   if (DOT_MATRIX_STATE.fx) dotEventFx(ctx, w, h, d, t);
   if (DOT_MATRIX_STATE.bubble) dotCaption(ctx, w, h);
@@ -2196,9 +2222,50 @@ function dotMatrixDraw(now) {
 
 function dotMatrixPreviewLayer(ctx, layer, ox, oy, unit, alpha = 1) {
   if (!layer) return;
+  ctx.save();
+  ctx.globalAlpha = alpha;
   layer.forEach((row, y) => row.forEach((color, x) => {
-    if (color) dotPixel(ctx, ox + x * unit, oy + y * unit, unit * 0.82, color, alpha);
+    if (!color) return;
+    ctx.fillStyle = color;
+    ctx.fillRect(ox + x * unit, oy + y * unit, unit + 0.2, unit + 0.2);
   }));
+  ctx.restore();
+}
+
+function dotMatrixAnimatedCat(ctx, layer, position, unit, time, index) {
+  if (!layer) return;
+  const moving = DOT_MATRIX_STATE.motion && DOT_MATRIX_STATE.speed > 0;
+  const walking = moving && (DOT_MATRIX_STATE.event === 'walking' || DOT_MATRIX_STATE.pacing === 'pass' || (DOT_MATRIX_STATE.pacing !== 'pause' && ['chase', 'advance', 'back-away'].includes(DOT_MATRIX_STATE.reaction)));
+  const phase = time * (DOT_MATRIX_STATE.reaction === 'chase' ? 11 : 7) + index * 1.9;
+  const breath = moving ? Math.sin(time * 2.2 + index) * 0.3 : 0;
+  const resting = DOT_MATRIX_STATE.reaction === 'rest';
+  const crouching = resting || DOT_MATRIX_STATE.reaction === 'crouch';
+  ctx.save();
+  ctx.fillStyle = 'rgba(0,0,0,.24)';
+  ctx.beginPath();
+  ctx.ellipse(position.x + 31 * unit, position.groundY + 32 * unit, 18 * unit, 2 * unit, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.translate(position.x, position.y + (crouching ? 8 * unit : 0));
+  ctx.scale(1, crouching ? 0.75 : 1);
+  ctx.globalAlpha = index === 0 ? 1 : 0.92;
+  layer.forEach((row, rowIndex) => row.forEach((color, columnIndex) => {
+    if (!color) return;
+    let shiftX = 0;
+    let shiftY = 0;
+    if (rowIndex >= 26 && walking && !crouching) {
+      const legPhase = phase + (columnIndex < 29 ? 0 : Math.PI) + (columnIndex % 8 < 4 ? Math.PI : 0);
+      const leverage = (rowIndex - 25) / 7;
+      shiftX = Math.sin(legPhase) * 1.7 * leverage;
+      shiftY = -Math.max(0, Math.cos(legPhase)) * 1.2 * leverage;
+    } else if (columnIndex < 18 && rowIndex < 23 && moving) {
+      shiftX = Math.sin(time * 2.4 + index) * (23 - rowIndex) * 0.065;
+    } else if (rowIndex < 26) {
+      shiftY = breath;
+    }
+    ctx.fillStyle = color;
+    ctx.fillRect((columnIndex + shiftX) * unit, (rowIndex + shiftY) * unit, unit + 0.3, unit + 0.3);
+  }));
+  ctx.restore();
 }
 
 function dotMatrixPreviewLayerFit(ctx, layer, ox, oy, targetW, targetH, alpha = 1) {
@@ -2207,10 +2274,14 @@ function dotMatrixPreviewLayerFit(ctx, layer, ox, oy, targetW, targetH, alpha = 
   const cols = rows ? layer[0].length : 1;
   const unitX = targetW / cols;
   const unitY = targetH / rows;
-  const size = Math.min(unitX, unitY) * 0.9;
+  ctx.save();
+  ctx.globalAlpha = alpha;
   layer.forEach((row, y) => row.forEach((color, x) => {
-    if (color) dotPixel(ctx, ox + x * unitX, oy + y * unitY, size, color, alpha);
+    if (!color) return;
+    ctx.fillStyle = color;
+    ctx.fillRect(ox + x * unitX, oy + y * unitY, unitX + 0.2, unitY + 0.2);
   }));
+  ctx.restore();
 }
 
 function dotMatrixPreviewLayerFitTiled(ctx, layer, ox, oy, targetW, targetH, alpha = 1) {
@@ -2253,32 +2324,33 @@ function dotMatrixEncounterPosition(t, unit) {
 }
 
 function dotMatrixCatPositions(t, unit) {
-  const baseY = DOT_MATRIX_STATE.environment === 'home' ? 130 : 124;
-  const bob = DOT_MATRIX_STATE.motion ? Math.sin(t * 7) * unit * 0.4 : 0;
+  const baseY = 278 - 16 * unit;
+  const motion = DOT_MATRIX_STATE.motion && DOT_MATRIX_STATE.speed > 0;
   const reaction = DOT_MATRIX_STATE.reaction;
   const count = Math.max(1, Math.min(3, DOT_MATRIX_STATE.catCount));
-  const arrival = DOT_MATRIX_STATE.pacing === 'pause' ? Math.min(1, t / 1.4) : 1;
-  const passBy = DOT_MATRIX_STATE.pacing === 'pass' ? ((t * 72) % 960) : 0;
+  const progress = motion ? Math.min(1, t / 1.4) : 1;
+  const arrival = progress * progress * (3 - 2 * progress);
   const positions = [];
   for (let i = 0; i < count; i++) {
-    let x = 72 + arrival * 62 + passBy - i * unit * 7;
-    let y = baseY + i * unit * 2 + bob;
-    if (DOT_MATRIX_STATE.pacing === 'pause') x = Math.min(x, 214 - i * unit * 7);
-    if (reaction === 'advance') x += Math.sin(t * 2.6) * unit * 3 + unit * 10;
-    if (reaction === 'back-away') x -= Math.abs(Math.sin(t * 2.2)) * unit * 4;
-    if (reaction === 'jump') y -= Math.abs(Math.sin(t * 3.5)) * unit * 6;
-    if (reaction === 'crouch') y += unit * 3;
-    if (reaction === 'chase') x += Math.abs(Math.sin(t * 3.2)) * unit * 16;
-    if (reaction === 'celebrate') y -= Math.abs(Math.sin(t * 6)) * unit * 4;
-    if (reaction === 'inspect') x += unit * 14 + Math.sin(t * 2) * unit * 1.5;
-    if (reaction === 'slow-blink') x += unit * 7;
-    if (reaction === 'rest') { x += unit * 6; y += unit * 4; }
-    if (reaction === 'surround') {
-      const surround = [{ x:88, y:baseY + unit * 4 }, { x:232, y:baseY + unit }, { x:162, y:baseY - unit * 4 }];
-      x = surround[i]?.x || x;
-      y = surround[i]?.y || y;
+    let x = 104 - i * 40;
+    const groundY = baseY + i * 3;
+    let y = groundY;
+    if (DOT_MATRIX_STATE.event === 'walking') {
+      y += motion ? Math.sin(t * 14 + i * 1.9) * unit * 0.06 : 0;
+    } else {
+      if (reaction === 'advance' || reaction === 'chase') x += arrival * 48;
+      if (reaction === 'back-away') x -= arrival * 28;
+      if (reaction === 'inspect' || reaction === 'slow-blink') x += arrival * 32;
+      if (motion && (reaction === 'jump' || reaction === 'celebrate')) {
+        const jumpPhase = (t % 3) / 0.85;
+        if (jumpPhase < 1) y -= Math.sin(jumpPhase * Math.PI) * unit * 5;
+      }
     }
-    positions.push({ x, y });
+    if (reaction === 'surround') {
+      x = [70, 170, 120][i];
+      y = groundY - i * 10;
+    }
+    positions.push({ x, y, groundY });
   }
   return positions;
 }
