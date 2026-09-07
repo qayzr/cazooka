@@ -193,7 +193,7 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 .cv-rpill{font-family:var(--fm);font-size:7px;text-transform:uppercase;letter-spacing:.07em;padding:2px 7px;border-radius:999px;border:1px solid color-mix(in srgb,var(--cv-r) 50%,transparent);background:color-mix(in srgb,var(--cv-r) 12%,transparent);color:var(--cv-r)}
 .cv-name{font-family:'Bodoni Moda',Georgia,serif;font-weight:700;font-size:14px;color:var(--t1);line-height:1.25;text-wrap:balance}
 .cv-series{font-family:var(--fm);font-size:8px;text-transform:uppercase;letter-spacing:.1em;color:var(--cv-c);opacity:.75;margin-top:2px}
-.cv-art{height:96px;background:linear-gradient(135deg,color-mix(in srgb,var(--cv-r,var(--cv-c)) 28%,var(--s3)),color-mix(in srgb,var(--cv-r,var(--cv-c)) 6%,var(--s2)));display:flex;align-items:center;justify-content:center;font-size:44px;position:relative;overflow:hidden;user-select:none}
+.cv-art{height:var(--cv-art-h,96px);background:linear-gradient(135deg,color-mix(in srgb,var(--cv-r,var(--cv-c)) 28%,var(--s3)),color-mix(in srgb,var(--cv-r,var(--cv-c)) 6%,var(--s2)));display:flex;align-items:center;justify-content:center;font-size:44px;position:relative;overflow:hidden;user-select:none}
 .cv-art::after{content:'';position:absolute;inset:0;background:linear-gradient(to bottom,transparent 50%,var(--s1))}
 .cv-body{padding:8px 12px 10px;background:var(--s1);display:flex;flex-direction:column;gap:8px}
 .cv-desc{font-size:10.5px;color:var(--t2);font-style:italic;line-height:1.45}
@@ -404,7 +404,7 @@ body{background:var(--bg);color:var(--t1);font-family:var(--fb);line-height:1.5;
 @keyframes cmo-in{from{opacity:0;transform:scale(.84) translateY(12px)}to{opacity:1;transform:scale(1) translateY(0)}}
 /* Lightbox card: same 1:1.4 TCG ratio as library cards, just larger */
 .cmo-cv{width:300px!important;height:420px!important;display:flex!important;flex-direction:column!important}
-.cmo-cv .cv-art{height:100px!important;font-size:48px!important;flex-shrink:0!important}
+.cmo-cv .cv-art{height:var(--cv-art-h,100px)!important;font-size:48px!important;flex-shrink:0!important}
 .cmo-cv .cv-art::after{display:none}
 .cmo-cv .cv-hdr{flex-shrink:0!important;padding:10px 14px 8px!important}
 .cmo-cv .cv-name{font-size:16px!important}
@@ -2059,6 +2059,11 @@ function buildCardFaceHtml(card, opts = {}) {
   const layoutArt = standardLayout ? {} : art;
   const isFull = art.mode === 'full' && !!card.image_url;
   const clickAttr = onclick ? ` onclick="${onclick}"` : '';
+  const insetHeight = !standardLayout && card.image_url && art.mode !== 'full'
+    ? Math.max(54, Math.min(190, parseInt(art.insetHeight) || 100))
+    : null;
+  const rootVars = [`--cv-c:${tm.color}`, `--cv-r:${rc}`];
+  if (insetHeight) rootVars.push(`--cv-art-h:${insetHeight}px`);
 
   let artLayers = '';
   let artBoxHtml = `<div class="cv-art">${cardArtHTML(card, tm)}</div>`;
@@ -2076,7 +2081,7 @@ function buildCardFaceHtml(card, opts = {}) {
 
   const bodyStyle = [componentStyle(layoutArt, 'body'), layoutArt.bodyOffset ? `transform:translateY(${Math.round(layoutArt.bodyOffset/100*140)}px)` : ''].filter(Boolean).join(';');
 
-  return `<div class="${cssClass}${isFull ? ' art-full' : ''}" style="--cv-c:${tm.color};--cv-r:${rc}"${clickAttr}>
+  return `<div class="${cssClass}${isFull ? ' art-full' : ''}" style="${rootVars.join(';')}"${clickAttr}>
     ${artLayers}
     <div class="cv-hdr" style="${componentStyle(layoutArt, 'header')}">
       <div class="cv-trow">
@@ -5957,6 +5962,9 @@ function startSimulation() {
 
 async function initApp() {
   renderLibrary();
+  // Paint a usable entry screen immediately. Cloud data can be slow or
+  // unavailable on a static host, and should never leave the page blank.
+  showOnboardStep('register');
   // Pull the live card library from Supabase; a slow/dead network just
   // means we keep whatever baseLibrary() already fell back to.
   try {

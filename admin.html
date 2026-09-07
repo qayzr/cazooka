@@ -171,7 +171,7 @@
   .cv-rpill{font-family:var(--fm);font-size:7px;text-transform:uppercase;letter-spacing:.07em;padding:2px 7px;border-radius:999px;border:1px solid color-mix(in srgb,var(--cv-r) 50%,transparent);background:color-mix(in srgb,var(--cv-r) 12%,transparent);color:var(--cv-r)}
   .cv-name{font-family:'Bodoni Moda',Georgia,serif;font-weight:700;font-size:14px;color:var(--t1);line-height:1.25;text-wrap:balance}
   .cv-series{font-family:var(--fm);font-size:8px;text-transform:uppercase;letter-spacing:.1em;color:var(--cv-c);opacity:.75;margin-top:2px}
-  .cv-art{height:96px;background:linear-gradient(135deg,color-mix(in srgb,var(--cv-r,var(--cv-c)) 28%,var(--s3)),color-mix(in srgb,var(--cv-r,var(--cv-c)) 6%,var(--s2)));display:flex;align-items:center;justify-content:center;font-size:44px;position:relative;overflow:hidden;user-select:none}
+  .cv-art{height:var(--cv-art-h,96px);background:linear-gradient(135deg,color-mix(in srgb,var(--cv-r,var(--cv-c)) 28%,var(--s3)),color-mix(in srgb,var(--cv-r,var(--cv-c)) 6%,var(--s2)));display:flex;align-items:center;justify-content:center;font-size:44px;position:relative;overflow:hidden;user-select:none}
   .cv-art::after{content:'';position:absolute;inset:0;background:linear-gradient(to bottom,transparent 50%,var(--s1))}
   .cv-body{padding:8px 12px 10px;background:var(--s1);display:flex;flex-direction:column;gap:8px}
   .cv-desc{font-size:10.5px;color:var(--t2);font-style:italic;line-height:1.45}
@@ -192,7 +192,7 @@
   .cv-startpill{font-family:var(--fm);font-size:7.5px;padding:2px 8px;border-radius:999px;background:var(--acc-bg);border:1px solid var(--acc);color:var(--acc2)}
   .cv-subtext{font-family:var(--fm);font-size:9px;color:var(--t3)}
   .cmo-cv{width:300px!important;height:420px!important;display:flex!important;flex-direction:column!important}
-  .cmo-cv .cv-art{height:100px!important;font-size:48px!important;flex-shrink:0!important}
+  .cmo-cv .cv-art{height:var(--cv-art-h,100px)!important;font-size:48px!important;flex-shrink:0!important}
   .cmo-cv .cv-art::after{display:none}
   .cmo-cv .cv-hdr{flex-shrink:0!important;padding:10px 14px 8px!important}
   .cmo-cv .cv-name{font-size:16px!important}
@@ -203,6 +203,9 @@
   .cmo-cv .cv-stats-grid{gap:3px 10px!important}
   .ced-drag-hint{position:absolute;inset:0;z-index:3;cursor:grab;background:transparent}
   .ced-drag-hint:active{cursor:grabbing}
+  .ced-art-resize-handle{position:absolute;left:0;right:0;bottom:0;height:14px;z-index:4;cursor:ns-resize;opacity:0;transition:opacity .12s;background:linear-gradient(to top,rgba(240,160,48,.34),transparent)}
+  .ced-art-resize-handle::after{content:'';position:absolute;left:50%;bottom:4px;width:48px;height:3px;transform:translateX(-50%);border-radius:999px;background:var(--acc2);box-shadow:0 0 10px rgba(240,160,48,.35)}
+  .cv-art:hover .ced-art-resize-handle,.ced-art-resize-handle:active{opacity:1}
 
   /* ── Card Editor Modal ── */
   .ced-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:100;display:none}
@@ -1154,7 +1157,7 @@ let ART_DRAG_STATE = null;
 function defaultComponentStyle() { return { bgEnabled: false, bgColor: '#000000', bgOpacity: 55, textEnabled: false, textColor: '#ffffff' }; }
 function defaultArt() {
   return {
-    mode: 'inset', position: { x: 50, y: 50 }, zoom: 1,
+    mode: 'inset', position: { x: 50, y: 50 }, zoom: 1, insetHeight: 100,
     overlay: { enabled: false, color: '#000000', opacity: 40 }, bodyOffset: 0,
     components: { header: defaultComponentStyle(), body: defaultComponentStyle(), footer: defaultComponentStyle() },
   };
@@ -1482,7 +1485,11 @@ function buildCardFaceHtml(card, opts = {}) {
   // (e.g. the card grid) to avoid duplicate ids when many cards render at once.
   const artLayerId = interactive ? ' id="ced-art-layer"' : '';
   const dragTargetHtml = interactive ? `<div class="ced-drag-hint" id="ced-drag-target"></div>` : '';
+  const resizeHandleHtml = interactive && card.image_url && !isFull ? `<div class="ced-art-resize-handle" id="ced-art-resize-handle" title="Drag to resize image area"></div>` : '';
   const clickAttr = onclick ? ` onclick="${onclick}"` : '';
+  const insetHeight = card.image_url && !isFull ? clamp(parseInt(art.insetHeight) || 100, 54, 190) : null;
+  const rootVars = [`--cv-c:${tm.color}`, `--cv-r:${rc}`];
+  if (insetHeight) rootVars.push(`--cv-art-h:${insetHeight}px`);
 
   let artLayers = '';
   let artBoxHtml = `<div class="cv-art">${cardArtHTML(card, tm)}</div>`;
@@ -1498,12 +1505,12 @@ function buildCardFaceHtml(card, opts = {}) {
     artLayers += dragTargetHtml;
     artBoxHtml = '';
   } else if (card.image_url) {
-    artBoxHtml = `<div class="cv-art" style="position:relative">${cardArtHTML(card, tm)}${dragTargetHtml}</div>`;
+    artBoxHtml = `<div class="cv-art" style="position:relative">${cardArtHTML(card, tm)}${dragTargetHtml}${resizeHandleHtml}</div>`;
   }
 
   const bodyStyle = [componentStyle(art, 'body'), art.bodyOffset ? `transform:translateY(${Math.round(art.bodyOffset/100*140)}px)` : ''].filter(Boolean).join(';');
 
-  return `<div class="${cssClass}${isFull ? ' art-full' : ''}" style="--cv-c:${tm.color};--cv-r:${rc}"${clickAttr}>
+  return `<div class="${cssClass}${isFull ? ' art-full' : ''}" style="${rootVars.join(';')}"${clickAttr}>
     ${artLayers}
     <div class="cv-hdr" style="${componentStyle(art, 'header')}">
       <div class="cv-trow">
@@ -2846,14 +2853,43 @@ function applyArtPositionLive() {
   if (box) { box.style.objectPosition = `${pos.x}% ${pos.y}%`; box.style.transformOrigin = `${pos.x}% ${pos.y}%`; }
 }
 
+function applyInsetArtHeightLive() {
+  const card = document.querySelector('#ced-preview .cv');
+  if (!card || !CURRENT_ART) return;
+  card.style.setProperty('--cv-art-h', `${clamp(parseInt(CURRENT_ART.insetHeight) || 100, 54, 190)}px`);
+}
+
 function wireArtDrag() {
   const target = document.getElementById('ced-drag-target');
+  const resizeHandle = document.getElementById('ced-art-resize-handle');
+  if (resizeHandle) {
+    resizeHandle.onpointerdown = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!CURRENT_ART) CURRENT_ART = defaultArt();
+      CURRENT_ART.mode = CURRENT_ART.mode || 'inset';
+      ART_DRAG_STATE = {
+        mode:'resize-inset',
+        startY:e.clientY,
+        startHeight:clamp(parseInt(CURRENT_ART.insetHeight) || 100, 54, 190)
+      };
+      resizeHandle.setPointerCapture(e.pointerId);
+    };
+    resizeHandle.onpointermove = (e) => {
+      if (!ART_DRAG_STATE || ART_DRAG_STATE.mode !== 'resize-inset') return;
+      CURRENT_ART.insetHeight = clamp(ART_DRAG_STATE.startHeight + (e.clientY - ART_DRAG_STATE.startY), 54, 190);
+      applyInsetArtHeightLive();
+    };
+    resizeHandle.onpointerup = () => { ART_DRAG_STATE = null; };
+    resizeHandle.onpointercancel = () => { ART_DRAG_STATE = null; };
+  }
   if (!target) return;
   target.onpointerdown = (e) => {
     e.preventDefault();
     if (!CURRENT_ART) CURRENT_ART = defaultArt();
     const box = target.getBoundingClientRect();
     ART_DRAG_STATE = {
+      mode:'position',
       startX: e.clientX, startY: e.clientY,
       boxW: box.width || 1, boxH: box.height || 1,
       startPos: { ...(CURRENT_ART.position || { x:50, y:50 }) },
@@ -2861,7 +2897,7 @@ function wireArtDrag() {
     target.setPointerCapture(e.pointerId);
   };
   target.onpointermove = (e) => {
-    if (!ART_DRAG_STATE) return;
+    if (!ART_DRAG_STATE || ART_DRAG_STATE.mode !== 'position') return;
     const dxPct = ((e.clientX - ART_DRAG_STATE.startX) / ART_DRAG_STATE.boxW) * 100;
     const dyPct = ((e.clientY - ART_DRAG_STATE.startY) / ART_DRAG_STATE.boxH) * 100;
     CURRENT_ART.position = {
@@ -2871,6 +2907,7 @@ function wireArtDrag() {
     applyArtPositionLive();
   };
   target.onpointerup = () => { ART_DRAG_STATE = null; };
+  target.onpointercancel = () => { ART_DRAG_STATE = null; };
 }
 
 /* ── Build a card-shaped object from the current form state; used by
@@ -2948,6 +2985,7 @@ function syncArtFromFields() {
   // gates on CURRENT_IMAGE_URL.
   if (!CURRENT_ART) CURRENT_ART = defaultArt();
   CURRENT_ART.zoom = parseFloat(document.getElementById('f-art-zoom').value) || 1;
+  CURRENT_ART.insetHeight = clamp(parseInt(CURRENT_ART.insetHeight) || 100, 54, 190);
   CURRENT_ART.bodyOffset = parseInt(document.getElementById('f-content-offset').value) || 0;
   CURRENT_ART.overlay = CURRENT_ART.overlay || defaultArt().overlay;
   CURRENT_ART.overlay.enabled = document.getElementById('f-art-tint-enabled').checked;
