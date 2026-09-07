@@ -1120,7 +1120,7 @@ let DOT_MATRIX_STATE = {
 };
 const DOT_LAYER_SPECS = {
   environment: { cols:96, rows:20 },
-  cat: { cols:32, rows:20 },
+  cat: { cols:64, rows:40 },
   encounter: { cols:32, rows:20 }
 };
 const DOT_DRAW = { brush:'#ffc860', brushSize:1, active:false };
@@ -1874,6 +1874,12 @@ function dotMatrixHydrateLayer(layer, layerName) {
   const blank = dotMatrixBlankLayer(layerName);
   if (!Array.isArray(layer)) return blank;
   const spec = DOT_LAYER_SPECS[layerName] || DOT_LAYER_SPECS.cat;
+  if (layerName === 'cat' && layer.length === 20 && layer.every(row => Array.isArray(row) && row.length === 32)) {
+    layer.forEach((row, rowIndex) => row.forEach((color, columnIndex) => {
+      dotMatrixRect(blank, columnIndex * 2, rowIndex * 2, 2, 2, color || null);
+    }));
+    return blank;
+  }
   for (let y = 0; y < Math.min(spec.rows, layer.length); y++) {
     const row = layer[y];
     if (!Array.isArray(row)) continue;
@@ -1941,11 +1947,53 @@ function dotMatrixEnvironmentTemplate(kind) {
 
 function dotMatrixCatTemplate() {
   const fur = DOT_FURS[DOT_MATRIX_STATE.furPreset] || DOT_FURS.gold;
-  const p = { o:fur.o, s:fur.s, d:fur.d, w:fur.w, e:'#05080c', p:'#f9a8d4', r:'#fb7185' };
+  const palette = { o:fur.o, s:fur.s, d:fur.d, w:fur.w, e:'#101820', p:'#d99191', g:'#a3c775' };
   const layer = dotMatrixBlankLayer('cat');
-  const mouth = DOT_MATRIX_STATE.mood === 'happy' ? 'ooppooo' : DOT_MATRIX_STATE.mood === 'spicy' ? 'oeooeoo' : DOT_MATRIX_STATE.mood === 'hurt' ? 'oereooo' : 'ooeeooo';
-  dotMatrixMap(layer, 6, 10, ['  oo       ',' ooooo  o ','oooooooooo','oooooooooo',' oooooooo ','  s    s  '], p);
-  dotMatrixMap(layer, 12, 6, [' o   o ','ooooooo','oeoeooo', mouth, 'ooooooo',' ooooo '], p);
+  dotMatrixMap(layer, 8, 8, [
+    '                                d       ',
+    '                               dod  d   ',
+    '                               dpoddod  ',
+    '                              dopoodpod ',
+    '   dd                         doooooood ',
+    '  dood                       dooooooood ',
+    ' dood                        dooogewooop',
+    ' dood                       doooooowwww ',
+    '  dood        ddddddddddd  ddooooooowwe  ',
+    '   dood    dddoooooooooooddoooooooooww   ',
+    '    dood ddoowwooooooooooooooooooowd    ',
+    '     doodooowwwoooooooooooooooooowd     ',
+    '      dooowwwoooooooooooooooooooowd     ',
+    '      doooooooooooooooooooooooooowd     ',
+    '      doooooooooooooooooooooooooswd     ',
+    '      doooossooooooooooooooooossowd      ',
+    '      doooosssoooooooooooooosssdowd      ',
+    '       dooossddddssssssssddddsddowd      ',
+    '       doosd  dsddddddddd   dsd dowd     ',
+    '       doosd  dsd          dsd  dowd     ',
+    '       dosd   dsd          dsd  dowd     ',
+    '      doosd   dsdd         dsdd dowd     ',
+    '      dowwwd  dsssd        dsssd dowwwd  ',
+    '       dddd    ddd         ddd   dddd    '
+  ], palette);
+  const stripes = [[24,18],[28,18],[32,18],[36,19],[42,13]];
+  stripes.forEach(([column, row]) => {
+    for (let offset = 0; offset < 3; offset++) {
+      if (layer[row + offset]?.[column + Math.floor(offset / 2)] === fur.o) {
+        dotMatrixPut(layer, column + Math.floor(offset / 2), row + offset, fur.s);
+      }
+    }
+  });
+  const mood = DOT_MATRIX_STATE.mood;
+  if (mood === 'tired' || mood === 'hurt') {
+    dotMatrixRect(layer, 44, 14, 2, 1, palette.e);
+  } else if (mood === 'spicy') {
+    dotMatrixPut(layer, 43, 13, fur.d);
+    dotMatrixPut(layer, 44, 14, fur.d);
+  } else if (mood === 'happy') {
+    dotMatrixPut(layer, 44, 14, palette.w);
+  }
+  dotMatrixPut(layer, 47, 16, fur.w);
+  dotMatrixPut(layer, 48, 17, fur.w);
   return layer;
 }
 
@@ -2140,7 +2188,7 @@ function dotMatrixDraw(now) {
   }
   const catPositions = dotMatrixCatPositions(t, unit);
   catPositions.forEach((pos, i) => {
-    dotMatrixPreviewLayer(ctx, DOT_LAYERS.cat, pos.x, pos.y, unit, i === 0 ? 1 : 0.82);
+    dotMatrixPreviewLayer(ctx, DOT_LAYERS.cat, pos.x, pos.y, unit * 32 / DOT_LAYER_SPECS.cat.cols, i === 0 ? 1 : 0.82);
   });
   if (DOT_MATRIX_STATE.fx) dotEventFx(ctx, w, h, d, t);
   if (DOT_MATRIX_STATE.bubble) dotCaption(ctx, w, h);
