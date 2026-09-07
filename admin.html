@@ -1119,9 +1119,9 @@ let DOT_MATRIX_STATE = {
   copy:'Cazooka pads through the back alley, scanning for the next interesting thing.'
 };
 const DOT_LAYER_SPECS = {
-  environment: { cols:96, rows:20 },
+  environment: { cols:288, rows:60 },
   cat: { cols:64, rows:40 },
-  encounter: { cols:32, rows:20 }
+  encounter: { cols:64, rows:40 }
 };
 const DOT_DRAW = { brush:'#ffc860', brushSize:1, active:false };
 let DOT_LAYERS = { environment:null, cat:null, encounter:null };
@@ -1874,9 +1874,11 @@ function dotMatrixHydrateLayer(layer, layerName) {
   const blank = dotMatrixBlankLayer(layerName);
   if (!Array.isArray(layer)) return blank;
   const spec = DOT_LAYER_SPECS[layerName] || DOT_LAYER_SPECS.cat;
-  if (layerName === 'cat' && layer.length === 20 && layer.every(row => Array.isArray(row) && row.length === 32)) {
+  const legacyCols = layerName === 'environment' ? 96 : 32;
+  const scale = spec.cols / legacyCols;
+  if (layer.length === 20 && layer.every(row => Array.isArray(row) && row.length === legacyCols)) {
     layer.forEach((row, rowIndex) => row.forEach((color, columnIndex) => {
-      dotMatrixRect(blank, columnIndex * 2, rowIndex * 2, 2, 2, color || null);
+      dotMatrixRect(blank, columnIndex * scale, rowIndex * scale, scale, scale, color || null);
     }));
     return blank;
   }
@@ -1914,7 +1916,7 @@ function dotMatrixMap(layer, x, y, rows, palette) {
 
 function dotMatrixEnvironmentTemplate(kind) {
   const pal = DOT_PALETTES[DOT_MATRIX_STATE.palette] || DOT_PALETTES.cool;
-  const layer = dotMatrixBlankLayer('environment');
+  const layer = Array.from({ length:20 }, () => Array(96).fill(null));
   dotMatrixRect(layer, 0, 17, 96, 3, pal.ground);
   dotMatrixRect(layer, 0, 19, 96, 1, pal.ground2);
   if (kind === 'forest') {
@@ -1960,7 +1962,7 @@ function dotMatrixEnvironmentTemplate(kind) {
     dotMatrixMap(layer, 4, 13, ['  ll ',' llll','  ss ',' dddd'], {l:'#6f9878',s:'#a8b19a',d:'#697f88'});
     [22, 54, 86].forEach(column => dotMatrixRect(layer, column, 18, 5, 1, '#687e84'));
   }
-  return layer;
+  return dotMatrixHydrateLayer(layer, 'environment');
 }
 
 function dotMatrixCatTemplate(furPreset = DOT_MATRIX_STATE.furPreset, mood = DOT_MATRIX_STATE.mood) {
@@ -2015,23 +2017,18 @@ function dotMatrixCatTemplate(furPreset = DOT_MATRIX_STATE.furPreset, mood = DOT
 }
 
 function dotMatrixEncounterTemplate(kind) {
-  const layer = dotMatrixBlankLayer('encounter');
+  const layer = Array.from({ length:20 }, () => Array(32).fill(null));
   if (kind === 'loot-card') dotMatrixMap(layer, 9, 7, ['   ssssssss  ','  swwwwwwwws ',' swwwwwwwwwws','sgggggggggggs','sddddyyd ddds','sddddyyddddds','sddddddddddds','sddddddddddds',' sssssssssss '], { s:'#405962', w:'#97b4b8', g:'#647c85', d:'#34515e', y:'#e6c875' });
   else if (['friend-cat','rebuff-cat','ally-cat','market-cat','pvp-rival','fight-threat'].includes(kind)) {
     const hostile = ['rebuff-cat','pvp-rival','fight-threat'].includes(kind);
     const sprite = dotMatrixCatTemplate(kind === 'market-cat' ? 'gold' : hostile ? 'charcoal' : 'cream', hostile ? 'spicy' : 'happy');
-    for (let row = 0; row < 20; row++) {
-      for (let column = 0; column < 32; column++) {
-        const sourceColumn = (31 - column) * 2;
-        layer[row][column] = sprite[row * 2][sourceColumn] || sprite[row * 2 + 1][sourceColumn] || sprite[row * 2][sourceColumn + 1];
-      }
-    }
+    return sprite.map(row => [...row].reverse());
   }
   else if (kind === 'escape-route') dotMatrixMap(layer, 10, 9, ['  s     ',' sss    ','ssssssss','   sss  ','    s   '], { s:'#94a3b8' });
   else if (kind === 'return-door') dotMatrixMap(layer, 11, 4, ['sssssssss','sddddddds','sdwwwwwds','sdwgwgwds','sdwwwwwds','sddddddds','sdgggggds','sdgggggys','sdgggggds','sddddddds','sdgggggds','sddddddds','sssssssss'], { s:'#7e9b9b', d:'#314c53', w:'#afc6be', g:'#4e7379', y:'#edd592' });
   else if (kind === 'sleep-bed') dotMatrixMap(layer, 8, 11, ['   sssssssss   ',' sswwwwwwwwwss ','swwbbbbbbbbbwws','swbbbbbbbbbbbws','swwbbbbbbbbbwws',' sswwwwwwwwwss ','   sssssssss   '], { s:'#526c76', w:'#a4bdc0', b:'#778eaa' });
   else dotMatrixMap(layer, 12, 8, ['    ss    ','  swwwws  ',' sw    ws ','sw      ws',' sw    ws ','  swwwwss ','    ss sds','        sds','         s '], { s:'#72999f', w:'#bdd9d6', d:'#445a69' });
-  return layer;
+  return dotMatrixHydrateLayer(layer, 'encounter');
 }
 
 function dotMatrixMaybeResetTemplateLayers(force = false) {
@@ -2185,6 +2182,8 @@ function dotMatrixDraw(now) {
   const speed = DOT_MATRIX_STATE.speed / 7;
   const t = DOT_MATRIX_STATE.motion ? ((now - DOT_MATRIX_STARTED_AT) / 1000) * speed : 0;
   const d = DOT_MATRIX_STATE.dotSize;
+  const unit = Math.max(5, d * 1.05);
+  const pixelSize = unit * 32 / DOT_LAYER_SPECS.cat.cols;
   const pal = DOT_PALETTES[DOT_MATRIX_STATE.palette] || DOT_PALETTES.cool;
   ctx.clearRect(0, 0, w, h);
   ctx.fillStyle = pal.bg;
@@ -2192,7 +2191,7 @@ function dotMatrixDraw(now) {
   dotSky(ctx, w, h, d, t, pal);
   const envScrolling = DOT_MATRIX_STATE.envAction === 'scroll' || DOT_MATRIX_STATE.pacing === 'pass';
   const envShift = envScrolling
-    ? -((t * (DOT_MATRIX_STATE.speed + 4) * 18) % w)
+    ? -(t * (DOT_MATRIX_STATE.speed + 4) * 18)
     : 0;
   const envShake = DOT_MATRIX_STATE.envAction === 'shake' ? Math.sin(t * 18) * 5 : 0;
   const envAlpha = DOT_MATRIX_STATE.envAction === 'dim' ? 0.58 : 0.95;
@@ -2200,21 +2199,17 @@ function dotMatrixDraw(now) {
     ctx.fillStyle = `rgba(250,204,21,${0.08 + Math.abs(Math.sin(t * 6)) * 0.08})`;
     ctx.fillRect(0, 0, w, h);
   }
-  if (envScrolling) {
-    dotMatrixPreviewLayerFitTiled(ctx, DOT_LAYERS.environment, envShift + envShake, 108, w, 200, envAlpha);
-  } else {
-    dotMatrixPreviewLayerFit(ctx, DOT_LAYERS.environment, envShake, 108, w, 200, envAlpha);
-  }
+  const environmentY = 308 - DOT_LAYER_SPECS.environment.rows * pixelSize;
+  dotMatrixPreviewEnvironment(ctx, DOT_LAYERS.environment, envShift + envShake, environmentY, w, pixelSize, envAlpha);
   if (DOT_MATRIX_STATE.grid) dotMatrixZoneGuides(ctx, w, h);
   if (DOT_MATRIX_STATE.envAction === 'rain-pulse') dotWeather(ctx, w, h, d, t * 1.6);
-  const unit = Math.max(5, d * 1.05);
   if (DOT_MATRIX_STATE.event !== 'walking') {
     const encounterPos = dotMatrixEncounterPosition(t, unit);
-    dotMatrixPreviewLayer(ctx, DOT_LAYERS.encounter, encounterPos.x, encounterPos.y, unit, 1);
+    dotMatrixPreviewLayer(ctx, DOT_LAYERS.encounter, encounterPos.x, 278 - 32 * pixelSize + encounterPos.y - 112, pixelSize, 1);
   }
   const catPositions = dotMatrixCatPositions(t, unit);
   catPositions.forEach((pos, i) => {
-    dotMatrixAnimatedCat(ctx, DOT_LAYERS.cat, pos, unit * 32 / DOT_LAYER_SPECS.cat.cols, t, i);
+    dotMatrixAnimatedCat(ctx, DOT_LAYERS.cat, pos, pixelSize, t, i);
   });
   if (DOT_MATRIX_STATE.fx) dotEventFx(ctx, w, h, d, t);
   if (DOT_MATRIX_STATE.bubble) dotCaption(ctx, w, h);
@@ -2246,7 +2241,6 @@ function dotMatrixAnimatedCat(ctx, layer, position, unit, time, index) {
   ctx.ellipse(position.x + 31 * unit, position.groundY + 32 * unit, 18 * unit, 2 * unit, 0, 0, Math.PI * 2);
   ctx.fill();
   ctx.translate(position.x, position.y + (crouching ? 8 * unit : 0));
-  ctx.scale(1, crouching ? 0.75 : 1);
   ctx.globalAlpha = index === 0 ? 1 : 0.92;
   layer.forEach((row, rowIndex) => row.forEach((color, columnIndex) => {
     if (!color) return;
@@ -2263,33 +2257,19 @@ function dotMatrixAnimatedCat(ctx, layer, position, unit, time, index) {
       shiftY = breath;
     }
     ctx.fillStyle = color;
-    ctx.fillRect((columnIndex + shiftX) * unit, (rowIndex + shiftY) * unit, unit + 0.3, unit + 0.3);
+    const poseRow = crouching ? Math.round(rowIndex * 0.75) : rowIndex;
+    ctx.fillRect((columnIndex + shiftX) * unit, (poseRow + shiftY) * unit, unit + 0.2, unit + 0.2);
   }));
   ctx.restore();
 }
 
-function dotMatrixPreviewLayerFit(ctx, layer, ox, oy, targetW, targetH, alpha = 1) {
-  if (!layer) return;
-  const rows = layer.length;
-  const cols = rows ? layer[0].length : 1;
-  const unitX = targetW / cols;
-  const unitY = targetH / rows;
-  ctx.save();
-  ctx.globalAlpha = alpha;
-  layer.forEach((row, y) => row.forEach((color, x) => {
-    if (!color) return;
-    ctx.fillStyle = color;
-    ctx.fillRect(ox + x * unitX, oy + y * unitY, unitX + 0.2, unitY + 0.2);
-  }));
-  ctx.restore();
-}
-
-function dotMatrixPreviewLayerFitTiled(ctx, layer, ox, oy, targetW, targetH, alpha = 1) {
-  if (!layer) return;
-  const offset = ((ox % targetW) + targetW) % targetW;
-  const start = offset === 0 ? 0 : offset - targetW;
-  for (let x = start; x < targetW; x += targetW) {
-    dotMatrixPreviewLayerFit(ctx, layer, x, oy, targetW, targetH, alpha);
+function dotMatrixPreviewEnvironment(ctx, layer, offsetX, offsetY, width, pixelSize, alpha = 1) {
+  if (!layer?.[0]?.length) return;
+  const tileWidth = layer[0].length * pixelSize;
+  const offset = ((offsetX % tileWidth) + tileWidth) % tileWidth;
+  const start = offset === 0 ? 0 : offset - tileWidth;
+  for (let column = start; column < width; column += tileWidth) {
+    dotMatrixPreviewLayer(ctx, layer, column, offsetY, pixelSize, alpha);
   }
 }
 
